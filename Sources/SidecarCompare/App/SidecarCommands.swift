@@ -1,6 +1,10 @@
 import SwiftUI
 
 struct WorkspaceActions {
+    var canPreviousDifference: Bool
+    var canNextDifference: Bool
+    var previousDifference: @MainActor () -> Void
+    var nextDifference: @MainActor () -> Void
     var canOpen: Bool
     var canSwap: Bool
     var canExport: Bool
@@ -37,6 +41,13 @@ struct SidecarCommands: Commands {
                 .keyboardShortcut("e").disabled(actions?.canExport != true)
         }
         CommandMenu("Comparison") {
+            Button("Previous Difference") { actions?.previousDifference() }
+                .keyboardShortcut(.upArrow, modifiers: [.command, .option])
+                .disabled(actions?.canPreviousDifference != true)
+            Button("Next Difference") { actions?.nextDifference() }
+                .keyboardShortcut(.downArrow, modifiers: [.command, .option])
+                .disabled(actions?.canNextDifference != true)
+            Divider()
             Button("Swap A and B") { actions?.swap() }
                 .keyboardShortcut("s", modifiers: [.command, .option]).disabled(actions?.canSwap != true)
             Button("Clear Comparison") { actions?.clear() }

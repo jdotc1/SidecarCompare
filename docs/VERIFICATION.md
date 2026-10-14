@@ -26,3 +26,9 @@ DEBUG-only opt-in acceptance controls can hold import/comparison/export completi
 Evidence is bounded development acceptance, not exhaustive races, a performance benchmark, an OS/architecture install matrix, clinical validation, BIDS validation or scan-equivalence validation. Accessibility work was explicitly deferred. Release installation/Gatekeeper qualification, Developer ID signing and notarization are not claimed. Full reports retain original metadata; repository sanitization is not de-identification.
 
 All fixtures are synthetic. There is no third-party runtime dependency or app networking. Compiled icon resources are included to reproduce app staging; build caches, local credentials, disposable UI inputs, original archive checksums and raw local history are excluded.
+
+## Comparison review feature increment
+
+Status filtering now composes with search/category and differences-only; status counts cover the full comparison. Native header sorting is available on all five columns. A/B sort by raw bounded preview text rather than numerical magnitude. Previous/Next Difference follows visible sort order, skips Equal, stops at either end and updates the inspector; shortcuts are Command-Option-Up/Down. Filters and sorting remain presentation-only and do not alter exports.
+
+Accepted new receipts: `evidence/87-review-navigation-final-build.log` (staged debug app) and `evidence/89-review-navigation-release-build.log` (release compilation), both with warnings-as-errors. Focused native observations with the bundled synthetic example confirmed status counts/filter combinations, hidden-selection clearing, all-column sorting, preserved selection, inspector updates, shortcut navigation and disabled endpoints. Original raw UI captures remain local. Existing core/session/oracle/repository receipts above were reused without rerunning suites. No accessibility work or new performance/OS-matrix campaign was performed.

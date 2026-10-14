@@ -67,3 +67,7 @@ No image reading, DICOM conversion, BIDS inheritance/dataset validation, automat
 `Sources/SidecarCore` contains parser, exact decimal arithmetic, catalog, comparator, reports, file protection, and session state. `Sources/SidecarCompare` contains the SwiftUI app and narrow AppKit adapters. `Sources/SidecarCLI` exposes the optional command-line interface. `Tests`, `Fixtures`, `script`, `Packaging`, `docs`, and `evidence` contain regression tests, synthetic examples, build/verification tools, bundle metadata, decisions, and actual logs.
 
 MIT license; see [LICENSE](LICENSE). All supplied fixtures are synthetic. No clinical data, third-party runtime, build cache, signing identity, or compiled application executable is included. The accepted compiled icon resources are included for reproducible app staging.
+
+### Reviewing results
+
+Use Status to narrow the table to a specific outcome; its counts describe the full comparison. Click any column header to sort, and click again to reverse direction. A/B columns sort raw preview text rather than numerical magnitude. Previous/Next Difference follows the visible table order and opens the inspector; use Command-Option-Up/Down from the Comparison menu. Navigation stops at either end. Search, category, status and sorting affect the table only; exports retain the full comparison.

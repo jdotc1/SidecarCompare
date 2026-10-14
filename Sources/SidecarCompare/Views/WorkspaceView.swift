@@ -14,6 +14,8 @@ struct WorkspaceView: View {
     @State private var exportSnapshot: ExportSnapshot?
     @State private var search = ""
     @State private var differencesOnly = true
+    @State private var status: DifferenceStatus?
+    @State private var sortOrder = [KeyPathComparator(\ComparisonRow.path)]
     @State private var category: FieldCategory?
     @State private var milliseconds = false
     @State private var selection: String?
@@ -53,12 +55,23 @@ struct WorkspaceView: View {
             Button("OK") { actionError = nil }
         } message: { Text(actionError ?? "") }
         .focusedSceneValue(\.workspaceActions, actions)
+        .onChange(of: status) { _, status in
+            if status == .equal { differencesOnly = false }
+        }
+        .onChange(of: differencesOnly) { _, enabled in
+            if enabled && status == .equal { status = nil }
+        }
+        .onChange(of: visibleRows.map(\.id)) { _, ids in
+            if let selection, !ids.contains(selection) { self.selection = nil }
+        }
         .onChange(of: session.a?.id) { _, _ in selection = nil; notification = nil }
         .onChange(of: session.b?.id) { _, _ in selection = nil; notification = nil }
     }
 
     private var visibleRows: [ComparisonRow] {
-        session.comparison?.filtered(search: search, differencesOnly: differencesOnly, category: category) ?? []
+        (session.comparison?.filtered(search: search, differencesOnly: differencesOnly, category: category) ?? [])
+            .filter { status == nil || $0.status == status }
+            .sorted(using: sortOrder + [KeyPathComparator(\ComparisonRow.id)])
     }
     private var selectedRow: ComparisonRow? {
         guard let selection else { return nil }
@@ -70,6 +83,7 @@ struct WorkspaceView: View {
             .id(fileWellReset)
     }
     private var filterBar: some View {
+        VStack(alignment: .leading, spacing: 8) {
         HStack(spacing: 14) {
             Toggle("Differences only", isOn: $differencesOnly).toggleStyle(.checkbox)
             Picker("Category", selection: $category) {
@@ -81,6 +95,13 @@ struct WorkspaceView: View {
                 Text("Seconds").tag(false)
                 Text("Milliseconds").tag(true)
             }.pickerStyle(.menu).frame(width: 185)
+        }
+            Picker("Status", selection: $status) {
+                Text("All statuses").tag(Optional<DifferenceStatus>.none)
+                ForEach(DifferenceStatus.allCases, id: \.self) { item in
+                    Text("\(item.rawValue) (\(session.comparison?.counts[item] ?? 0))").tag(Optional(item))
+                }
+            }.frame(width: 200)
         }.padding(.horizontal, 16).padding(.bottom, 12)
     }
     @ViewBuilder private var comparisonContent: some View {
@@ -96,12 +117,12 @@ struct WorkspaceView: View {
             if result.rows.isEmpty {
                 ContentUnavailableView("Both objects are empty", systemImage: "doc", description: Text("There are no fields to compare. This does not establish metadata completeness."))
             } else {
-                ComparisonTable(rows: visibleRows, milliseconds: milliseconds, selection: $selection)
+                ComparisonTable(rows: visibleRows, milliseconds: milliseconds, selection: $selection, sortOrder: $sortOrder)
                     .overlay {
                         if visibleRows.isEmpty {
                             VStack(spacing: 10) {
                                 Text("No rows match the current filters.").foregroundStyle(.secondary)
-                                Button("Show All Rows") { search = ""; category = nil; differencesOnly = false }
+                                Button("Show All Rows") { search = ""; category = nil; status = nil; differencesOnly = false }
                             }
                         }
                     }
@@ -141,6 +162,10 @@ struct WorkspaceView: View {
             Button(action: clear) { Label("Clear", systemImage: "xmark.circle") }.disabled(!canModify)
         }
         ToolbarItemGroup {
+            Button { navigateDifference(forward: false) } label: { Label("Previous Difference", systemImage: "chevron.up") }
+                .disabled(differenceTarget(forward: false) == nil)
+            Button { navigateDifference(forward: true) } label: { Label("Next Difference", systemImage: "chevron.down") }
+                .disabled(differenceTarget(forward: true) == nil)
             Button { showPolicy = true } label: { Label("Comparison Rule", systemImage: "slider.horizontal.3") }
                 .disabled(!canModify)
                 .popover(isPresented: $showPolicy) { PolicyEditor(policy: session.policy, apply: { session.setPolicy($0) }) }
@@ -150,9 +175,25 @@ struct WorkspaceView: View {
     }
     private var canModify: Bool { !showImporter && exportSnapshot == nil }
     private var actions: WorkspaceActions {
-        WorkspaceActions(canOpen: canModify, canSwap: session.canSwap && canModify, canExport: session.comparison != nil && canModify,
+        WorkspaceActions(canPreviousDifference: differenceTarget(forward: false) != nil,
+                         canNextDifference: differenceTarget(forward: true) != nil,
+                         previousDifference: { navigateDifference(forward: false) },
+                         nextDifference: { navigateDifference(forward: true) }, canOpen: canModify, canSwap: session.canSwap && canModify, canExport: session.comparison != nil && canModify,
                          openA: { choose(.a) }, openB: { choose(.b) }, swap: { session.swap() }, clear: clear,
                          example: example, export: export, copySummary: copySummary)
+    }
+    private func differenceTarget(forward: Bool) -> String? {
+        guard !session.isBusy, canModify else { return nil }
+        let rows = visibleRows
+        let index = rows.firstIndex { $0.id == selection }
+        let candidates = forward ? Array(rows.dropFirst(index.map { $0 + 1 } ?? 0))
+            : Array(rows.prefix(index ?? rows.count).reversed())
+        return candidates.first { $0.status != .equal }?.id
+    }
+    private func navigateDifference(forward: Bool) {
+        guard let target = differenceTarget(forward: forward) else { return }
+        selection = target
+        showInspector = true
     }
     private func choose(_ slot: FileSlot) {
         guard canModify else { return }
@@ -167,7 +208,7 @@ struct WorkspaceView: View {
         do {
             let pair = try ExampleSidecars.documents()
             session.replace(a: pair.0, b: pair.1)
-            search = ""; category = nil; differencesOnly = true
+            search = ""; category = nil; status = nil; differencesOnly = true
         } catch { actionError = "The bundled synthetic example could not be loaded." }
     }
     private func export() {

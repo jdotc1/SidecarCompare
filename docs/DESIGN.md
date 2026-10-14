@@ -27,3 +27,7 @@ No document values or paths in logs/errors. The app never adds selected-file nam
 
 ## Acceptance
 Parser/comparison/report/session/file-I/O tests must pass under Swift 6 with warnings treated as errors. Deterministic synthetic cases and a Python Decimal/JSON oracle cross-check must pass. On macOS, build the GUI, stage/sign the development bundle, launch it and run the manual keyboard, drag/drop, accessibility, privacy, cancellation and export acceptance list. Linux testing cannot satisfy this native gate. No publish/push, Developer ID signing, notarization, or distribution claim occurs in this handoff.
+
+## Comparison review controls
+
+Status filtering composes with search/category/differences-only. Counts in the status picker describe the entire loaded comparison. Selecting Equal turns off Differences only; enabling Differences only clears an Equal status filter. Hidden selections clear. Clicking table headers sorts ascending/descending; A/B sort by bounded raw preview text, not numerical magnitude or converted display values. Stable row IDs break sort ties. Sorting preserves visible selection. Previous/Next Difference follows visible sort order, skips Equal, stops at the ends and opens the selected field in the inspector. With no selection, Next starts at the first visible difference and Previous starts at the last. Commands use Command-Option-Up/Down. Filters, sorting and selection never alter report contents.
