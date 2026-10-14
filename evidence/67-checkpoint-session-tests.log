@@ -1,0 +1,38 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 153]
+[Planning deferred tasks]
+[1 / 15]
+[5 / 15] sidecar-compare-product
+[7 / 17] sidecar-compare-product
+[12 / 22] sidecar-compare-product
+[14 / 22] SidecarCoreTests-product
+[17 / 20] SidecarCoreTests-product
+[19 / 20] sidecar-compare-product
+[19 / 20] SidecarCoreTests-product
+[20 / 21] SidecarCoreTests-product
+[22 / 22] sidecar-compare-product
+Build complete! (7.42 sec)
+Test Suite 'Selected tests' started at 2026-10-14 12:56:35.767.
+Test Suite 'SidecarCoreTests.xctest' started at 2026-10-14 12:56:35.772.
+Test Suite 'SessionTests' started at 2026-10-14 12:56:35.772.
+Test Case '-[SidecarCoreTests.SessionTests testCancelSlotAndSwapGuardDuringLoading]' started.
+Test Case '-[SidecarCoreTests.SessionTests testCancelSlotAndSwapGuardDuringLoading]' passed (0.063 seconds).
+Test Case '-[SidecarCoreTests.SessionTests testClearInvalidatesInFlightLoadAndResetsPolicy]' started.
+Test Case '-[SidecarCoreTests.SessionTests testClearInvalidatesInFlightLoadAndResetsPolicy]' passed (0.068 seconds).
+Test Case '-[SidecarCoreTests.SessionTests testComparisonSwapAndCurrentPolicy]' started.
+Test Case '-[SidecarCoreTests.SessionTests testComparisonSwapAndCurrentPolicy]' passed (0.037 seconds).
+Test Case '-[SidecarCoreTests.SessionTests testFailedReplacementCannotLeaveOldComparisonVisible]' started.
+Test Case '-[SidecarCoreTests.SessionTests testFailedReplacementCannotLeaveOldComparisonVisible]' passed (0.034 seconds).
+Test Case '-[SidecarCoreTests.SessionTests testRapidPolicyChangesAndClearNeverPublishStaleComparison]' started.
+Test Case '-[SidecarCoreTests.SessionTests testRapidPolicyChangesAndClearNeverPublishStaleComparison]' passed (0.029 seconds).
+Test Case '-[SidecarCoreTests.SessionTests testSameSourceIncludesHardlinksButNotEqualContent]' started.
+Test Case '-[SidecarCoreTests.SessionTests testSameSourceIncludesHardlinksButNotEqualContent]' passed (0.008 seconds).
+Test Case '-[SidecarCoreTests.SessionTests testSupersededLoaderCannotPublish]' started.
+Test Case '-[SidecarCoreTests.SessionTests testSupersededLoaderCannotPublish]' passed (0.044 seconds).
+Test Suite 'SessionTests' passed at 2026-10-14 12:56:36.059.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.284 (0.287) seconds
+Test Suite 'SidecarCoreTests.xctest' passed at 2026-10-14 12:56:36.060.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.284 (0.287) seconds
+Test Suite 'Selected tests' passed at 2026-10-14 12:56:36.060.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.284 (0.292) seconds

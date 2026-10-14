@@ -1,0 +1,5 @@
+[0/1] Planning build
+Building for debugging...
+[0/3] Write swift-version--1BA0962812E73E12.txt
+Build of product 'sidecar-compare' complete! (0.14s)
+PASS: 12135 independent numeric/structural/privacy/error checks; 1512 decimal pairs × 4 policies; seed 20261014.

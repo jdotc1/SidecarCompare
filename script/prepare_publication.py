@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+"""Create a fresh source-publication snapshot without local history or machine paths.
+Preserves original working files and verification receipts. Does not build, test,
+hash, sign, upload, initialize Git, or publish anything.
+"""
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+DEST = Path(sys.argv[1]).resolve() if len(sys.argv) == 2 else ROOT / 'dist/publication/source'
+if DEST.exists():
+    raise SystemExit('Destination must be new; refusing to replace existing publication files.')
+if ROOT not in DEST.parents:
+    raise SystemExit('Publication working files must stay inside this checkout.')
+DEST.mkdir(parents=True)
+allowed_roots = {'Sources', 'Tests', 'Fixtures', 'script', 'Packaging', '.github', '.codex'}
+allowed_files = {'Package.swift', '.gitignore', 'LICENSE', 'README.md'}
+allowed_docs = {'DESIGN.md', 'COMPARISON_RULES.md', 'SOURCES.md', 'UI_DESIGN.md', 'RED_TEAM_REVIEW.md'}
+receipts = {'33-final-debug-oracle.log', '34-final-release-oracle.log',
+            '40-native-debug-tests.log', '41-native-release-tests.log',
+            '42-native-repository-check.log', '67-checkpoint-session-tests.log',
+            '79-export-acceptance-release-build.log', '82-stale-drop-error-debug-build.log',
+            '83-stale-drop-error-release-build.log'}
+files = subprocess.check_output(['git', 'ls-files', '-z'], cwd=ROOT).decode().split('\0')
+for relative in filter(None, files):
+    p = Path(relative)
+    include = (p.parts[0] in allowed_roots or relative in allowed_files or
+               (p.parts[0] == 'docs' and p.name in allowed_docs) or
+               (p.parts[0] == 'evidence' and p.name in receipts))
+    if not include:
+        continue
+    src, dst = ROOT / p, DEST / p
+    if src.is_symlink():
+        raise SystemExit(f'Refusing symlink in publication: {p}')
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    data = src.read_bytes()
+    try:
+        text = data.decode('utf-8')
+    except UnicodeDecodeError:
+        if b'/Users/' in data or b'/home/' in data:
+            raise SystemExit(f'Private home path in binary publication input: {p}')
+        shutil.copy2(src, dst)
+        continue
+    text = text.replace(str(ROOT), '<workspace>')
+    if p.suffix in {'.md', '.log', '.txt'}:
+        text = re.sub(r'/Users/[^/\s"<>]+', '/Users/<user>', text)
+        text = re.sub(r'/home/[^/\s"<>]+', '/home/<user>', text)
+    if p.name == 'README.md' and p.parts[0] == 'README.md':
+        text = text.replace('Begin with [CODEX_HANDOFF.md](CODEX_HANDOFF.md).',
+                            'See [verification](docs/VERIFICATION.md) for accepted evidence and scope.')
+    if re.search(r'(?:gh[pousr]_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9]{20,}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----)', text):
+        raise SystemExit(f'Credential-shaped content in publication input: {p}')
+    dst.write_text(text)
+    shutil.copymode(src, dst)
+print(f'Prepared source snapshot at {DEST}; no original receipts or history changed.')
+
+verification = ROOT / 'docs/PUBLIC_VERIFICATION.md'
+if not verification.exists():
+    verification = ROOT / 'docs/VERIFICATION.md'
+(DEST / 'docs/VERIFICATION.md').write_text(verification.read_text().replace(str(ROOT), '<workspace>'))

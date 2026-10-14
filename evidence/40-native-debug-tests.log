@@ -1,0 +1,140 @@
+Building for debugging...
+[Computing dependencies]
+[2 / 6] SidecarCore
+[3 / 7] SidecarCore
+[7 / 11] SidecarCore
+[10 / 11] SidecarCoreTests-product
+[15 / 15] SidecarCore-product
+[15 / 16] sidecar-compare-product
+[17 / 18] SidecarCompare-product
+[18 / 18] SidecarCompare-product
+Build complete! (3.84 sec)
+Test Suite 'All tests' started at 2026-10-14 11:36:52.367.
+Test Suite 'SidecarCoreTests.xctest' started at 2026-10-14 11:36:52.368.
+Test Suite 'ComparisonTests' started at 2026-10-14 11:36:52.368.
+Test Case '-[SidecarCoreTests.ComparisonTests testArraysArePositionalAndContainerTypesAreNotCoerced]' started.
+Test Case '-[SidecarCoreTests.ComparisonTests testArraysArePositionalAndContainerTypesAreNotCoerced]' passed (0.001 seconds).
+Test Case '-[SidecarCoreTests.ComparisonTests testEmptyDocumentsAndDifferenceFilter]' started.
+Test Case '-[SidecarCoreTests.ComparisonTests testEmptyDocumentsAndDifferenceFilter]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ComparisonTests testExactToleranceBoundaryAndPrecision]' started.
+Test Case '-[SidecarCoreTests.ComparisonTests testExactToleranceBoundaryAndPrecision]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ComparisonTests testInvalidKnownShapesStayRaw]' started.
+Test Case '-[SidecarCoreTests.ComparisonTests testInvalidKnownShapesStayRaw]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ComparisonTests testInvalidPoliciesRejected]' started.
+Test Case '-[SidecarCoreTests.ComparisonTests testInvalidPoliciesRejected]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ComparisonTests testKnownQuantitiesOnlyUseTolerance]' started.
+Test Case '-[SidecarCoreTests.ComparisonTests testKnownQuantitiesOnlyUseTolerance]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ComparisonTests testMissingNullAndEmptyContainersRemainDistinct]' started.
+Test Case '-[SidecarCoreTests.ComparisonTests testMissingNullAndEmptyContainersRemainDistinct]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ComparisonTests testNoImplicitMillisecondsGuessOrGlobalUnitsOverride]' started.
+Test Case '-[SidecarCoreTests.ComparisonTests testNoImplicitMillisecondsGuessOrGlobalUnitsOverride]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ComparisonTests testOrderDoesNotMatterAndPathsAreEscaped]' started.
+Test Case '-[SidecarCoreTests.ComparisonTests testOrderDoesNotMatterAndPathsAreEscaped]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ComparisonTests testPreparationRepetitionTimeAllowsArrayAndScalar]' started.
+Test Case '-[SidecarCoreTests.ComparisonTests testPreparationRepetitionTimeAllowsArrayAndScalar]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ComparisonTests testTinyNumbersAndZero]' started.
+Test Case '-[SidecarCoreTests.ComparisonTests testTinyNumbersAndZero]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ComparisonTests testUnicodeDistinctKeysAcrossDocumentsDoNotMerge]' started.
+Test Case '-[SidecarCoreTests.ComparisonTests testUnicodeDistinctKeysAcrossDocumentsDoNotMerge]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ComparisonTests testValidTimingArrayHasUnitsAndPerElementDeltas]' started.
+Test Case '-[SidecarCoreTests.ComparisonTests testValidTimingArrayHasUnitsAndPerElementDeltas]' passed (0.000 seconds).
+Test Suite 'ComparisonTests' passed at 2026-10-14 11:36:52.374.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.005 (0.006) seconds
+Test Suite 'DecimalTests' started at 2026-10-14 11:36:52.374.
+Test Case '-[SidecarCoreTests.DecimalTests testSignedArithmeticAndPowers]' started.
+Test Case '-[SidecarCoreTests.DecimalTests testSignedArithmeticAndPowers]' passed (0.000 seconds).
+Test Suite 'DecimalTests' passed at 2026-10-14 11:36:52.374.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'IOTests' started at 2026-10-14 11:36:52.374.
+Test Case '-[SidecarCoreTests.IOTests testBoundedReadAndWrite]' started.
+Test Case '-[SidecarCoreTests.IOTests testBoundedReadAndWrite]' passed (0.006 seconds).
+Test Case '-[SidecarCoreTests.IOTests testErrorsDoNotContainSelectedPathOrJSONData]' started.
+Test Case '-[SidecarCoreTests.IOTests testErrorsDoNotContainSelectedPathOrJSONData]' passed (0.001 seconds).
+Test Case '-[SidecarCoreTests.IOTests testFIFOIsRejectedWithoutBlocking]' started.
+Test Case '-[SidecarCoreTests.IOTests testFIFOIsRejectedWithoutBlocking]' passed (0.001 seconds).
+Test Case '-[SidecarCoreTests.IOTests testRejectsDirectoriesLargeFilesAndNonLocalURLs]' started.
+Test Case '-[SidecarCoreTests.IOTests testRejectsDirectoriesLargeFilesAndNonLocalURLs]' passed (0.002 seconds).
+Test Case '-[SidecarCoreTests.IOTests testRejectsInputOverwriteSymlinkAndHardlink]' started.
+Test Case '-[SidecarCoreTests.IOTests testRejectsInputOverwriteSymlinkAndHardlink]' passed (0.003 seconds).
+Test Case '-[SidecarCoreTests.IOTests testRejectsUnrelatedAndDanglingDestinationSymlinks]' started.
+Test Case '-[SidecarCoreTests.IOTests testRejectsUnrelatedAndDanglingDestinationSymlinks]' passed (0.001 seconds).
+Test Suite 'IOTests' passed at 2026-10-14 11:36:52.389.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.014 (0.014) seconds
+Test Suite 'ParserTests' started at 2026-10-14 11:36:52.389.
+Test Case '-[SidecarCoreTests.ParserTests testDuplicatesRejectedIncludingEscapesAndCanonicalKeys]' started.
+Test Case '-[SidecarCoreTests.ParserTests testDuplicatesRejectedIncludingEscapesAndCanonicalKeys]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ParserTests testExactNumbersAndLargeIntegers]' started.
+Test Case '-[SidecarCoreTests.ParserTests testExactNumbersAndLargeIntegers]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ParserTests testOptionalBOMAndWhitespace]' started.
+Test Case '-[SidecarCoreTests.ParserTests testOptionalBOMAndWhitespace]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ParserTests testRejectsInvalidGrammar]' started.
+Test Case '-[SidecarCoreTests.ParserTests testRejectsInvalidGrammar]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ParserTests testResourceLimitsAndInvalidUTF8]' started.
+Test Case '-[SidecarCoreTests.ParserTests testResourceLimitsAndInvalidUTF8]' passed (0.001 seconds).
+Test Case '-[SidecarCoreTests.ParserTests testRoundTripPreservesNumericToken]' started.
+Test Case '-[SidecarCoreTests.ParserTests testRoundTripPreservesNumericToken]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ParserTests testTypedScalars]' started.
+Test Case '-[SidecarCoreTests.ParserTests testTypedScalars]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ParserTests testValidEscapesAndNonNormalizedStrings]' started.
+Test Case '-[SidecarCoreTests.ParserTests testValidEscapesAndNonNormalizedStrings]' passed (0.000 seconds).
+Test Suite 'ParserTests' passed at 2026-10-14 11:36:52.392.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'ReportTests' started at 2026-10-14 11:36:52.392.
+Test Case '-[SidecarCoreTests.ReportTests testDetailedReportPreservesTypesPrecisionAndMissingness]' started.
+Test Case '-[SidecarCoreTests.ReportTests testDetailedReportPreservesTypesPrecisionAndMissingness]' passed (0.001 seconds).
+Test Case '-[SidecarCoreTests.ReportTests testEmbeddedPathsRemainInFullReportButNotSummary]' started.
+Test Case '-[SidecarCoreTests.ReportTests testEmbeddedPathsRemainInFullReportButNotSummary]' passed (0.001 seconds).
+Test Case '-[SidecarCoreTests.ReportTests testReportsDeterministicAndNotFilterDependent]' started.
+Test Case '-[SidecarCoreTests.ReportTests testReportsDeterministicAndNotFilterDependent]' passed (0.001 seconds).
+Test Case '-[SidecarCoreTests.ReportTests testSummaryContainsNoInputNamesOrValues]' started.
+Test Case '-[SidecarCoreTests.ReportTests testSummaryContainsNoInputNamesOrValues]' passed (0.001 seconds).
+Test Case '-[SidecarCoreTests.ReportTests testTextReportIncludesVersionedComparisonRule]' started.
+Test Case '-[SidecarCoreTests.ReportTests testTextReportIncludesVersionedComparisonRule]' passed (0.000 seconds).
+Test Suite 'ReportTests' passed at 2026-10-14 11:36:52.396.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.004 (0.004) seconds
+Test Suite 'ResourceBudgetTests' started at 2026-10-14 11:36:52.396.
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testAggregateExpandedPathBudget]' started.
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testAggregateExpandedPathBudget]' passed (0.051 seconds).
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testCombinedRowBudgetRejectsRatherThanTruncates]' started.
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testCombinedRowBudgetRejectsRatherThanTruncates]' passed (1.398 seconds).
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testDecodedStringAndKeyLimitsUseUTF8Bytes]' started.
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testDecodedStringAndKeyLimitsUseUTF8Bytes]' passed (0.014 seconds).
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testDepthBoundaryCountsRootAsZero]' started.
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testDepthBoundaryCountsRootAsZero]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testExactByteLimitAndOneOver]' started.
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testExactByteLimitAndOneOver]' passed (2.995 seconds).
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testExpandedPathLengthBudget]' started.
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testExpandedPathLengthBudget]' passed (0.001 seconds).
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testNumericTokenAndExponentBounds]' started.
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testNumericTokenAndExponentBounds]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testSupportedComparisonBoundariesAreNotRejected]' started.
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testSupportedComparisonBoundariesAreNotRejected]' passed (0.584 seconds).
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testValueLimitCountsRootAndArray]' started.
+Test Case '-[SidecarCoreTests.ResourceBudgetTests testValueLimitCountsRootAndArray]' passed (0.424 seconds).
+Test Suite 'ResourceBudgetTests' passed at 2026-10-14 11:36:57.865.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 5.468 (5.469) seconds
+Test Suite 'SessionTests' started at 2026-10-14 11:36:57.865.
+Test Case '-[SidecarCoreTests.SessionTests testCancelSlotAndSwapGuardDuringLoading]' started.
+Test Case '-[SidecarCoreTests.SessionTests testCancelSlotAndSwapGuardDuringLoading]' passed (0.061 seconds).
+Test Case '-[SidecarCoreTests.SessionTests testClearInvalidatesInFlightLoadAndResetsPolicy]' started.
+Test Case '-[SidecarCoreTests.SessionTests testClearInvalidatesInFlightLoadAndResetsPolicy]' passed (0.046 seconds).
+Test Case '-[SidecarCoreTests.SessionTests testComparisonSwapAndCurrentPolicy]' started.
+Test Case '-[SidecarCoreTests.SessionTests testComparisonSwapAndCurrentPolicy]' passed (0.014 seconds).
+Test Case '-[SidecarCoreTests.SessionTests testFailedReplacementCannotLeaveOldComparisonVisible]' started.
+Test Case '-[SidecarCoreTests.SessionTests testFailedReplacementCannotLeaveOldComparisonVisible]' passed (0.008 seconds).
+Test Case '-[SidecarCoreTests.SessionTests testRapidPolicyChangesAndClearNeverPublishStaleComparison]' started.
+Test Case '-[SidecarCoreTests.SessionTests testRapidPolicyChangesAndClearNeverPublishStaleComparison]' passed (0.027 seconds).
+Test Case '-[SidecarCoreTests.SessionTests testSameSourceIncludesHardlinksButNotEqualContent]' started.
+Test Case '-[SidecarCoreTests.SessionTests testSameSourceIncludesHardlinksButNotEqualContent]' passed (0.004 seconds).
+Test Case '-[SidecarCoreTests.SessionTests testSupersededLoaderCannotPublish]' started.
+Test Case '-[SidecarCoreTests.SessionTests testSupersededLoaderCannotPublish]' passed (0.035 seconds).
+Test Suite 'SessionTests' passed at 2026-10-14 11:36:58.062.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.195 (0.197) seconds
+Test Suite 'SidecarCoreTests.xctest' passed at 2026-10-14 11:36:58.062.
+	 Executed 49 tests, with 0 failures (0 unexpected) in 5.688 (5.694) seconds
+Test Suite 'All tests' passed at 2026-10-14 11:36:58.062.
+	 Executed 49 tests, with 0 failures (0 unexpected) in 5.688 (5.695) seconds
+􀟈  Test run started.
+􀄵  Testing Library Version: 2401
+􀄵  Target Platform: arm64e-apple-macos14.0
+􁁛  Test run with 0 tests in 0 suites passed after 0.001 seconds.

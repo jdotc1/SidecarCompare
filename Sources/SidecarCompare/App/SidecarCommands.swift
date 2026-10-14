@@ -1,0 +1,49 @@
+import SwiftUI
+
+struct WorkspaceActions {
+    var canOpen: Bool
+    var canSwap: Bool
+    var canExport: Bool
+    var openA: @MainActor () -> Void
+    var openB: @MainActor () -> Void
+    var swap: @MainActor () -> Void
+    var clear: @MainActor () -> Void
+    var example: @MainActor () -> Void
+    var export: @MainActor () -> Void
+    var copySummary: @MainActor () -> Void
+}
+struct WorkspaceActionsKey: FocusedValueKey { typealias Value = WorkspaceActions }
+extension FocusedValues {
+    var workspaceActions: WorkspaceActions? {
+        get { self[WorkspaceActionsKey.self] }
+        set { self[WorkspaceActionsKey.self] = newValue }
+    }
+}
+
+@MainActor
+struct SidecarCommands: Commands {
+    @FocusedValue(\.workspaceActions) private var actions
+    var body: some Commands {
+        CommandGroup(replacing: .newItem) {
+            Button("Open Reference Sidecar…") { actions?.openA() }
+                .keyboardShortcut("o").disabled(actions?.canOpen != true)
+            Button("Open Comparison Sidecar…") { actions?.openB() }
+                .keyboardShortcut("o", modifiers: [.command, .shift]).disabled(actions?.canOpen != true)
+            Divider()
+            Button("Load Synthetic Example") { actions?.example() }.disabled(actions?.canOpen != true)
+        }
+        CommandGroup(replacing: .saveItem) {
+            Button("Export Comparison…") { actions?.export() }
+                .keyboardShortcut("e").disabled(actions?.canExport != true)
+        }
+        CommandMenu("Comparison") {
+            Button("Swap A and B") { actions?.swap() }
+                .keyboardShortcut("s", modifiers: [.command, .option]).disabled(actions?.canSwap != true)
+            Button("Clear Comparison") { actions?.clear() }
+                .keyboardShortcut("k").disabled(actions?.canOpen != true)
+            Divider()
+            Button("Copy Summary") { actions?.copySummary() }
+                .keyboardShortcut("c", modifiers: [.command, .shift]).disabled(actions?.canExport != true)
+        }
+    }
+}

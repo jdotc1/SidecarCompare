@@ -1,0 +1,20 @@
+{
+  "Modality": "MR",
+  "Manufacturer": "Synthetic scanner vendor",
+  "ManufacturersModelName": "Research demonstration",
+  "MagneticFieldStrength": 1.5,
+  "ProtocolName": "SYNTHETIC_T2_FOLLOWUP",
+  "SeriesDescription": "Synthetic example only",
+  "RepetitionTime": 5.2,
+  "EchoTime": 0.08501,
+  "FlipAngle": 90.0,
+  "SliceThickness": 2.5,
+  "SpacingBetweenSlices": 2.5,
+  "PhaseEncodingDirection": "j",
+  "PixelBandwidth": 210,
+  "EchoTrainLength": 16,
+  "ImageType": ["ORIGINAL", "PRIMARY", "M"],
+  "ConversionSoftware": "dcm2niix",
+  "ConversionSoftwareVersion": "synthetic-fixture",
+  "ExampleVendorMetadata": {"Revision": "1", "NewFlag": true}
+}

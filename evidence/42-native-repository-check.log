@@ -1,0 +1,4 @@
+PASS: shell syntax and executable modes.
+PASS: bundle metadata, sandbox/no-network entitlements, Codex Run configuration.
+PASS: Swift syntax parsing for 9 GUI source files (not SDK typechecking).
+PASS: Observation-enabled core Swift 6 typecheck; no macOS UI runtime claim.

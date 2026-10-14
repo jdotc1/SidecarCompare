@@ -1,0 +1,15 @@
+version = 1
+name = "SidecarCompare"
+
+[setup]
+script = ""
+
+[[actions]]
+name = "Run"
+icon = "run"
+command = "./script/build_and_run.sh"
+
+[[actions]]
+name = "Test"
+icon = "run"
+command = "./script/test.sh"

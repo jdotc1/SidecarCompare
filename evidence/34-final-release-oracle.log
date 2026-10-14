@@ -1,0 +1,9 @@
+[0/1] Planning build
+Building for production...
+[0/2] Write swift-version--1BA0962812E73E12.txt
+[2/3] Compiling SidecarCore Comparator.swift
+[3/4] Compiling SidecarCLI main.swift
+[3/5] Write Objects.LinkFileList
+[4/5] Linking sidecar-compare
+Build of product 'sidecar-compare' complete! (5.83s)
+PASS: 12135 independent numeric/structural/privacy/error checks; 1512 decimal pairs × 4 policies; seed 20261014.
