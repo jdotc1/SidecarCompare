@@ -56,3 +56,7 @@ An adaptive row/grid of counts applies Within tolerance, Changed, Type changed, 
 ## Compact filters and active-filter summary
 
 Status/Reset View now share a row. A wrapping summary identifies active status/category/search and visible/total row counts, explaining full-comparison count buttons. Debug119 staging/release120 compilation pass warnings-as-errors. Native bundled example confirmed Changed6→Timing1 with count6 retained, Search active indication, Reset View9/22 recovery, ordinary layout and verified850-point minimum-width layout with inspector hidden. Existing receipts reused; no test reruns or accessibility work.
+
+## Reveal sources in Finder
+
+File-menu/well-context Reveal A/B actions locate the selected source without modifying snapshots. Native observations confirmed A selection in Finder and B routing after Swap. A moved-after-successful-reveal regression exposed cached metadata; clearing the probe cache repaired it. Final debug126 staging/release127 compilation pass warnings-as-errors. Native green confirmed unavailable-source recovery alert with snapshot retained. Context action presence observed; execution verified through the shared File-menu route. Existing receipts reused; no suites/accessibility/permission changes. Finder selection is a request, not content-identity verification or moved-file tracking.

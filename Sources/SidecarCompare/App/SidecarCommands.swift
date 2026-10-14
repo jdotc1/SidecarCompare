@@ -1,6 +1,10 @@
 import SwiftUI
 
 struct WorkspaceActions {
+    var canRevealA: Bool
+    var canRevealB: Bool
+    var revealA: @MainActor () -> Void
+    var revealB: @MainActor () -> Void
     var resetView: @MainActor () -> Void
     var canReloadA: Bool
     var canReloadB: Bool
@@ -41,6 +45,8 @@ struct SidecarCommands: Commands {
             Divider()
             Button("Reload A") { actions?.reloadA() }.disabled(actions?.canReloadA != true)
             Button("Reload B") { actions?.reloadB() }.disabled(actions?.canReloadB != true)
+            Button("Reveal A in Finder") { actions?.revealA() }.disabled(actions?.canRevealA != true)
+            Button("Reveal B in Finder") { actions?.revealB() }.disabled(actions?.canRevealB != true)
             Divider()
             Button("Load Synthetic Example") { actions?.example() }.disabled(actions?.canOpen != true)
         }

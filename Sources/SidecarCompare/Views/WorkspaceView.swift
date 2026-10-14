@@ -21,6 +21,7 @@ struct WorkspaceView: View {
     @State private var selection: String?
     @State private var actionError: String?
     @State private var notification: String?
+    @State private var isRevealing = false
 
     init(session: ComparisonSession = ComparisonSession()) {
         _session = State(initialValue: session)
@@ -81,6 +82,10 @@ struct WorkspaceView: View {
         FileWell(slot: slot, document: session.document(for: slot), loading: session.isLoading(slot), error: session.error(for: slot),
                  open: { choose(slot) }, receive: { url in if canModify { session.load(url, into: slot) } }, cancel: { session.cancel(slot) }, canReload: canReload(slot), reload: { reload(slot) })
             .id(fileWellReset)
+            .contextMenu {
+                Button("Reveal \(slot.rawValue) in Finder") { reveal(slot) }
+                    .disabled(!canReveal(slot))
+            }
     }
     private var filterBar: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -227,7 +232,8 @@ struct WorkspaceView: View {
     }
     private var canModify: Bool { !showImporter && exportSnapshot == nil }
     private var actions: WorkspaceActions {
-        WorkspaceActions(resetView: resetView, canReloadA: canReload(.a), canReloadB: canReload(.b),
+        WorkspaceActions(canRevealA: canReveal(.a), canRevealB: canReveal(.b),
+                         revealA: { reveal(.a) }, revealB: { reveal(.b) }, resetView: resetView, canReloadA: canReload(.a), canReloadB: canReload(.b),
                          reloadA: { reload(.a) }, reloadB: { reload(.b) }, canPreviousDifference: differenceTarget(forward: false) != nil,
                          canNextDifference: differenceTarget(forward: true) != nil,
                          previousDifference: { navigateDifference(forward: false) },
@@ -247,6 +253,19 @@ struct WorkspaceView: View {
         guard let target = differenceTarget(forward: forward) else { return }
         selection = target
         showInspector = true
+    }
+    private func canReveal(_ slot: FileSlot) -> Bool {
+        canModify && !session.isBusy && !isRevealing && session.document(for: slot)?.sourceURL != nil
+    }
+    private func reveal(_ slot: FileSlot) {
+        guard canReveal(slot), let url = session.document(for: slot)?.sourceURL else { return }
+        isRevealing = true
+        Task { @MainActor in
+            defer { isRevealing = false }
+            do { try await NativeSourceReveal.reveal(url) }
+            catch is CancellationError { }
+            catch { actionError = (error as? SidecarError)?.message ?? "The source could not be revealed. Choose it again to restore access." }
+        }
     }
     private func canReload(_ slot: FileSlot) -> Bool {
         canModify && !session.isBusy && session.document(for: slot)?.sourceURL != nil

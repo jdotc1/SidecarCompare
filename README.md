@@ -87,3 +87,7 @@ When only one sidecar is loaded, the workspace identifies the missing reference 
 The **Differences by status** buttons show full-comparison counts for Within tolerance, Changed, Type changed, A only and B only. Click a count to apply that status and enable Differences only while retaining search/category filters. A checkmark marks the active status. Zero-count buttons show the normal no-matching-rows state; Reset View restores the default review view. Counts and filters do not change exports.
 
 Status and Reset View share a compact row. The view summary lists the selected status (or Differences only/All rows), category and whether search is active, followed by visible/total row counts. This explains why combined filters may show fewer rows than the full-comparison count buttons. Search text itself is not repeated in the summary.
+
+### Locating selected sources
+
+Use **File → Reveal A in Finder / Reveal B in Finder**, or the corresponding file well’s context menu, to select that source in Finder. Reveal uses the original selected location and leaves the in-memory snapshot unchanged. If the file moved or access expired, an alert directs you to choose it again. Empty slots and built-in examples have no source to reveal. Reveal does not search for moved files or certify that a file currently at the pathname still matches the loaded snapshot.
