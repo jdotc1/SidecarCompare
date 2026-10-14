@@ -103,7 +103,31 @@ struct WorkspaceView: View {
                 }
             }.frame(width: 200)
             Button("Reset View", action: resetView).disabled(!canModify)
+            if let result = session.comparison {
+                differenceBreakdown(result)
+            }
         }.padding(.horizontal, 16).padding(.bottom, 12)
+    }
+    private func differenceBreakdown(_ result: Comparison) -> some View {
+        let counts = result.counts
+        return VStack(alignment: .leading, spacing: 5) {
+            Text("Differences by status · full comparison").font(.caption).foregroundStyle(.secondary)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 6)], alignment: .leading, spacing: 6) {
+                ForEach(DifferenceStatus.allCases.filter { $0 != .equal }, id: \.self) { item in
+                    Button {
+                        status = item
+                        differencesOnly = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            if status == item { Image(systemName: "checkmark") }
+                            Text("\(item.rawValue) · \(counts[item] ?? 0)")
+                                .monospacedDigit()
+                        }.frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered).controlSize(.small).disabled(!canModify)
+                }
+            }
+        }
     }
     @ViewBuilder private var comparisonContent: some View {
         if session.isBusy {

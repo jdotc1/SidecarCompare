@@ -48,3 +48,7 @@ A/B now use exact-decimal numeric ordering without floating point, tolerance or 
 ## One-file-loaded guidance
 
 View-only targeted missing-A/B prompts identify the loaded side and supply the correct Choose action. Failed-read recovery text appears after reload failure. Debug111 staging/release112 compilation pass; native synthetic observations confirm both missing-side prompts, correct picker routing, completed comparison after adding the second side, and failed-reload recovery with the other snapshot retained. Existing receipts reused; no tests rerun or accessibility work.
+
+## Clickable difference breakdown
+
+An adaptive row/grid of counts applies Within tolerance, Changed, Type changed, A only or B only filters and marks the selected status with a checkmark. Counts cover the full comparison and search/category are retained. Debug115 staging/release116 compilation pass warnings-as-errors. Native bundled example confirmed counts0/6/1/1/1, each status button's matching rows, zero-count empty state and Reset View recovery. Existing receipts reused; no tests rerun or accessibility work.
