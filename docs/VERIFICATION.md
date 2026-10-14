@@ -52,3 +52,7 @@ View-only targeted missing-A/B prompts identify the loaded side and supply the c
 ## Clickable difference breakdown
 
 An adaptive row/grid of counts applies Within tolerance, Changed, Type changed, A only or B only filters and marks the selected status with a checkmark. Counts cover the full comparison and search/category are retained. Debug115 staging/release116 compilation pass warnings-as-errors. Native bundled example confirmed counts0/6/1/1/1, each status button's matching rows, zero-count empty state and Reset View recovery. Existing receipts reused; no tests rerun or accessibility work.
+
+## Compact filters and active-filter summary
+
+Status/Reset View now share a row. A wrapping summary identifies active status/category/search and visible/total row counts, explaining full-comparison count buttons. Debug119 staging/release120 compilation pass warnings-as-errors. Native bundled example confirmed Changed6→Timing1 with count6 retained, Search active indication, Reset View9/22 recovery, ordinary layout and verified850-point minimum-width layout with inspector hidden. Existing receipts reused; no test reruns or accessibility work.

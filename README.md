@@ -85,3 +85,5 @@ The inspector separates A/reference and B/comparison into cards with explicit JS
 When only one sidecar is loaded, the workspace identifies the missing reference A or comparison B and offers a direct Choose action for that side. After a failed reload, the prompt explains how to reopen or replace the missing file while keeping the other snapshot loaded.
 
 The **Differences by status** buttons show full-comparison counts for Within tolerance, Changed, Type changed, A only and B only. Click a count to apply that status and enable Differences only while retaining search/category filters. A checkmark marks the active status. Zero-count buttons show the normal no-matching-rows state; Reset View restores the default review view. Counts and filters do not change exports.
+
+Status and Reset View share a compact row. The view summary lists the selected status (or Differences only/All rows), category and whether search is active, followed by visible/total row counts. This explains why combined filters may show fewer rows than the full-comparison count buttons. Search text itself is not repeated in the summary.

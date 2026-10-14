@@ -96,6 +96,7 @@ struct WorkspaceView: View {
                 Text("Milliseconds").tag(true)
             }.pickerStyle(.menu).frame(width: 185)
         }
+            HStack(spacing: 12) {
             Picker("Status", selection: $status) {
                 Text("All statuses").tag(Optional<DifferenceStatus>.none)
                 ForEach(DifferenceStatus.allCases, id: \.self) { item in
@@ -103,15 +104,25 @@ struct WorkspaceView: View {
                 }
             }.frame(width: 200)
             Button("Reset View", action: resetView).disabled(!canModify)
+            Spacer(minLength: 0)
+            }
             if let result = session.comparison {
                 differenceBreakdown(result)
             }
         }.padding(.horizontal, 16).padding(.bottom, 12)
     }
+    private var activeFilterSummary: String {
+        var filters = [status?.rawValue ?? (differencesOnly ? "Differences only" : "All rows")]
+        if let category { filters.append(category.rawValue) }
+        if !search.isEmpty { filters.append("Search active") }
+        return filters.joined(separator: " · ")
+    }
     private func differenceBreakdown(_ result: Comparison) -> some View {
         let counts = result.counts
         return VStack(alignment: .leading, spacing: 5) {
-            Text("Differences by status · full comparison").font(.caption).foregroundStyle(.secondary)
+            Text("View: \(activeFilterSummary) · \(visibleRows.count) of \(result.rows.count) rows shown. Counts below cover the full comparison.")
+                .font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 6)], alignment: .leading, spacing: 6) {
                 ForEach(DifferenceStatus.allCases.filter { $0 != .equal }, id: \.self) { item in
                     Button {
