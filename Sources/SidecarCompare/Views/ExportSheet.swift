@@ -6,6 +6,7 @@ struct ExportSnapshot: Identifiable {
     let id = UUID()
     let comparison: Comparison
     let documents: [SidecarDocument]
+    let visibleRowCount: Int
 }
 
 @MainActor
@@ -24,8 +25,18 @@ struct ExportSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Export comparison").font(.title2.weight(.semibold))
-            Text("Summaries count all \(snapshot.comparison.rows.count) rows. Full reports include every row, regardless of table filters, in canonical sidecar units.")
-                .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Export scope · full comparison").font(.headline)
+                HStack(spacing: 24) {
+                    Text("Total rows: \(snapshot.comparison.rows.count)")
+                    Text("Currently visible: \(snapshot.visibleRowCount)")
+                }.monospacedDigit()
+                Text("Table filters do not limit export. Summaries count all rows; full reports include every row in canonical sidecar units.")
+                    .font(.callout).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(12).frame(maxWidth: .infinity, alignment: .leading)
+            .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
             Picker("Contents", selection: $detail) {
                 Text("Summary only").tag(ReportDetail.summary)
                 Text("Full metadata comparison").tag(ReportDetail.full)

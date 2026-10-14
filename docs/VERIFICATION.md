@@ -64,3 +64,7 @@ File-menu/well-context Reveal A/B actions locate the selected source without mod
 ## Fixed inspector review controls
 
 Previous/Next and independent A/B preview toggles stay above scrolling values. Row changes reset expansion and return to the field heading. Debug130 staging/release131 compilation pass warnings-as-errors. Native synthetic long-value observation confirmed controls remain visible at bottom, collapse works there, next/previous selects expected field with endpoint disabling, heading returns to top, and A/B expansion independently retains8192-character ceiling. Existing receipts reused; no suites/accessibility work.
+
+## Export-scope reminder
+
+Export captures visible-row count alongside full comparison and shows Total rows/Currently visible with explicit full-comparison scope. Summary counts all rows; full reports include every row regardless of filters. Native initial layout truncated explanation; vertical wrapping repaired it. Final debug137 staging/release138 compilation pass warnings-as-errors. Native synthetic Type changed view confirmed22 total/1 visible and readable reminder in summary/full modes. Report generation unchanged; prior parity/privacy/export receipts reused, no suites/accessibility work.

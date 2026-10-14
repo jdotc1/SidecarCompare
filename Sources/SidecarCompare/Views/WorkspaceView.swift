@@ -305,7 +305,7 @@ struct WorkspaceView: View {
     }
     private func export() {
         guard canModify, let result = session.comparison else { return }
-        exportSnapshot = ExportSnapshot(comparison: result, documents: session.sourceDocuments)
+        exportSnapshot = ExportSnapshot(comparison: result, documents: session.sourceDocuments, visibleRowCount: visibleRows.count)
     }
     private func copySummary() {
         guard canModify, let result = session.comparison else { return }
