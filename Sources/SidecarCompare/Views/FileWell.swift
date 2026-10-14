@@ -10,6 +10,8 @@ struct FileWell: View {
     let open: () -> Void
     let receive: (URL) -> Void
     let cancel: () -> Void
+    let canReload: Bool
+    let reload: () -> Void
     @State private var targeted = false
     @State private var dropError: String?
 
@@ -20,6 +22,7 @@ struct FileWell: View {
                     .font(.headline)
                 Spacer()
                 if loading { ProgressView().controlSize(.small) }
+                Button("Reload \(slot.rawValue)", action: reload).disabled(!canReload)
                 Button(loading ? "Cancel" : "Choose…", action: loading ? cancel : open)
                     .accessibilityLabel(loading ? "Cancel loading \(slot.rawValue)" : "Choose sidecar \(slot.rawValue)")
             }
@@ -27,7 +30,7 @@ struct FileWell: View {
                 .lineLimit(1).truncationMode(.middle)
                 .foregroundStyle(document == nil ? .secondary : .primary)
             if let message = dropError ?? error {
-                Label(message, systemImage: "exclamationmark.triangle")
+                Label(message + " Choose… to reopen the file or restore access.", systemImage: "exclamationmark.triangle")
                     .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     .accessibilityLabel("Import error: \(message)")
             } else {

@@ -71,3 +71,7 @@ MIT license; see [LICENSE](LICENSE). All supplied fixtures are synthetic. No cli
 ### Reviewing results
 
 Use Status to narrow the table to a specific outcome; its counts describe the full comparison. Click any column header to sort, and click again to reverse direction. A/B columns sort raw preview text rather than numerical magnitude. Previous/Next Difference follows the visible table order and opens the inspector; use Command-Option-Up/Down from the Comparison menu. Navigation stops at either end. Search, category, status and sorting affect the table only; exports retain the full comparison.
+
+### Refreshing changed sidecars
+
+Click **Reload A** or **Reload B** in the file well, or use the File menu, to read that side again without a picker. The other side remains its current snapshot. Reload is disabled for empty slots, built-in examples, pending work, and open import/export panels. If refresh fails, the old snapshot and comparison are cleared; use **Choose…** to reopen the file or restore access. Reload is explicit—files are not watched automatically.

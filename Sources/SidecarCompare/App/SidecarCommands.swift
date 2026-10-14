@@ -1,6 +1,10 @@
 import SwiftUI
 
 struct WorkspaceActions {
+    var canReloadA: Bool
+    var canReloadB: Bool
+    var reloadA: @MainActor () -> Void
+    var reloadB: @MainActor () -> Void
     var canPreviousDifference: Bool
     var canNextDifference: Bool
     var previousDifference: @MainActor () -> Void
@@ -33,6 +37,9 @@ struct SidecarCommands: Commands {
                 .keyboardShortcut("o").disabled(actions?.canOpen != true)
             Button("Open Comparison Sidecar…") { actions?.openB() }
                 .keyboardShortcut("o", modifiers: [.command, .shift]).disabled(actions?.canOpen != true)
+            Divider()
+            Button("Reload A") { actions?.reloadA() }.disabled(actions?.canReloadA != true)
+            Button("Reload B") { actions?.reloadB() }.disabled(actions?.canReloadB != true)
             Divider()
             Button("Load Synthetic Example") { actions?.example() }.disabled(actions?.canOpen != true)
         }

@@ -1,0 +1,20 @@
+Building for debugging...
+[Using on-disk description]
+[2 / 4] SidecarCore
+[3 / 5] SidecarCore
+[7 / 9] SidecarCore
+[10 / 10] SidecarCompare-product
+[13 / 14] sidecar-compare-product
+[15 / 17] SidecarCoreTests-product
+Build complete! (1.83 sec)
+Test Suite 'Selected tests' started at 2026-10-14 15:48:30.586.
+Test Suite 'SidecarCoreTests.xctest' started at 2026-10-14 15:48:30.587.
+Test Suite 'ReloadURLTests' started at 2026-10-14 15:48:30.587.
+Test Case '-[SidecarCoreTests.ReloadURLTests testReaderRetainsOriginalSelectedURLForReload]' started.
+Test Case '-[SidecarCoreTests.ReloadURLTests testReaderRetainsOriginalSelectedURLForReload]' passed (0.003 seconds).
+Test Suite 'ReloadURLTests' passed at 2026-10-14 15:48:30.591.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'SidecarCoreTests.xctest' passed at 2026-10-14 15:48:30.591.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'Selected tests' passed at 2026-10-14 15:48:30.591.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.003 (0.004) seconds

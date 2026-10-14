@@ -66,7 +66,8 @@ public enum SidecarReader {
         catch { throw SidecarError("Unable to read the selected file. It may have changed or become unavailable.") }
         let value = try JSONParser.parse(data)
         return SidecarDocument(value: value, displayName: url.lastPathComponent,
-                               sourceURL: url.standardizedFileURL, sourceIdentity: FileIdentity(info))
+                               // Keep the selected URL itself: normalization can discard security-scope metadata needed for reload.
+                               sourceURL: url, sourceIdentity: FileIdentity(info))
     }
 
     /// A scope is needed only while the immutable in-memory snapshot is being loaded.

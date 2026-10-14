@@ -1,0 +1,29 @@
+Building for production...
+[Pre-planning 1 / 153]
+[Planning deferred tasks]
+[5 / 25]
+[6 / 26] SidecarCore
+[8 / 27] SidecarCore
+[17 / 30] sidecar-compare-product
+[19 / 32] SidecarCoreTests-product
+[21 / 33] sidecar-compare-product
+[23 / 33] sidecar-compare-product
+[23 / 33] SidecarCoreTests-product
+[27 / 32] SidecarCoreTests-product
+[29 / 32] SidecarCoreTests-product
+[30 / 31] sidecar-compare-product
+[33 / 34] SidecarCompare-product
+[35 / 37] SidecarCompare-product
+[36 / 37] SidecarCompare-product
+Build complete! (10.28 sec)
+Test Suite 'Selected tests' started at 2026-10-14 15:48:45.622.
+Test Suite 'SidecarCoreTests.xctest' started at 2026-10-14 15:48:45.623.
+Test Suite 'ReloadURLTests' started at 2026-10-14 15:48:45.623.
+Test Case '-[SidecarCoreTests.ReloadURLTests testReaderRetainsOriginalSelectedURLForReload]' started.
+Test Case '-[SidecarCoreTests.ReloadURLTests testReaderRetainsOriginalSelectedURLForReload]' passed (0.002 seconds).
+Test Suite 'ReloadURLTests' passed at 2026-10-14 15:48:45.626.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'SidecarCoreTests.xctest' passed at 2026-10-14 15:48:45.626.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'Selected tests' passed at 2026-10-14 15:48:45.626.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.002 (0.004) seconds

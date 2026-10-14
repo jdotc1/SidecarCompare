@@ -79,7 +79,7 @@ struct WorkspaceView: View {
     }
     private func fileWell(_ slot: FileSlot) -> some View {
         FileWell(slot: slot, document: session.document(for: slot), loading: session.isLoading(slot), error: session.error(for: slot),
-                 open: { choose(slot) }, receive: { url in if canModify { session.load(url, into: slot) } }, cancel: { session.cancel(slot) })
+                 open: { choose(slot) }, receive: { url in if canModify { session.load(url, into: slot) } }, cancel: { session.cancel(slot) }, canReload: canReload(slot), reload: { reload(slot) })
             .id(fileWellReset)
     }
     private var filterBar: some View {
@@ -175,7 +175,8 @@ struct WorkspaceView: View {
     }
     private var canModify: Bool { !showImporter && exportSnapshot == nil }
     private var actions: WorkspaceActions {
-        WorkspaceActions(canPreviousDifference: differenceTarget(forward: false) != nil,
+        WorkspaceActions(canReloadA: canReload(.a), canReloadB: canReload(.b),
+                         reloadA: { reload(.a) }, reloadB: { reload(.b) }, canPreviousDifference: differenceTarget(forward: false) != nil,
                          canNextDifference: differenceTarget(forward: true) != nil,
                          previousDifference: { navigateDifference(forward: false) },
                          nextDifference: { navigateDifference(forward: true) }, canOpen: canModify, canSwap: session.canSwap && canModify, canExport: session.comparison != nil && canModify,
@@ -194,6 +195,14 @@ struct WorkspaceView: View {
         guard let target = differenceTarget(forward: forward) else { return }
         selection = target
         showInspector = true
+    }
+    private func canReload(_ slot: FileSlot) -> Bool {
+        canModify && !session.isBusy && session.document(for: slot)?.sourceURL != nil
+    }
+    private func reload(_ slot: FileSlot) {
+        guard canReload(slot), let url = session.document(for: slot)?.sourceURL else { return }
+        notification = nil
+        session.load(url, into: slot)
     }
     private func choose(_ slot: FileSlot) {
         guard canModify else { return }
