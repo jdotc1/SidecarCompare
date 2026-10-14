@@ -70,7 +70,7 @@ MIT license; see [LICENSE](LICENSE). All supplied fixtures are synthetic. No cli
 
 ### Reviewing results
 
-Use Status to narrow the table to a specific outcome; its counts describe the full comparison. Click any column header to sort, and click again to reverse direction. A/B columns sort raw preview text rather than numerical magnitude. Previous/Next Difference follows the visible table order and opens the inspector; use Command-Option-Up/Down from the Comparison menu. Navigation stops at either end. Search, category, status and sorting affect the table only; exports retain the full comparison.
+Use Status to narrow the table to a specific outcome; its counts describe the full comparison. Click any column header to sort, and click again to reverse direction. A/B columns sort numbers by exact decimal value and strings by decoded UTF-8 text. Previous/Next Difference follows the visible table order and opens the inspector; use Command-Option-Up/Down from the Comparison menu. Navigation stops at either end. Search, category, status and sorting affect the table only; exports retain the full comparison.
 
 ### Refreshing changed sidecars
 
@@ -79,3 +79,5 @@ Click **Reload A** or **Reload B** in the file well, or use the File menu, to re
 ### Inspecting values
 
 The inspector separates A/reference and B/comparison into cards with explicit JSON types and raw values. Type changes show an A → B transition. Long values wrap and initially show 512 characters; **Show more** expands that side to at most 8,192 characters, with shown/total counts and **Show less**. Detailed export retains complete values. Original numeric tokens and JSON escaping are preserved.
+
+**Reset View** restores ascending JSON Pointer order, Differences only, seconds display, clears search/category/status filters and selection, and leaves both loaded snapshots and the comparison rule intact. It is also available in the Comparison menu. Ascending mixed-type A/B sorting uses missing, null, boolean, number, string, array, object; numbers retain exact decimal ordering, equivalent spellings tie, and containers use bounded previews. Descending reverses this order. Stable row IDs break ties.

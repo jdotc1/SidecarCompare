@@ -1,0 +1,30 @@
+Building for production...
+[Pre-planning 1 / 153]
+[Planning deferred tasks]
+[8 / 28]
+[9 / 29] SidecarCore
+[11 / 30] SidecarCore
+[21 / 34] sidecar-compare-product
+[25 / 37] sidecar-compare-product
+[27 / 37] sidecar-compare-product
+[27 / 37] SidecarCoreTests-product
+[31 / 36] SidecarCoreTests-product
+[33 / 36] SidecarCoreTests-product
+[36 / 37] sidecar-compare-product
+[37 / 38] SidecarCompare-product
+[39 / 41] SidecarCompare-product
+[40 / 41] SidecarCompare-product
+Build complete! (10.08 sec)
+Test Suite 'Selected tests' started at 2026-10-14 16:04:16.404.
+Test Suite 'SidecarCoreTests.xctest' started at 2026-10-14 16:04:16.405.
+Test Suite 'JSONSortValueTests' started at 2026-10-14 16:04:16.405.
+Test Case '-[SidecarCoreTests.JSONSortValueTests testExactNumbersAndEquivalentSpellings]' started.
+Test Case '-[SidecarCoreTests.JSONSortValueTests testExactNumbersAndEquivalentSpellings]' passed (0.001 seconds).
+Test Case '-[SidecarCoreTests.JSONSortValueTests testMixedTypesAndStrings]' started.
+Test Case '-[SidecarCoreTests.JSONSortValueTests testMixedTypesAndStrings]' passed (0.000 seconds).
+Test Suite 'JSONSortValueTests' passed at 2026-10-14 16:04:16.406.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'SidecarCoreTests.xctest' passed at 2026-10-14 16:04:16.406.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'Selected tests' passed at 2026-10-14 16:04:16.406.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds

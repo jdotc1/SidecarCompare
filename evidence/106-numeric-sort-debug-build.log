@@ -1,0 +1,10 @@
+Building for debugging...
+[Planning deferred tasks]
+[1 / 7]
+Build complete! (0.60 sec)
+<workspace>/dist/.stage.mRRnYd/SidecarCompare.app/Contents/Info.plist: OK
+<workspace>/Packaging/SidecarCompare.entitlements: OK
+<workspace>/dist/.stage.mRRnYd/SidecarCompare.app: replacing existing signature
+<workspace>/dist/.stage.mRRnYd/SidecarCompare.app: valid on disk
+<workspace>/dist/.stage.mRRnYd/SidecarCompare.app: satisfies its Designated Requirement
+Built: <workspace>/dist/SidecarCompare.app

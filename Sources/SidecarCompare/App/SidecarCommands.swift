@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct WorkspaceActions {
+    var resetView: @MainActor () -> Void
     var canReloadA: Bool
     var canReloadB: Bool
     var reloadA: @MainActor () -> Void
@@ -57,6 +58,7 @@ struct SidecarCommands: Commands {
             Divider()
             Button("Swap A and B") { actions?.swap() }
                 .keyboardShortcut("s", modifiers: [.command, .option]).disabled(actions?.canSwap != true)
+            Button("Reset View") { actions?.resetView() }.disabled(actions?.canOpen != true)
             Button("Clear Comparison") { actions?.clear() }
                 .keyboardShortcut("k").disabled(actions?.canOpen != true)
             Divider()

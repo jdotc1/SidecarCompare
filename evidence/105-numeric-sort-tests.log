@@ -1,0 +1,43 @@
+Building for debugging...
+[Constructing description]
+[Planning deferred tasks]
+[8 / 38]
+[9 / 39] SidecarCore
+[11 / 41] SidecarCore
+[21 / 51] SidecarCore
+[22 / 51] SidecarCore
+[28 / 48] SidecarCore
+[28 / 48] sidecar-compare-product
+[30 / 50] SidecarCore
+[30 / 50] sidecar-compare-product
+[31 / 50] SidecarCore
+[37 / 50] SidecarCompare-product
+[46 / 61] SidecarCompare-product
+[48 / 71] sidecar-compare-product
+[49 / 71] SidecarCompare-product
+[51 / 70] SidecarCompare-product
+[56 / 70] sidecar-compare-product
+[58 / 71] SidecarCoreTests-product
+[59 / 71] SidecarCompare-product
+[62 / 71] SidecarCompare-product
+[63 / 71] SidecarCompare-product
+[63 / 71] SidecarCoreTests-product
+[65 / 71] SidecarCompare-product
+[65 / 71] SidecarCoreTests-product
+[69 / 71] sidecar-compare-product
+[69 / 71] SidecarCompare-product
+[71 / 73] SidecarCompare-product
+Build complete! (8.80 sec)
+Test Suite 'Selected tests' started at 2026-10-14 16:04:00.376.
+Test Suite 'SidecarCoreTests.xctest' started at 2026-10-14 16:04:00.377.
+Test Suite 'JSONSortValueTests' started at 2026-10-14 16:04:00.377.
+Test Case '-[SidecarCoreTests.JSONSortValueTests testExactNumbersAndEquivalentSpellings]' started.
+Test Case '-[SidecarCoreTests.JSONSortValueTests testExactNumbersAndEquivalentSpellings]' passed (0.001 seconds).
+Test Case '-[SidecarCoreTests.JSONSortValueTests testMixedTypesAndStrings]' started.
+Test Case '-[SidecarCoreTests.JSONSortValueTests testMixedTypesAndStrings]' passed (0.000 seconds).
+Test Suite 'JSONSortValueTests' passed at 2026-10-14 16:04:00.379.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'SidecarCoreTests.xctest' passed at 2026-10-14 16:04:00.379.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'Selected tests' passed at 2026-10-14 16:04:00.379.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.003) seconds

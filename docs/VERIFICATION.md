@@ -29,7 +29,7 @@ All fixtures are synthetic. There is no third-party runtime dependency or app ne
 
 ## Comparison review feature increment
 
-Status filtering now composes with search/category and differences-only; status counts cover the full comparison. Native header sorting is available on all five columns. A/B sort by raw bounded preview text rather than numerical magnitude. Previous/Next Difference follows visible sort order, skips Equal, stops at either end and updates the inspector; shortcuts are Command-Option-Up/Down. Filters and sorting remain presentation-only and do not alter exports.
+Status filtering now composes with search/category and differences-only; status counts cover the full comparison. Native header sorting is available on all five columns. A/B now sort numbers by exact decimal value and strings by decoded UTF-8 text (superseding the initial raw-preview sorting). Previous/Next Difference follows visible sort order, skips Equal, stops at either end and updates the inspector; shortcuts are Command-Option-Up/Down. Filters and sorting remain presentation-only and do not alter exports.
 
 Accepted new receipts: `evidence/87-review-navigation-final-build.log` (staged debug app) and `evidence/89-review-navigation-release-build.log` (release compilation), both with warnings-as-errors. Focused native observations with the bundled synthetic example confirmed status counts/filter combinations, hidden-selection clearing, all-column sorting, preserved selection, inspector updates, shortcut navigation and disabled endpoints. Original raw UI captures remain local. Existing core/session/oracle/repository receipts above were reused without rerunning suites. No accessibility work or new performance/OS-matrix campaign was performed.
 
@@ -40,3 +40,7 @@ Reload A/B is available in file wells and the File menu. A native first attempt 
 ## Inspector refinement
 
 Separate A/B cards identify JSON types and raw values; type changes summarize A→B. Long selectable values wrap and expand from512 to the existing8192-character preview cap, with explicit shown/total counts and full-export retention notice. Native synthetic observations confirmed number→string presentation and independent long-preview expansion/collapse (A10002/B9602 serialized characters). Debug101 staging and release102 compilation pass with warnings-as-errors. Core/serialization/report code unchanged; passing receipts reused without suites rerun. No accessibility work or expanded appearance/OS matrix.
+
+## Exact numeric sorting and Reset View
+
+A/B now use exact-decimal numeric ordering without floating point, tolerance or display conversion. Mixed types have a documented rank; equivalent numbers tie, strings use UTF-8 order and containers use bounded previews. Focused new sorting tests105/107 pass in debug/release (2 each), including2/10, adjacent integers beyond2^53, signs, tiny exponents, equivalent spellings, mixed types and Unicode distinctions. Debug106 staging and release108 compilation pass. Native synthetic observations confirm exact A/B order, selection preservation, and Reset View restoring path order/differences-only/seconds/cleared search and selection while retaining files. Reset leaves comparison policy intact. Existing unchanged receipts reused, no broad suites or accessibility work.

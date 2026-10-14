@@ -102,6 +102,7 @@ struct WorkspaceView: View {
                     Text("\(item.rawValue) (\(session.comparison?.counts[item] ?? 0))").tag(Optional(item))
                 }
             }.frame(width: 200)
+            Button("Reset View", action: resetView).disabled(!canModify)
         }.padding(.horizontal, 16).padding(.bottom, 12)
     }
     @ViewBuilder private var comparisonContent: some View {
@@ -175,7 +176,7 @@ struct WorkspaceView: View {
     }
     private var canModify: Bool { !showImporter && exportSnapshot == nil }
     private var actions: WorkspaceActions {
-        WorkspaceActions(canReloadA: canReload(.a), canReloadB: canReload(.b),
+        WorkspaceActions(resetView: resetView, canReloadA: canReload(.a), canReloadB: canReload(.b),
                          reloadA: { reload(.a) }, reloadB: { reload(.b) }, canPreviousDifference: differenceTarget(forward: false) != nil,
                          canNextDifference: differenceTarget(forward: true) != nil,
                          previousDifference: { navigateDifference(forward: false) },
@@ -207,6 +208,12 @@ struct WorkspaceView: View {
     private func choose(_ slot: FileSlot) {
         guard canModify else { return }
         importSlot = slot; showImporter = true
+    }
+    private func resetView() {
+        guard canModify else { return }
+        search = ""; category = nil; status = nil; differencesOnly = true
+        milliseconds = false; sortOrder = [KeyPathComparator(\ComparisonRow.path)]
+        selection = nil; notification = nil
     }
     private func clear() {
         guard canModify else { return }

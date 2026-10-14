@@ -42,10 +42,10 @@ struct ComparisonTable: View {
     }
 }
 
-// Value columns sort by raw bounded previews, independently of display-unit conversion.
+// Exact numeric ordering is independent of display units and comparison tolerance.
 extension ComparisonRow {
     var statusSortKey: String { status.rawValue }
-    var aSortKey: String { a?.compactPreview ?? "" }
-    var bSortKey: String { b?.compactPreview ?? "" }
+    var aSortKey: JSONSortValue { JSONSortValue(a) }
+    var bSortKey: JSONSortValue { JSONSortValue(b) }
     var unitSortKey: String { unit ?? "" }
 }
