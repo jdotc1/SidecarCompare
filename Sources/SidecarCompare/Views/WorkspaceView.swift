@@ -128,6 +128,22 @@ struct WorkspaceView: View {
                         }
                     }
             }
+        } else if (session.a == nil) != (session.b == nil) {
+            let missing: FileSlot = session.a == nil ? .a : .b
+            let missingName = missing == .a ? "reference sidecar A" : "comparison sidecar B"
+            let loadedName = missing == .a ? "B · Comparison" : "A · Reference"
+            VStack(spacing: 14) {
+                ContentUnavailableView("Choose the \(missingName)", systemImage: "doc.badge.plus", description: Text("\(loadedName) is loaded. Add the missing sidecar to compare metadata without modifying either input."))
+                if session.error(for: missing) != nil {
+                    Text("The last read on this side failed. Choose the file again to restore access or select another JSON sidecar.")
+                        .font(.callout).foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                Button(missing == .a ? "Choose Reference A…" : "Choose Comparison B…") { choose(missing) }
+                    .buttonStyle(.borderedProminent).disabled(!canModify)
+                Text("The loaded side remains an in-memory snapshot until you explicitly reload or replace it.")
+                    .font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center)
+            }.padding(24).frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             VStack(spacing: 14) {
                 ContentUnavailableView("Compare two MRI sidecars", systemImage: "doc.text.magnifyingglass", description: Text("Choose a reference and comparison JSON file. Inspect typed differences without modifying either input."))

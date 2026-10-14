@@ -44,3 +44,7 @@ Separate A/B cards identify JSON types and raw values; type changes summarize Aâ
 ## Exact numeric sorting and Reset View
 
 A/B now use exact-decimal numeric ordering without floating point, tolerance or display conversion. Mixed types have a documented rank; equivalent numbers tie, strings use UTF-8 order and containers use bounded previews. Focused new sorting tests105/107 pass in debug/release (2 each), including2/10, adjacent integers beyond2^53, signs, tiny exponents, equivalent spellings, mixed types and Unicode distinctions. Debug106 staging and release108 compilation pass. Native synthetic observations confirm exact A/B order, selection preservation, and Reset View restoring path order/differences-only/seconds/cleared search and selection while retaining files. Reset leaves comparison policy intact. Existing unchanged receipts reused, no broad suites or accessibility work.
+
+## One-file-loaded guidance
+
+View-only targeted missing-A/B prompts identify the loaded side and supply the correct Choose action. Failed-read recovery text appears after reload failure. Debug111 staging/release112 compilation pass; native synthetic observations confirm both missing-side prompts, correct picker routing, completed comparison after adding the second side, and failed-reload recovery with the other snapshot retained. Existing receipts reused; no tests rerun or accessibility work.
