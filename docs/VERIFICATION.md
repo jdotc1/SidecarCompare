@@ -36,3 +36,7 @@ Accepted new receipts: `evidence/87-review-navigation-final-build.log` (staged d
 ## Explicit sidecar reload
 
 Reload A/B is available in file wells and the File menu. A native first attempt exposed loss of sandbox access metadata when storing a standardized URL. The reader now retains the original selected URL; write protection still normalizes paths at its existing boundary. A focused regression failed before repair and passes in debug95/release97. Final debug96 staging and release98 compilation pass with warnings-as-errors. Native synthetic observations confirmed A-only and B-only refresh without a picker, and unavailable-file failure clears the stale comparison and visibly directs Choose… recovery. Existing unchanged algorithm/session/oracle receipts were reused. No accessibility work or OS permission change. No blanket requalification of the full suite is claimed.
+
+## Inspector refinement
+
+Separate A/B cards identify JSON types and raw values; type changes summarize A→B. Long selectable values wrap and expand from512 to the existing8192-character preview cap, with explicit shown/total counts and full-export retention notice. Native synthetic observations confirmed number→string presentation and independent long-preview expansion/collapse (A10002/B9602 serialized characters). Debug101 staging and release102 compilation pass with warnings-as-errors. Core/serialization/report code unchanged; passing receipts reused without suites rerun. No accessibility work or expanded appearance/OS matrix.

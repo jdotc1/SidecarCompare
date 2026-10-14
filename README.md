@@ -75,3 +75,7 @@ Use Status to narrow the table to a specific outcome; its counts describe the fu
 ### Refreshing changed sidecars
 
 Click **Reload A** or **Reload B** in the file well, or use the File menu, to read that side again without a picker. The other side remains its current snapshot. Reload is disabled for empty slots, built-in examples, pending work, and open import/export panels. If refresh fails, the old snapshot and comparison are cleared; use **Choose…** to reopen the file or restore access. Reload is explicit—files are not watched automatically.
+
+### Inspecting values
+
+The inspector separates A/reference and B/comparison into cards with explicit JSON types and raw values. Type changes show an A → B transition. Long values wrap and initially show 512 characters; **Show more** expands that side to at most 8,192 characters, with shown/total counts and **Show less**. Detailed export retains complete values. Original numeric tokens and JSON escaping are preserved.
