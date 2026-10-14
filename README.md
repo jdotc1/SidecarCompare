@@ -91,3 +91,5 @@ Status and Reset View share a compact row. The view summary lists the selected s
 ### Locating selected sources
 
 Use **File → Reveal A in Finder / Reveal B in Finder**, or the corresponding file well’s context menu, to select that source in Finder. Reveal uses the original selected location and leaves the in-memory snapshot unchanged. If the file moved or access expired, an alert directs you to choose it again. Empty slots and built-in examples have no source to reveal. Reveal does not search for moved files or certify that a file currently at the pathname still matches the loaded snapshot.
+
+Inspector **Previous/Next** and side-specific **A/B · Show more / Show less** stay in a fixed header while values scroll. You can collapse a long preview or move to the next visible difference without scrolling back. Moving to another field resets expanded previews and brings its heading into view.

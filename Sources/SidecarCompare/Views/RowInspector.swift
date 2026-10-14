@@ -4,8 +4,36 @@ import SidecarCore
 @MainActor
 struct RowInspector: View {
     let row: ComparisonRow?
+    let canPrevious: Bool
+    let canNext: Bool
+    let previous: () -> Void
+    let next: () -> Void
+    @State private var expandedA = false
+    @State private var expandedB = false
 
     var body: some View {
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Button(action: previous) { Label("Previous", systemImage: "chevron.up") }
+                        .disabled(!canPrevious)
+                    Button(action: next) { Label("Next", systemImage: "chevron.down") }
+                        .disabled(!canNext)
+                    Spacer(minLength: 0)
+                }
+                if let row {
+                    HStack(spacing: 8) {
+                        if (row.a?.serialized().count ?? 0) > 512 {
+                            Button(expandedA ? "A · Show less" : "A · Show more") { expandedA.toggle() }
+                        }
+                        if (row.b?.serialized().count ?? 0) > 512 {
+                            Button(expandedB ? "B · Show less" : "B · Show more") { expandedB.toggle() }
+                        }
+                    }.controlSize(.small)
+                }
+            }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
+            Divider()
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 if let row {
@@ -23,8 +51,8 @@ struct RowInspector: View {
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                     }
-                    InspectorValueCard(title: "A · Reference", value: row.a).id(row.id + ":A")
-                    InspectorValueCard(title: "B · Comparison", value: row.b).id(row.id + ":B")
+                    InspectorValueCard(title: "A · Reference", value: row.a, expanded: expandedA).id(row.id + ":A")
+                    InspectorValueCard(title: "B · Comparison", value: row.b, expanded: expandedB).id(row.id + ":B")
                     if let delta = row.delta {
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Exact raw delta · B − A").font(.headline)
@@ -51,7 +79,13 @@ struct RowInspector: View {
                 } else {
                     ContentUnavailableView("Select a row", systemImage: "sidebar.right", description: Text("Inspect raw values, types, units, and the exact numeric delta."))
                 }
-            }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
+            }.padding(16).frame(maxWidth: .infinity, alignment: .leading).id("inspector-top")
+        }
+        .onChange(of: row?.id) { _, _ in
+            expandedA = false; expandedB = false
+            proxy.scrollTo("inspector-top", anchor: .top)
+        }
+        }
         }
         .inspectorColumnWidth(min: 270, ideal: 315, max: 500)
     }
@@ -61,7 +95,7 @@ struct RowInspector: View {
 private struct InspectorValueCard: View {
     let title: String
     let value: JSONValue?
-    @State private var expanded = false
+    let expanded: Bool
 
     var body: some View {
         let raw = value?.serialized() ?? "<missing>"
@@ -89,7 +123,6 @@ private struct InspectorValueCard: View {
                 if raw.count > 512 {
                     Text("Showing \(shown.count.formatted()) of \(raw.count.formatted()) characters.")
                         .font(.caption).foregroundStyle(.secondary)
-                    Button(expanded ? "Show less" : "Show more") { expanded.toggle() }
                     if expanded && raw.count > 8192 {
                         Text("Preview limited to 8,192 characters. Detailed export retains the complete value.")
                             .font(.caption).foregroundStyle(.secondary)

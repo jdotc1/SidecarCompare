@@ -60,3 +60,7 @@ Status/Reset View now share a row. A wrapping summary identifies active status/c
 ## Reveal sources in Finder
 
 File-menu/well-context Reveal A/B actions locate the selected source without modifying snapshots. Native observations confirmed A selection in Finder and B routing after Swap. A moved-after-successful-reveal regression exposed cached metadata; clearing the probe cache repaired it. Final debug126 staging/release127 compilation pass warnings-as-errors. Native green confirmed unavailable-source recovery alert with snapshot retained. Context action presence observed; execution verified through the shared File-menu route. Existing receipts reused; no suites/accessibility/permission changes. Finder selection is a request, not content-identity verification or moved-file tracking.
+
+## Fixed inspector review controls
+
+Previous/Next and independent A/B preview toggles stay above scrolling values. Row changes reset expansion and return to the field heading. Debug130 staging/release131 compilation pass warnings-as-errors. Native synthetic long-value observation confirmed controls remain visible at bottom, collapse works there, next/previous selects expected field with endpoint disabling, heading returns to top, and A/B expansion independently retains8192-character ceiling. Existing receipts reused; no suites/accessibility work.

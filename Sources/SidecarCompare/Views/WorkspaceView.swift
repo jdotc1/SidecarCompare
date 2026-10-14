@@ -42,7 +42,13 @@ struct WorkspaceView: View {
         .frame(minWidth: 850, minHeight: 580)
         .searchable(text: $search, prompt: "Search paths and value previews")
         .toolbar { toolbar }
-        .inspector(isPresented: $showInspector) { RowInspector(row: selectedRow) }
+         .inspector(isPresented: $showInspector) {
+            RowInspector(row: selectedRow,
+                         canPrevious: differenceTarget(forward: false) != nil,
+                         canNext: differenceTarget(forward: true) != nil,
+                         previous: { navigateDifference(forward: false) },
+                         next: { navigateDifference(forward: true) })
+        }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json, .plainText], allowsMultipleSelection: false) { result in
             switch result {
             case .success(let urls):
