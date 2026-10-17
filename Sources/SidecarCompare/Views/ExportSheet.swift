@@ -23,6 +23,10 @@ struct ExportSnapshot: Identifiable {
             .map { PinnedExportField(id: $0.id, pointer: $0.visiblePath, status: $0.status,
                                     hidden: !visiblePinnedIDs.contains($0.id)) }
     }
+    func reviewFields(matching query: String) -> [PinnedExportField] {
+        let fields = reviewFields
+        return query.isEmpty ? fields : fields.filter { $0.pointer.localizedCaseInsensitiveContains(query) }
+    }
     var selectedCount: Int { comparison.rows.filter { pinnedIDs?.contains($0.id) ?? true }.count }
     static let pinnedByteLimit = 16 * 1024 * 1024
 
@@ -44,6 +48,7 @@ struct ExportSheet: View {
     @Environment(\.nativeAcceptanceExportGate) private var acceptanceExportGate
     #endif
     @State private var reviewIncluded = false
+    @State private var reviewSearch = ""
     @State private var detail = ReportDetail.summary
     @State private var json = true
     @State private var acknowledged = false
@@ -101,14 +106,32 @@ struct ExportSheet: View {
         .onChange(of: detail) { _, _ in acknowledged = false; message = nil }
     }
     private var includedFields: some View {
-        DisclosureGroup("Review included fields (\(snapshot.selectedCount))", isExpanded: $reviewIncluded) {
+        let fields = snapshot.reviewFields(matching: reviewSearch)
+        return DisclosureGroup("Review included fields (\(snapshot.selectedCount))", isExpanded: $reviewIncluded) {
             VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    TextField("Find included field…", text: $reviewSearch)
+                        .textFieldStyle(.roundedBorder)
+                    if !reviewSearch.isEmpty {
+                        Button("Clear Search") { reviewSearch = "" }.controlSize(.small)
+                    }
+                }
+                Text("Showing \(fields.count) of \(snapshot.selectedCount) included fields")
+                    .font(.caption).monospacedDigit()
+                Text("Filters this review list only; all \(snapshot.selectedCount) pinned fields will be exported.")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text("Field names are shown here for review only. Summary output excludes them.")
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 10) {
-                        ForEach(snapshot.reviewFields) { field in
+                        if fields.isEmpty {
+                            Text("No included fields match this search. Clear Search to review all pinned fields.")
+                                .font(.callout).foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        ForEach(fields) { field in
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(verbatim: field.pointer).font(.system(.caption, design: .monospaced))
                                     .lineLimit(2).truncationMode(.middle).help(field.pointer)
