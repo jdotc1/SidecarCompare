@@ -304,7 +304,7 @@ struct WorkspaceView: View {
             Button(action: { choose(.a) }) { Label("Open A", systemImage: "folder") }.disabled(!canModify)
             Button(action: { choose(.b) }) { Label("Open B", systemImage: "folder.badge.plus") }.disabled(!canModify)
             Button(action: reloadBoth) { Label("Reload Both", systemImage: "arrow.clockwise") }.disabled(!canReloadBoth)
-            Button(action: { session.swap() }) { Label("Swap", systemImage: "arrow.left.arrow.right") }.disabled(!session.canSwap || !canModify)
+            Button(action: swap) { Label("Swap", systemImage: "arrow.left.arrow.right") }.disabled(!session.canSwap || !canModify)
             Button(action: clear) { Label("Clear", systemImage: "xmark.circle") }.disabled(!canModify)
         }
         ToolbarItemGroup {
@@ -327,7 +327,7 @@ struct WorkspaceView: View {
                          canNextDifference: differenceTarget(forward: true) != nil,
                          previousDifference: { navigateDifference(forward: false) },
                          nextDifference: { navigateDifference(forward: true) }, canOpen: canModify, canSwap: session.canSwap && canModify, canExport: session.comparison != nil && canModify,
-                         openA: { choose(.a) }, openB: { choose(.b) }, swap: { session.swap() }, clear: clear,
+                         openA: { choose(.a) }, openB: { choose(.b) }, swap: swap, clear: clear,
                          example: example, export: export, copySummary: copySummary)
     }
     private var differencePosition: String {
@@ -380,6 +380,13 @@ struct WorkspaceView: View {
         beginReload([slot])
         session.load(url, into: slot)
     }
+    private func swap() {
+        guard session.canSwap, canModify else { return }
+        // An empty reload-slot list marks a snapshot swap using the same restoration barrier.
+        beginReload([])
+        inspectorReview.resetField()
+        session.swap()
+    }
     private func beginReload(_ slots: [FileSlot]) {
         reloadSlots = slots
         reloadSelection = selection
@@ -392,7 +399,9 @@ struct WorkspaceView: View {
         let hadSelection = reloadSelection != nil
         selection = visibleRows.first(where: { $0.id == reloadSelection })?.id
         var messages: [String] = []
-        if reloadSlots.count == 2 && reloadSlots.allSatisfy({ session.document(for: $0) != nil }) {
+        if reloadSlots.isEmpty {
+            messages.append(session.comparison != nil ? "A and B swapped." : "Swap did not produce a comparison.")
+        } else if reloadSlots.count == 2 && reloadSlots.allSatisfy({ session.document(for: $0) != nil }) {
             messages.append("Both sidecars refreshed.")
         } else {
             for slot in reloadSlots {
