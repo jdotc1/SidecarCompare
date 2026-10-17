@@ -1,0 +1,16 @@
+Building for debugging...
+[Planning deferred tasks]
+[8 / 23]
+[9 / 24] SidecarCore
+[11 / 26] SidecarCore
+[19 / 24] SidecarCompare-product
+[30 / 35] SidecarCompare-product
+[31 / 35] SidecarCompare-product
+[33 / 35] SidecarCompare-product
+Build complete! (12.00 sec)
+<workspace>/dist/.stage.7oND0y/SidecarCompare.app/Contents/Info.plist: OK
+<workspace>/Packaging/SidecarCompare.entitlements: OK
+<workspace>/dist/.stage.7oND0y/SidecarCompare.app: replacing existing signature
+<workspace>/dist/.stage.7oND0y/SidecarCompare.app: valid on disk
+<workspace>/dist/.stage.7oND0y/SidecarCompare.app: satisfies its Designated Requirement
+Built: <workspace>/dist/SidecarCompare.app
