@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct WorkspaceActions {
+    var canGoToPointer: Bool
+    var goToPointer: @MainActor () -> Void
     var canRevealA: Bool
     var canRevealB: Bool
     var revealA: @MainActor () -> Void
@@ -58,6 +60,9 @@ struct SidecarCommands: Commands {
                 .keyboardShortcut("e").disabled(actions?.canExport != true)
         }
         CommandMenu("Comparison") {
+            Button("Go to JSON Pointer…") { actions?.goToPointer() }
+                .disabled(actions?.canGoToPointer != true)
+            Divider()
             Button("Previous Difference") { actions?.previousDifference() }
                 .keyboardShortcut(.upArrow, modifiers: [.command, .option])
                 .disabled(actions?.canPreviousDifference != true)

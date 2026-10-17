@@ -10,6 +10,7 @@ struct WorkspaceView: View {
     @State private var importSlot = FileSlot.a
     @State private var showImporter = false
     @State private var showPolicy = false
+    @State private var showPointer = false
     @State private var showInspector = true
     @State private var inspectorWidth: CGFloat = 315
     @State private var inspectorReview = InspectorReviewState()
@@ -58,6 +59,16 @@ struct WorkspaceView: View {
                 if let url = urls.first { session.load(url, into: importSlot) }
             case .failure(let error):
                 if (error as NSError).code != NSUserCancelledError { actionError = "The selected file could not be opened." }
+            }
+        }
+        .sheet(isPresented: $showPointer) {
+            GoToPointerSheet(rows: session.comparison?.rows ?? [], visibleIDs: Set(visibleRows.map(\.id))) { row, clear in
+                guard !session.isBusy, session.comparison?.rows.contains(where: { $0.id == row.id }) == true else { return }
+                if clear { search = ""; category = nil; status = nil; differencesOnly = false }
+                selection = row.id
+                showInspector = true
+                tableRevealRequest = UUID()
+                showPointer = false
             }
         }
         .sheet(item: $exportSnapshot) { ExportSheet(snapshot: $0) }
@@ -334,9 +345,10 @@ struct WorkspaceView: View {
             Button { showInspector.toggle() } label: { Label("Inspector", systemImage: "sidebar.right") }
         }
     }
-    private var canModify: Bool { !showImporter && exportSnapshot == nil }
+    private var canModify: Bool { !showImporter && exportSnapshot == nil && !showPointer }
     private var actions: WorkspaceActions {
-        WorkspaceActions(canRevealA: canReveal(.a), canRevealB: canReveal(.b),
+        WorkspaceActions(canGoToPointer: canModify && !session.isBusy && session.comparison != nil,
+                         goToPointer: { showPolicy = false; showPointer = true }, canRevealA: canReveal(.a), canRevealB: canReveal(.b),
                          revealA: { reveal(.a) }, revealB: { reveal(.b) }, resetView: resetView, canReloadA: canReload(.a), canReloadB: canReload(.b),
                          canReloadBoth: canReloadBoth, reloadBoth: reloadBoth, reloadA: { reload(.a) }, reloadB: { reload(.b) }, canPreviousDifference: differenceTarget(forward: false) != nil,
                          canNextDifference: differenceTarget(forward: true) != nil,
