@@ -224,6 +224,9 @@ struct WorkspaceView: View {
                 Button("Copy Pinned Pointers (\(pins.ids.count))", action: copyPinnedPointers)
                     .disabled(!canCopyRow || pins.ids.isEmpty)
                     .help("Copy all pinned JSON Pointers, including hidden fields, one per line in pointer order.")
+                Button("Copy Pinned Comparisons (\(pins.ids.count))", action: copyPinnedComparisons)
+                    .disabled(!canCopyRow || pins.ids.isEmpty)
+                    .help("Copy complete original A/B metadata for all pins, including hidden fields. Limit: 4 MiB; no partial output.")
                 Button("Clear Pins (\(pins.ids.count))", action: clearPins)
                     .disabled(!canModify || session.isBusy || pins.ids.isEmpty)
                     .help("Remove all pins and turn off Pinned only, preserving other view settings.")
@@ -690,6 +693,29 @@ struct WorkspaceView: View {
         exportSnapshot = ExportSnapshot(comparison: result, documents: session.sourceDocuments, visibleRowCount: visibleRows.count)
     }
     private var canCopyRow: Bool { canModify && !session.isBusy && !isCopyingRow }
+    private func copyPinnedComparisons() {
+        guard canCopyRow, !pins.ids.isEmpty, let result = session.comparison else { return }
+        let pinnedIDs = pins.ids
+        isCopyingRow = true
+        Task { @MainActor in
+            defer { isCopyingRow = false }
+            let content = await Task.detached(priority: .userInitiated) {
+                try? PinnedComparisonCopy.content(rows: result.rows, pinnedIDs: pinnedIDs, policy: result.policy)
+            }.value
+            let feedback: String
+            if let content, content.count > 0 {
+                NSPasteboard.general.clearContents()
+                let success = NSPasteboard.general.setString(content.text, forType: .string)
+                feedback = success
+                    ? "Copied \(content.count) pinned field comparison\(content.count == 1 ? "" : "s") with complete original metadata; it may identify people. The system clipboard may be shared with your other devices."
+                    : "Pinned comparisons could not be copied to the clipboard."
+            } else if content == nil {
+                feedback = "Pinned comparisons exceed the 4 MiB clipboard limit. Nothing was copied; the clipboard is unchanged. Unpin some fields and try again."
+            } else { return }
+            notification = feedback
+            rowCopyMessage = feedback
+        }
+    }
     private func copyPinnedPointers() {
         guard canCopyRow, !pins.ids.isEmpty, let result = session.comparison else { return }
         let pinnedIDs = pins.ids

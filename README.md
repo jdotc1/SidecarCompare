@@ -372,3 +372,6 @@ Each inspector A/B card now summarizes its parsed value beneath the JSON type: d
 
 
 **Go to Pin…** opens a searchable list of all pinned fields, including hidden pins, with comparison status and table visibility. Search matches displayed pointers case-insensitively and stays local to the picker. Select a visible target and choose **Go**, or explicitly choose **Clear Filters and Go** for a hidden target. Sort order, time display, search scope and inspector Find query are preserved. Cancel leaves the current review unchanged.
+
+
+**Copy Pinned Comparisons (count)** copies all pins, including hidden fields, in exact pointer order using the single-field comparison format: original A/B JSON, missing/null distinctions, status, rule and available raw delta. This contains complete original metadata and may identify people. A 4 MiB UTF-8 limit rejects the entire operation before touching the clipboard; no partial output is copied. Feedback reports the copied count or explains the limit. View and inspector review state stay unchanged.

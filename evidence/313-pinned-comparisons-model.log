@@ -1,0 +1,1 @@
+Pinned comparisons passed: exact single-field composition/order/membership, raw long Unicode/numeric values, missing/null, exact UTF8 byte boundary, oversize rejects whole result, empty pins.

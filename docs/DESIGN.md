@@ -129,3 +129,8 @@ Previous/Next Pinned Field and position appear below pin actions when pins exist
 ## Go to Pinned Field
 
 Go to Pin sheet owns local query/optional stable-ID selection. Full pinned comparison rows sort by exact UTF8 pointer order; local case-insensitive displayed-pointer search does not mutate workspace search. Rows show status and visible/hidden label. Only a selected search result enables Go; hidden result requires explicit Clear Filters and Go. Workspace callback rechecks nonbusy/current membership/pin, optionally clears row filters, selects/reveals inspector/table and closes. Pin sheet participates in canModify modal guard. No pin/sort/display/scope/Find/history resets; existing fresh-field selection behavior applies. Cancel mutates no workspace review state.
+
+
+## Copy Pinned Comparisons
+
+Pin action row copies snapshot full-comparison/pinned-ID list sorted by pointer UTF8, composing existing FieldComparisonCopy output with metadata warning/count. Worker tracks aggregate UTF8 bytes including header/separators with a 4 MiB limit; throws without returning partial output. Workspace clears/writes clipboard only after complete successful generation; limit failure leaves clipboard untouched and provides shared footer/inspector feedback. Uses existing copy/busy/modal guard. No selection/pin/filter/sort/display/Find/expansion/history mutation.

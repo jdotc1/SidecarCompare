@@ -1,0 +1,6 @@
+<workspace>/dist/pinned-comparison-check.YLnABB/main.swift:2:8: error: no such module 'SidecarCore'
+ 1 | import Foundation
+ 2 | import SidecarCore
+   |        `- error: no such module 'SidecarCore'
+ 3 | let long = String(repeating: "é", count: 9001)
+ 4 | let a = "{\"a/b~c\":9007199254740993e+0,\"missing\":null,\"z\":" + JSONValue.quote(long) + "}"
