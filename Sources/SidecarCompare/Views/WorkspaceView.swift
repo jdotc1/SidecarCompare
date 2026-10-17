@@ -229,9 +229,18 @@ struct WorkspaceView: View {
                     .overlay {
                         if visibleRows.isEmpty {
                             VStack(spacing: 10) {
-                                Text("No rows match the current filters.").foregroundStyle(.secondary)
-                                Button("Show All Rows") { search = ""; category = nil; status = nil; differencesOnly = false }
-                            }
+                                Text("No fields match this view").font(.headline)
+                                Text("The comparison contains \(result.rows.count) rows. Clear filters to show them all.")
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Button("Clear Filters", action: clearFilters)
+                                    .buttonStyle(.borderedProminent).disabled(!canModify)
+                                Text("Sort order, time display and comparison rule stay unchanged.")
+                                    .font(.caption).foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }.padding(24).frame(maxWidth: 480)
                         }
                     }
             }
@@ -421,6 +430,10 @@ struct WorkspaceView: View {
         guard canModify else { return }
         restoringReloadSelection = false; reloadSelection = nil; reloadSlots = []; refreshFeedback = nil
         importSlot = slot; showImporter = true
+    }
+    private func clearFilters() {
+        guard canModify else { return }
+        search = ""; category = nil; status = nil; differencesOnly = false
     }
     private func resetView() {
         guard canModify else { return }

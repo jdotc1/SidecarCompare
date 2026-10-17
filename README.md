@@ -115,3 +115,5 @@ After Reload A, Reload B or Reload Both, a dismissible inline message reports wh
 Hiding and reopening the inspector on the same field and snapshots preserves **Find**, its current match and independent A/B expansion. Changing fields or reloading snapshots keeps the query but resets match navigation and expansion. Clear, replacement inputs, loading the example and Reset View clear the saved review state. This state is session-local.
 
 Use **Show in Table** in the inspector to bring the selected field back into view after scrolling the table. It preserves filters, sort order, Find/current match and A/B expansion. The action is disabled without a selected field or while session work or import/export panels are active.
+
+When filters hide every row, **No fields match this view** shows the total comparison row count. **Clear Filters** clears search, category and status and turns off Differences only, revealing all rows while preserving sort order, time display, comparison rule and loaded snapshots. **Reset View** remains the broader presentation reset.
