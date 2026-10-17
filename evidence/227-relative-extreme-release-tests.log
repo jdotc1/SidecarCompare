@@ -1,0 +1,28 @@
+Building for production...
+[Using on-disk description]
+[2 / 10]
+[3 / 11] SidecarCore
+[5 / 12] SidecarCore
+[13 / 17] sidecar-compare-product
+[15 / 19] SidecarCoreTests-product
+[16 / 20] sidecar-compare-product
+[18 / 20] sidecar-compare-product
+[18 / 20] SidecarCoreTests-product
+[22 / 27] SidecarCoreTests-product
+[24 / 27] SidecarCoreTests-product
+[25 / 26] sidecar-compare-product
+[27 / 28] SidecarCompare-product
+[30 / 32] SidecarCompare-product
+[31 / 32] SidecarCompare-product
+Build complete! (13.43 sec)
+Test Suite 'Selected tests' started at 2026-10-17 00:34:14.681.
+Test Suite 'SidecarCoreTests.xctest' started at 2026-10-17 00:34:14.682.
+Test Suite 'RelativeChangeTests' started at 2026-10-17 00:34:14.682.
+Test Case '-[SidecarCoreTests.RelativeChangeTests testExponentExtremes]' started.
+Test Case '-[SidecarCoreTests.RelativeChangeTests testExponentExtremes]' passed (0.010 seconds).
+Test Suite 'RelativeChangeTests' passed at 2026-10-17 00:34:14.692.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.010 (0.010) seconds
+Test Suite 'SidecarCoreTests.xctest' passed at 2026-10-17 00:34:14.692.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.010 (0.010) seconds
+Test Suite 'Selected tests' passed at 2026-10-17 00:34:14.692.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.010 (0.012) seconds

@@ -160,3 +160,37 @@ public struct DecimalNumber: Sendable, Equatable {
         return sign + coefficient + "e" + String(exponent)
     }
 }
+
+extension DecimalNumber {
+    /// `(self - reference) / abs(reference) * 100`, rounded to six decimal
+    /// places using decimal integer division, ties away from zero. Display only.
+    public func relativeChangePercentage(from reference: Self) -> String? {
+        guard !reference.isZero else { return nil }
+        let delta = subtracting(reference)
+        if delta.isZero { return "0" }
+        let power = delta.exponent + 8 - reference.exponent
+        let numerator = delta.digits + [UInt8](repeating: 0, count: max(0, power))
+        let denominator = Self(negative: false, digits: reference.digits
+            + [UInt8](repeating: 0, count: max(0, -power)), exponent: 0)
+        var remainder = Self(negative: false, digits: [0], exponent: 0)
+        var quotient: [UInt8] = []
+        for digit in numerator {
+            let shifted = remainder.scaled(byPowerOfTen: 1)
+            remainder = shifted.subtracting(Self(negative: true, digits: [digit], exponent: 0))
+            var next: UInt8 = 0
+            while denominator.magnitudeLessThanOrEqual(to: remainder) {
+                remainder = remainder.subtracting(denominator)
+                next += 1
+            }
+            quotient.append(next)
+        }
+        let two = Self(negative: false, digits: [2], exponent: 0)
+        if denominator.magnitudeLessThanOrEqual(to: remainder.multiplied(by: two)) {
+            var index = quotient.count - 1
+            while index > 0 && quotient[index] == 9 { quotient[index] = 0; index -= 1 }
+            if quotient[index] == 9 { quotient[index] = 0; quotient.insert(1, at: 0) }
+            else { quotient[index] += 1 }
+        }
+        return Self(negative: delta.negative, digits: quotient, exponent: -6).canonicalString
+    }
+}

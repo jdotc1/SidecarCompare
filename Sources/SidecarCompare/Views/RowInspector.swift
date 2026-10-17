@@ -7,6 +7,7 @@ struct RowInspector: View {
     let resetWidth: () -> Void
     let row: ComparisonRow?
     let revision: [UUID?]
+    let milliseconds: Bool
     let position: String
     let canPrevious: Bool
     let canNext: Bool
@@ -81,7 +82,18 @@ struct RowInspector: View {
                     InspectorValueCard(title: "B · Comparison", value: row.b, expanded: review.expandedB).id(row.id + ":B")
                     if let delta = row.delta {
                         VStack(alignment: .leading, spacing: 5) {
-                            Text("Exact raw delta · B − A").font(.headline)
+                            Text("Numeric difference").font(.headline)
+                            Text("Absolute delta · |B − A|").font(.subheadline)
+                            Text(delta.magnitude.scaled(byPowerOfTen: row.unit == "s" && milliseconds ? 3 : 0).canonicalString
+                                 + (row.unit.map { " " + ($0 == "s" && milliseconds ? "ms" : $0) } ?? ""))
+                                .font(.system(.body, design: .monospaced)).textSelection(.enabled)
+                            if case .number(let a) = row.a, case .number(let b) = row.b {
+                                RelativeChangeSummary(a: a, b: b)
+                                Text("(B − A) / |A| × 100%; rounded to 6 decimal places, ties away from zero. Tolerance classification uses max(|A|, |B|) instead.")
+                                    .font(.caption).foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            Text("Exact raw delta · B − A").font(.subheadline)
                             Text(delta.canonicalString).font(.system(.body, design: .monospaced)).textSelection(.enabled)
                             Text(row.unit.map { "Canonical unit: \($0)" } ?? "Unit unspecified; no physical interpretation inferred.")
                                 .font(.caption).foregroundStyle(.secondary)
@@ -168,5 +180,25 @@ private struct InspectorValueCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
         .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.secondary.opacity(0.2)))
+    }
+}
+
+@MainActor
+private struct RelativeChangeSummary: View {
+    let a: DecimalNumber
+    let b: DecimalNumber
+    @State private var text = "Calculating relative change…"
+    var body: some View {
+        Text(text).font(.callout).textSelection(.enabled)
+            .task(id: [a.token, b.token]) {
+                text = "Calculating relative change…"
+                let a = a, b = b
+                let result = await Task.detached(priority: .userInitiated) {
+                    b.relativeChangePercentage(from: a)
+                }.value
+                guard !Task.isCancelled else { return }
+                text = result.map { "Relative change from A: " + $0 + "%" }
+                    ?? "Relative change unavailable: A is zero."
+            }
     }
 }

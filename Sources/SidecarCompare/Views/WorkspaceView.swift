@@ -110,7 +110,7 @@ struct WorkspaceView: View {
     private var inspector: some View {
         RowInspector(canResetWidth: abs(inspectorWidth - 315) >= 1,
                      resetWidth: { inspectorWidth = 315 },
-                     row: selectedRow, revision: [session.a?.id, session.b?.id], position: differencePosition,
+                     row: selectedRow, revision: [session.a?.id, session.b?.id], milliseconds: milliseconds, position: differencePosition,
                      canPrevious: differenceTarget(forward: false) != nil,
                      canNext: differenceTarget(forward: true) != nil,
                      previous: { navigateDifference(forward: false) },
