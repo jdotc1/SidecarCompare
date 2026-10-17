@@ -15,8 +15,7 @@ struct RowInspector: View {
     let canCopy: Bool
     let copyMessage: String?
     let copy: (ComparisonRow, RowCopyTarget) -> Void
-    @State private var expandedA = false
-    @State private var expandedB = false
+    @Bindable var review: InspectorReviewState
 
     var body: some View {
         VStack(spacing: 0) {
@@ -45,13 +44,13 @@ struct RowInspector: View {
                         .fixedSize(horizontal: false, vertical: true)
                     HStack(spacing: 8) {
                         if (row.a?.serialized().count ?? 0) > 512 {
-                            Button(expandedA ? "A · Show less" : "A · Show more") { expandedA.toggle() }
+                            Button(review.expandedA ? "A · Show less" : "A · Show more") { review.expandedA.toggle() }
                         }
                         if (row.b?.serialized().count ?? 0) > 512 {
-                            Button(expandedB ? "B · Show less" : "B · Show more") { expandedB.toggle() }
+                            Button(review.expandedB ? "B · Show less" : "B · Show more") { review.expandedB.toggle() }
                         }
                     }.controlSize(.small)
-                    InspectorValueSearch(row: row, revision: revision)
+                    InspectorValueSearch(row: row, revision: revision, review: review)
                 }
             }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
             Divider()
@@ -73,8 +72,8 @@ struct RowInspector: View {
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                     }
-                    InspectorValueCard(title: "A · Reference", value: row.a, expanded: expandedA).id(row.id + ":A")
-                    InspectorValueCard(title: "B · Comparison", value: row.b, expanded: expandedB).id(row.id + ":B")
+                    InspectorValueCard(title: "A · Reference", value: row.a, expanded: review.expandedA).id(row.id + ":A")
+                    InspectorValueCard(title: "B · Comparison", value: row.b, expanded: review.expandedB).id(row.id + ":B")
                     if let delta = row.delta {
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Exact raw delta · B − A").font(.headline)
@@ -104,7 +103,7 @@ struct RowInspector: View {
             }.padding(16).frame(maxWidth: .infinity, alignment: .leading).id("inspector-top")
         }
         .onChange(of: row?.id) { _, _ in
-            expandedA = false; expandedB = false
+            review.resetField()
             proxy.scrollTo("inspector-top", anchor: .top)
         }
         }

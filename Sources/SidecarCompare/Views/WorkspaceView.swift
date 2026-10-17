@@ -12,6 +12,7 @@ struct WorkspaceView: View {
     @State private var showPolicy = false
     @State private var showInspector = true
     @State private var inspectorWidth: CGFloat = 315
+    @State private var inspectorReview = InspectorReviewState()
     @State private var exportSnapshot: ExportSnapshot?
     @State private var search = ""
     @State private var differencesOnly = true
@@ -71,9 +72,9 @@ struct WorkspaceView: View {
         .onChange(of: visibleRows.map(\.id)) { _, ids in
             if !restoringReloadSelection, let selection, !ids.contains(selection) { self.selection = nil }
         }
-        .onChange(of: selection) { _, _ in rowCopyMessage = nil }
-        .onChange(of: session.a?.id) { _, _ in if !restoringReloadSelection { selection = nil; refreshFeedback = nil }; notification = nil }
-        .onChange(of: session.b?.id) { _, _ in if !restoringReloadSelection { selection = nil; refreshFeedback = nil }; notification = nil }
+        .onChange(of: selection) { _, _ in rowCopyMessage = nil; inspectorReview.resetField() }
+        .onChange(of: session.a?.id) { _, _ in if !restoringReloadSelection { selection = nil; refreshFeedback = nil; inspectorReview.resetAll() } else { inspectorReview.resetField() }; notification = nil }
+        .onChange(of: session.b?.id) { _, _ in if !restoringReloadSelection { selection = nil; refreshFeedback = nil; inspectorReview.resetAll() } else { inspectorReview.resetField() }; notification = nil }
         .onChange(of: session.isBusy || !restoringReloadSelection) { _, waiting in
             guard !waiting else { return }
             finishReload()
@@ -101,7 +102,7 @@ struct WorkspaceView: View {
                      canNext: differenceTarget(forward: true) != nil,
                      previous: { navigateDifference(forward: false) },
                      next: { navigateDifference(forward: true) },
-                     canCopy: canCopyRow, copyMessage: rowCopyMessage, copy: copyRow)
+                     canCopy: canCopyRow, copyMessage: rowCopyMessage, copy: copyRow, review: inspectorReview)
     }
     private var visibleRows: [ComparisonRow] {
         (session.comparison?.filtered(search: search, differencesOnly: differencesOnly, category: category) ?? [])
@@ -420,6 +421,7 @@ struct WorkspaceView: View {
     }
     private func resetView() {
         guard canModify else { return }
+        inspectorReview.resetAll()
         reloadSelection = nil
         search = ""; category = nil; status = nil; differencesOnly = true
         milliseconds = false; sortOrder = [KeyPathComparator(\ComparisonRow.path)]
@@ -427,11 +429,13 @@ struct WorkspaceView: View {
     }
     private func clear() {
         guard canModify else { return }
+        inspectorReview.resetAll()
         restoringReloadSelection = false; reloadSelection = nil; reloadSlots = []; refreshFeedback = nil
         session.clear(); fileWellReset = UUID(); selection = nil; notification = nil
     }
     private func example() {
         guard canModify else { return }
+        inspectorReview.resetAll()
         restoringReloadSelection = false; reloadSelection = nil; reloadSlots = []; refreshFeedback = nil
         do {
             let pair = try ExampleSidecars.documents()

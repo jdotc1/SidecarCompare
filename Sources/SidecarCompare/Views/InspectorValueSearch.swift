@@ -1,40 +1,38 @@
 import Foundation
 import SwiftUI
+import Observation
 import SidecarCore
 
 @MainActor
 struct InspectorValueSearch: View {
     let row: ComparisonRow
     let revision: [UUID?]
-    @State private var query = ""
-    @State private var outcome: SearchOutcome?
-    @State private var failed: SearchIdentity?
-    @State private var currentMatch = 0
+    @Bindable var review: InspectorReviewState
 
     private var identity: SearchIdentity {
-        SearchIdentity(rowID: row.id, revision: revision, queryBytes: Data(query.utf8))
+        SearchIdentity(rowID: row.id, revision: revision, queryBytes: Data(review.query.utf8))
     }
-    private var currentOutcome: SearchOutcome? { outcome?.identity == identity ? outcome : nil }
+    private var currentOutcome: SearchOutcome? { review.outcome?.identity == identity ? review.outcome : nil }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
-                TextField("Find in values…", text: $query)
+                TextField("Find in values…", text: $review.query)
                     .textFieldStyle(.roundedBorder)
-                if !query.isEmpty {
-                    Button("Clear Find") { query = "" }.controlSize(.small)
+                if !review.query.isEmpty {
+                    Button("Clear Find") { review.query = "" }.controlSize(.small)
                 }
             }
             Text("Literal, case-sensitive · complete raw A/B JSON")
                 .font(.caption).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            if !query.isEmpty {
+            if !review.query.isEmpty {
                 if let result = currentOutcome {
                     Text("A: \(result.a.count) matches · B: \(result.b.count) matches")
                         .font(.caption).monospacedDigit()
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
-                    Text(failed == identity ? "Value search could not be completed. Edit or clear Find to retry." : "Searching complete A/B values…")
+                    Text(review.failed == identity ? "Value search could not be completed. Edit or clear Find to retry." : "Searching complete A/B values…")
                         .font(.caption).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -45,8 +43,8 @@ struct InspectorValueSearch: View {
                 if let result = currentOutcome {
                     if result.total == 0 {
                         Text("No matches in either complete value.").font(.caption).foregroundStyle(.secondary)
-                    } else if let match = result.excerpt(at: currentMatch) {
-                        Text("Match \(currentMatch + 1) of \(result.total) · \(match.side) · byte \(match.excerpt.bytePosition)")
+                    } else if let match = result.excerpt(at: review.currentMatch) {
+                        Text("Match \(review.currentMatch + 1) of \(result.total) · \(match.side) · byte \(match.excerpt.bytePosition)")
                             .font(.caption).monospacedDigit()
                             .fixedSize(horizontal: false, vertical: true)
                         (Text(verbatim: match.excerpt.before) + Text(verbatim: match.excerpt.match).bold().underline()
@@ -66,15 +64,16 @@ struct InspectorValueSearch: View {
     }
 
     @ViewBuilder private var matchButtons: some View {
-        Button("Previous Match") { currentMatch -= 1 }
-            .disabled(currentOutcome == nil || currentMatch <= 0)
-        Button("Next Match") { currentMatch += 1 }
-            .disabled(currentOutcome == nil || currentMatch + 1 >= (currentOutcome?.total ?? 0))
+        Button("Previous Match") { review.currentMatch -= 1 }
+            .disabled(currentOutcome == nil || review.currentMatch <= 0)
+        Button("Next Match") { review.currentMatch += 1 }
+            .disabled(currentOutcome == nil || review.currentMatch + 1 >= (currentOutcome?.total ?? 0))
     }
 
     private func search() async {
-        let request = identity, query = query, a = row.a, b = row.b
-        outcome = nil; failed = nil; currentMatch = 0
+        let request = identity, query = review.query, a = row.a, b = row.b
+        guard !Task.isCancelled, review.outcome?.identity != request else { return }
+        review.outcome = nil; review.failed = nil; review.currentMatch = 0
         guard !query.isEmpty else { return }
         do {
             try await Task.sleep(for: .milliseconds(125))
@@ -85,21 +84,21 @@ struct InspectorValueSearch: View {
             }
             let result = try await withTaskCancellationHandler(operation: { try await worker.value }, onCancel: { worker.cancel() })
             guard !Task.isCancelled, request == identity else { return }
-            outcome = result
+            review.outcome = result
         } catch is CancellationError { }
         catch {
             guard !Task.isCancelled, request == identity else { return }
-            failed = request
+            review.failed = request
         }
     }
 }
 
-private struct SearchIdentity: Hashable, Sendable {
+fileprivate struct SearchIdentity: Hashable, Sendable {
     let rowID: String
     let revision: [UUID?]
     let queryBytes: Data
 }
-private struct SearchOutcome: Sendable {
+fileprivate struct SearchOutcome: Sendable {
     let identity: SearchIdentity
     let a: JSONValueSearch
     let b: JSONValueSearch
@@ -107,5 +106,25 @@ private struct SearchOutcome: Sendable {
     func excerpt(at index: Int) -> (side: String, excerpt: JSONSearchExcerpt)? {
         if index < a.count { return a.excerpt(at: index).map { ("A", $0) } }
         return b.excerpt(at: index - a.count).map { ("B", $0) }
+    }
+}
+
+/// Session-local review state survives presentation changes, never source replacement.
+@Observable @MainActor
+final class InspectorReviewState {
+    var query = ""
+    var expandedA = false
+    var expandedB = false
+    var currentMatch = 0
+    fileprivate var outcome: SearchOutcome?
+    fileprivate var failed: SearchIdentity?
+
+    func resetField() {
+        expandedA = false; expandedB = false
+        currentMatch = 0; outcome = nil; failed = nil
+    }
+    func resetAll() {
+        query = ""
+        resetField()
     }
 }
