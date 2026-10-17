@@ -2,12 +2,27 @@ import AppKit
 import SwiftUI
 import SidecarCore
 
+struct PinnedExportField: Identifiable {
+    let id: String
+    let pointer: String
+    let status: DifferenceStatus
+    let hidden: Bool
+}
+
 struct ExportSnapshot: Identifiable {
     let id = UUID()
     let comparison: Comparison
     let documents: [SidecarDocument]
     let visibleRowCount: Int
     var pinnedIDs: Set<String>? = nil
+    var visiblePinnedIDs: Set<String> = []
+    var reviewFields: [PinnedExportField] {
+        guard let pinnedIDs else { return [] }
+        return comparison.rows.filter { pinnedIDs.contains($0.id) }
+            .sorted { $0.path.utf8.lexicographicallyPrecedes($1.path.utf8) }
+            .map { PinnedExportField(id: $0.id, pointer: $0.visiblePath, status: $0.status,
+                                    hidden: !visiblePinnedIDs.contains($0.id)) }
+    }
     var selectedCount: Int { comparison.rows.filter { pinnedIDs?.contains($0.id) ?? true }.count }
     static let pinnedByteLimit = 16 * 1024 * 1024
 
@@ -28,6 +43,7 @@ struct ExportSheet: View {
     #if DEBUG
     @Environment(\.nativeAcceptanceExportGate) private var acceptanceExportGate
     #endif
+    @State private var reviewIncluded = false
     @State private var detail = ReportDetail.summary
     @State private var json = true
     @State private var acknowledged = false
@@ -49,6 +65,7 @@ struct ExportSheet: View {
             }
             .padding(12).frame(maxWidth: .infinity, alignment: .leading)
             .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
+            if snapshot.pinnedIDs != nil { includedFields }
             Picker("Contents", selection: $detail) {
                 Text("Summary only").tag(ReportDetail.summary)
                 Text("Full metadata comparison").tag(ReportDetail.full)
@@ -83,6 +100,31 @@ struct ExportSheet: View {
         .interactiveDismissDisabled(busy)
         .onChange(of: detail) { _, _ in acknowledged = false; message = nil }
     }
+    private var includedFields: some View {
+        DisclosureGroup("Review included fields (\(snapshot.selectedCount))", isExpanded: $reviewIncluded) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Field names are shown here for review only. Summary output excludes them.")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 10) {
+                        ForEach(snapshot.reviewFields) { field in
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(verbatim: field.pointer).font(.system(.caption, design: .monospaced))
+                                    .lineLimit(2).truncationMode(.middle).help(field.pointer)
+                                    .textSelection(.enabled)
+                                Text(field.status.rawValue).font(.caption)
+                                if field.hidden {
+                                    Text("Hidden in current view").font(.caption).foregroundStyle(.secondary)
+                                }
+                            }.frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }.padding(.trailing, 8)
+                }.frame(height: 150)
+            }.padding(.top, 6)
+        }.disabled(busy)
+    }
+
     private var canExport: Bool { !busy && (detail == .summary || acknowledged) }
     private func perform(copy: Bool) {
         guard canExport else { return }

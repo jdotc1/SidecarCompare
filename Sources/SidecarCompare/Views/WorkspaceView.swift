@@ -727,7 +727,8 @@ struct WorkspaceView: View {
     private func exportPinnedComparisons() {
         guard canModify, !session.isBusy, !pins.ids.isEmpty, let result = session.comparison else { return }
         exportSnapshot = ExportSnapshot(comparison: result, documents: session.sourceDocuments,
-            visibleRowCount: visibleRows.filter { pins.ids.contains($0.id) }.count, pinnedIDs: pins.ids)
+            visibleRowCount: visibleRows.filter { pins.ids.contains($0.id) }.count, pinnedIDs: pins.ids,
+            visiblePinnedIDs: Set(visibleRows.map(\.id)))
     }
     private var canCopyRow: Bool { canModify && !session.isBusy && !isCopyingRow }
     private func copyPinnedComparisons() {
