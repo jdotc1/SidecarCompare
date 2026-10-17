@@ -1,0 +1,7 @@
+Native acceptance415 — Fixed-header text change navigation
+Existing synthetic Text-A/B fixtures unchanged. /Text selected; FindNEW/B Match1of1, Aexpanded/Bshort, both sections initially collapsed.
+Text Change menu remains beside Copy in the fixed inspector header. ShowB opens only B, reveals byte9005/6scalars, while A remains collapsed. Header is usable without scrolling back from B.
+Return to Text Summary scrolls the collapsed summary to top of the content viewport, retaining Valueoff, FindNEW/B Match1of1 and A/B expansion. Screenshot415collapsed records visible collapsed target and header controls.
+ShowA from the header opens A, reveals byte9005/5scalars, keeps B open and Aexpanded/Bshort. Return retains collapsed summary. Expand summary, ShowB, Return preserves expanded summary Valueon and Find match; screenshot415expanded.
+Switch to Empty then header ShowA displays byte2/0scalar insertion/deletion boundary rather than prior cached byte9005. Back restores /Text/A Showless/B Showmore/FindNEW/B Match1of1.
+No filter/sort/Find mutations or accessibility/permissions/settings work. Existing span-location/math/review checks reused, not repeated.

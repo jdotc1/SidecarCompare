@@ -8,6 +8,12 @@ struct StringDifferenceIdentity: Hashable {
 
 }
 
+struct StringDifferenceLocations {
+    let identity: StringDifferenceIdentity
+    let a: ChangedSpanExcerpt
+    let b: ChangedSpanExcerpt
+}
+
 @MainActor
 struct StringDifferenceSection: View {
     let a: String
@@ -16,8 +22,8 @@ struct StringDifferenceSection: View {
     @Binding var collapsed: Bool
     let canReveal: Bool
     let reveal: (String, ChangedSpanExcerpt) -> Void
-    @State private var aLocation: ChangedSpanExcerpt?
-    @State private var bLocation: ChangedSpanExcerpt?
+    let prepared: (StringDifferenceLocations) -> Void
+    @State private var locations: StringDifferenceLocations?
     @State private var summary: StringDifferenceSummary?
     @State private var loading = true
     @State private var failed = false
@@ -31,12 +37,12 @@ struct StringDifferenceSection: View {
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 StringDifferenceExcerpt(title: "A · Reference", excerpt: summary.a)
-                if let aLocation {
-                    Button("Show A Change") { reveal("A", aLocation) }.disabled(!canReveal)
+                if let locations, locations.identity == identity {
+                    Button("Show A Change") { reveal("A", locations.a) }.disabled(!canReveal)
                 }
                 StringDifferenceExcerpt(title: "B · Comparison", excerpt: summary.b)
-                if let bLocation {
-                    Button("Show B Change") { reveal("B", bLocation) }.disabled(!canReveal)
+                if let locations, locations.identity == identity {
+                    Button("Show B Change") { reveal("B", locations.b) }.disabled(!canReveal)
                 }
                 Text("One differing span, not a minimal edit-by-edit diff. Escaped decoded text: non-ASCII and control characters use JSON Unicode escapes. Underlined text is the differing span; ellipses mark bounded context or truncation. Raw JSON below is unchanged.")
                     .font(.caption).foregroundStyle(.secondary)
@@ -56,7 +62,7 @@ struct StringDifferenceSection: View {
             }
         }
         .task(id: identity) {
-            summary = nil; aLocation = nil; bLocation = nil; loading = true; failed = false
+            summary = nil; locations = nil; loading = true; failed = false
             let a = a, b = b
             let worker = Task.detached(priority: .userInitiated) { () throws -> (StringDifferenceSummary?, ChangedSpanExcerpt?, ChangedSpanExcerpt?) in
                 guard let result = try StringDifferenceSummary.compare(a: a, b: b) else { return (nil, nil, nil) }
@@ -67,7 +73,12 @@ struct StringDifferenceSection: View {
             do {
                 let result = try await withTaskCancellationHandler(operation: { try await worker.value }, onCancel: { worker.cancel() })
                 guard !Task.isCancelled else { return }
-                summary = result.0; aLocation = result.1; bLocation = result.2; loading = false
+                summary = result.0; loading = false
+                if let a = result.1, let b = result.2 {
+                    let ready = StringDifferenceLocations(identity: identity, a: a, b: b)
+                    locations = ready
+                    prepared(ready)
+                }
             } catch is CancellationError { }
             catch { guard !Task.isCancelled else { return }; failed = true; loading = false }
         }

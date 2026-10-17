@@ -27,6 +27,8 @@ struct RowInspector: View {
     let copyMessage: String?
     let copy: (ComparisonRow, RowCopyTarget) -> Void
     @Bindable var review: InspectorReviewState
+    @State private var textChangeLocations: StringDifferenceLocations?
+    @State private var textSummaryRequest = UUID()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -68,8 +70,20 @@ struct RowInspector: View {
                 if let row {
                     Button(isPinned ? "Unpin Field" : "Pin Field", action: togglePin)
                         .controlSize(.small).disabled(!canPin)
-                    Menu("Copy") { RowCopyMenu(row: row, enabled: canCopy, copy: copy, includeDifferenceSummary: true) }
-                        .disabled(!canCopy)
+                    HStack(spacing: 8) {
+                        Menu("Copy") { RowCopyMenu(row: row, enabled: canCopy, copy: copy, includeDifferenceSummary: true) }
+                            .disabled(!canCopy)
+                        if let identity = textChangeIdentity {
+                            Menu("Text Change") {
+                                Button("Show A Change") { revealTextChange(side: "A", identity: identity) }
+                                    .disabled(textChangeLocations?.identity != identity)
+                                Button("Show B Change") { revealTextChange(side: "B", identity: identity) }
+                                    .disabled(textChangeLocations?.identity != identity)
+                                Divider()
+                                Button("Return to Text Summary") { textSummaryRequest = UUID() }
+                            }.disabled(!canShowInTable)
+                        }
+                    }
                     Text(copyMessage ?? "Value copy includes complete original JSON, which may identify people.")
                         .font(.caption).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -108,10 +122,11 @@ struct RowInspector: View {
                         }
                     }
                     if row.status != .equal, case .string(let a) = row.a, case .string(let b) = row.b {
-                        StringDifferenceSection(a: a, b: b, identity: StringDifferenceIdentity(rowID: row.id, revision: revision), collapsed: $review.collapsedTextSummary, canReveal: canShowInTable) { side, excerpt in
+                        StringDifferenceSection(a: a, b: b, identity: StringDifferenceIdentity(rowID: row.id, revision: revision), collapsed: $review.collapsedTextSummary, canReveal: canShowInTable, reveal: { side, excerpt in
                             guard canShowInTable else { return }
                             review.showChangedSpan(rowID: row.id, revision: revision, side: side, excerpt: excerpt)
-                        }
+                        }, prepared: { textChangeLocations = $0 })
+                        .id(row.id + ":text-summary")
                     }
                     InspectorValueCard(title: "A · Reference", value: row.a, expanded: review.expandedA, collapsed: review.collapsedA, match: review.revealedValueMatch(rowID: row.id, revision: revision, side: "A"), change: review.changedSpan(rowID: row.id, revision: revision, side: "A")).id(row.id + ":A")
                     InspectorValueCard(title: "B · Comparison", value: row.b, expanded: review.expandedB, collapsed: review.collapsedB, match: review.revealedValueMatch(rowID: row.id, revision: revision, side: "B"), change: review.changedSpan(rowID: row.id, revision: revision, side: "B")).id(row.id + ":B")
@@ -170,11 +185,26 @@ struct RowInspector: View {
                 proxy.scrollTo(row.id + ":" + side, anchor: .top)
             }
         }
+        .onChange(of: textSummaryRequest) { _, _ in
+            if let identity = textChangeIdentity {
+                proxy.scrollTo(identity.rowID + ":text-summary", anchor: .top)
+            }
+        }
         .onChange(of: row?.id) { _, _ in
             proxy.scrollTo("inspector-top", anchor: .top)
         }
         }
         }
+    }
+    private var textChangeIdentity: StringDifferenceIdentity? {
+        guard let row, row.status != .equal, case .string = row.a, case .string = row.b else { return nil }
+        return StringDifferenceIdentity(rowID: row.id, revision: revision)
+    }
+    private func revealTextChange(side: String, identity: StringDifferenceIdentity) {
+        guard canShowInTable, identity == textChangeIdentity,
+              let locations = textChangeLocations, locations.identity == identity else { return }
+        review.showChangedSpan(rowID: identity.rowID, revision: identity.revision, side: side,
+                               excerpt: side == "A" ? locations.a : locations.b)
     }
     private var navigationButtons: some View {
         HStack {
