@@ -218,35 +218,42 @@ struct WorkspaceView: View {
 
             }
             HStack(spacing: 10) {
-                Button("Pin All Visible (\(unpinnedVisibleCount))", action: pinAllVisible)
-                    .disabled(!canModify || session.isBusy || unpinnedVisibleCount == 0)
-                    .help("Add all currently visible fields to existing pins. Count shows newly pinnable fields.")
-                Button("Copy Pinned Pointers (\(pins.ids.count))", action: copyPinnedPointers)
-                    .disabled(!canCopyRow || pins.ids.isEmpty)
-                    .help("Copy all pinned JSON Pointers, including hidden fields, one per line in pointer order.")
-                Button("Copy Pinned Comparisons (\(pins.ids.count))", action: copyPinnedComparisons)
-                    .disabled(!canCopyRow || pins.ids.isEmpty)
-                    .help("Copy complete original A/B metadata for all pins, including hidden fields. Limit: 4 MiB; no partial output.")
-                Button("Clear Pins (\(pins.ids.count))", action: clearPins)
-                    .disabled(!canModify || session.isBusy || pins.ids.isEmpty)
-                    .help("Remove all pins and turn off Pinned only, preserving other view settings.")
-            }.controlSize(.small)
-            if !pins.ids.isEmpty {
-                HStack(spacing: 10) {
+                Menu("Pins (\(pins.ids.count))") {
+                    Button("Pin All Visible (\(unpinnedVisibleCount))", action: pinAllVisible)
+                        .disabled(!canModify || session.isBusy || unpinnedVisibleCount == 0)
+                        .help("Add all currently visible fields to existing pins. Count shows newly pinnable fields.")
+                    Divider()
+                    Button("Copy Pinned Pointers (\(pins.ids.count))", action: copyPinnedPointers)
+                        .disabled(!canCopyRow || pins.ids.isEmpty)
+                        .help("Copy all pinned JSON Pointers, including hidden fields, one per line in pointer order.")
+                    Button("Copy Pinned Comparisons (\(pins.ids.count))", action: copyPinnedComparisons)
+                        .disabled(!canCopyRow || pins.ids.isEmpty)
+                        .help("Copy complete original A/B metadata for all pins, including hidden fields. Limit: 4 MiB; no partial output.")
+                    Divider()
+                    Button("Clear Pins (\(pins.ids.count))", action: clearPins)
+                        .disabled(!canModify || session.isBusy || pins.ids.isEmpty)
+                        .help("Remove all pins and turn off Pinned only, preserving other view settings.")
+                }.fixedSize()
+                if !pins.ids.isEmpty {
                     Button("Go to Pin…") { showPolicy = false; showPinPicker = true }
                         .disabled(!canModify || session.isBusy || session.comparison == nil)
-                    Button("Previous Pinned Field") { navigatePin(forward: false) }
+                    Button("Previous") { navigatePin(forward: false) }
+                        .help("Previous pinned field in the current table order.")
                         .disabled(!canModify || session.isBusy || pinnedNavigation.target(forward: false) == nil)
-                    Button("Next Pinned Field") { navigatePin(forward: true) }
+                    Button("Next") { navigatePin(forward: true) }
+                        .help("Next pinned field in the current table order.")
                         .disabled(!canModify || session.isBusy || pinnedNavigation.target(forward: true) == nil)
-                    if pinnedNavigation.visiblePins.isEmpty {
-                        Text("All \(pins.ids.count) pinned fields are hidden by filters.")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Button("Show Pinned Fields", action: showPinnedFields)
-                            .disabled(!canModify || session.isBusy || session.comparison == nil)
-                    } else {
+                    if !pinnedNavigation.visiblePins.isEmpty {
                         Text(pinnedNavigation.position).font(.caption).foregroundStyle(.secondary)
                     }
+                }
+            }.controlSize(.small)
+            if !pins.ids.isEmpty && pinnedNavigation.visiblePins.isEmpty {
+                HStack(spacing: 10) {
+                    Text("All \(pins.ids.count) pinned fields are hidden by filters.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Button("Show Pinned Fields", action: showPinnedFields)
+                        .disabled(!canModify || session.isBusy || session.comparison == nil)
                 }.controlSize(.small)
             }
             if pinnedOnly || status != nil || category != nil || !search.isEmpty {

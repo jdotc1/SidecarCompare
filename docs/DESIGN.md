@@ -134,3 +134,8 @@ Go to Pin sheet owns local query/optional stable-ID selection. Full pinned compa
 ## Copy Pinned Comparisons
 
 Pin action row copies snapshot full-comparison/pinned-ID list sorted by pointer UTF8, composing existing FieldComparisonCopy output with metadata warning/count. Worker tracks aggregate UTF8 bytes including header/separators with a 4 MiB limit; throws without returning partial output. Workspace clears/writes clipboard only after complete successful generation; limit failure leaves clipboard untouched and provides shared footer/inspector feedback. Uses existing copy/busy/modal guard. No selection/pin/filter/sort/display/Find/expansion/history mutation.
+
+
+## Compact pin-review toolbar
+
+One small-control row contains Pins(count) menu with existing Pin All Visible/copy pointers/copy comparisons/Clear Pins callbacks, labels/help/guards unchanged. Direct Go to Pin, Previous/Next (pinned-field help), and visible-pin position share that row when pins exist. All-hidden explanation/recovery stays on a separate contextual row. No state, lifecycle, filtering, navigation or clipboard implementation changes.

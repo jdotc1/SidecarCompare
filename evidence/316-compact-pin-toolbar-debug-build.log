@@ -1,0 +1,14 @@
+Building for debugging...
+[3 / 15] SidecarCore
+[5 / 16] SidecarCore
+[8 / 11] SidecarCompare-product
+[10 / 13] SidecarCompare-product
+[11 / 13] SidecarCompare-product
+[13 / 15] SidecarCompare-product
+Build complete! (5.39 sec)
+<workspace>/dist/.stage.eINbsF/SidecarCompare.app/Contents/Info.plist: OK
+<workspace>/Packaging/SidecarCompare.entitlements: OK
+<workspace>/dist/.stage.eINbsF/SidecarCompare.app: replacing existing signature
+<workspace>/dist/.stage.eINbsF/SidecarCompare.app: valid on disk
+<workspace>/dist/.stage.eINbsF/SidecarCompare.app: satisfies its Designated Requirement
+Built: <workspace>/dist/SidecarCompare.app
