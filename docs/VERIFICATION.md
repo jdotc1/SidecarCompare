@@ -140,3 +140,7 @@ Shared Copy menu adds single-field original-metadata text: quoted pointer/status
 ## Fixed inspector field context
 
 Existing selected escaped pointer/status now appear above fixed review controls, two-line middle-truncated/full help; nil row says No field selected. Debug243 staging/release244 pass warnings-as-errors. Native245 synthetic long escaped pointer/long A-B values confirms empty header, full help text/status, screenshot two-line truncation, bottom scroll1 with header visible and Findneedle/Match3of4 B/both Show less retained. Existing navigation/history/search/copy receipts reused; no suites/oracle reruns/accessibility. Actual tooltip activation and navigation/reload/Swap matrix source-reviewed/reused; no width/appearance campaign.
+
+## Collapsible inspector Find
+
+Workspace review-owned Show/Hide Find hides search content, retains outer task/cache and shows compact match/side or empty/pending/failed/no-match summary. Debug247 staging/release248 pass warnings-as-errors. Native249 existing synthetic long values A2/B2 beyond cap: Match3of4 B collapsed summary with both expanded, reopened needle/counts/same match/expansions; unmatched query collapsed No matches with expansion retained. Existing search/review/navigation/header receipts reused; no suites/oracle reruns/accessibility. Pending/failure/no-query/reset/hide-entire-inspector branches source-reviewed; no width/appearance/race campaign.

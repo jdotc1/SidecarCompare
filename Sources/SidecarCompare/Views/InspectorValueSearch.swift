@@ -18,6 +18,9 @@ struct InspectorValueSearch: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
+            Button(review.showFind ? "Hide Find" : "Show Find") { review.showFind.toggle() }
+                .controlSize(.small)
+            if review.showFind {
             HStack(spacing: 6) {
                 TextField("Find in values…", text: $review.query)
                     .textFieldStyle(.roundedBorder)
@@ -64,8 +67,21 @@ struct InspectorValueSearch: View {
                     }
                 }
             }
+            } else {
+                Text(collapsedSummary).font(.caption).foregroundStyle(.secondary)
+                    .monospacedDigit().fixedSize(horizontal: false, vertical: true)
+            }
         }
         .task(id: identity) { await search() }
+    }
+
+    private var collapsedSummary: String {
+        guard !review.query.isEmpty else { return "Find: No query" }
+        guard let result = currentOutcome else {
+            return review.failed == identity ? "Find: Search unavailable" : "Find: Searching…"
+        }
+        guard result.total > 0, let match = result.excerpt(at: review.currentMatch) else { return "Find: No matches" }
+        return "Find: Match \(review.currentMatch + 1) of \(result.total) · \(match.side)"
     }
 
     @ViewBuilder private var matchButtons: some View {
@@ -128,6 +144,7 @@ fileprivate struct SearchOutcome: Sendable {
 @Observable @MainActor
 final class InspectorReviewState {
     var query = ""
+    var showFind = true
     var expandedA = false
     var expandedB = false
     var currentMatch = 0
@@ -139,6 +156,7 @@ final class InspectorReviewState {
         currentMatch = 0; outcome = nil; failed = nil
     }
     func resetAll() {
+        showFind = true
         query = ""
         resetField()
     }
