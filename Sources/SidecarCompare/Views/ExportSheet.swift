@@ -71,15 +71,41 @@ struct ExportSheet: View {
     @State private var message: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 12) {
             Text(snapshot.pinnedIDs == nil ? "Export comparison" : "Export pinned comparisons").font(.title2.weight(.semibold))
+            if snapshot.pinnedIDs != nil {
+                ScrollView {
+                    exportContent.padding(.trailing, 4)
+                }.frame(maxHeight: .infinity)
+            } else {
+                exportContent
+            }
+            if let message { Text(message).font(.callout).textSelection(.enabled) }
+            Divider()
+            exportActions
+        }
+        .padding(20).frame(width: 520)
+        .frame(height: snapshot.pinnedIDs == nil ? nil : 540)
+        .interactiveDismissDisabled(busy)
+        .onChange(of: detail) { _, _ in acknowledged = false; message = nil }
+        .alert("Field hidden by current filters", isPresented: Binding(get: { pendingReview != nil }, set: { if !$0 { pendingReview = nil } })) {
+            Button("Cancel", role: .cancel) { pendingReview = nil }
+            if let request = pendingReview {
+                Button("Clear Filters and Review") { pendingReview = nil; reviewField(request) }
+            }
+        } message: {
+            Text("Leave export and clear table filters to review this field. Pins, sort order, display settings and the Find query stay unchanged. No report will be saved.")
+        }
+    }
+    private var exportContent: some View {
+        VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 8) {
                 Text(snapshot.pinnedIDs == nil ? "Export scope · full comparison" : "Export scope · pinned fields, including hidden pins").font(.headline)
                 HStack(spacing: 24) {
                     Text(snapshot.pinnedIDs == nil ? "Total rows: \(snapshot.comparison.rows.count)" : "Pinned fields: \(snapshot.selectedCount)")
                     Text(snapshot.pinnedIDs == nil ? "Currently visible: \(snapshot.visibleRowCount)" : "Visible pins: \(snapshot.visibleRowCount)")
                 }.monospacedDigit()
-                Text(snapshot.pinnedIDs == nil ? "Table filters do not limit export. Summaries count all rows; full reports include every row in canonical sidecar units." : "Table filters do not exclude pins. Summary counts cover all pinned fields; full reports contain only pinned rows in JSON Pointer order and canonical sidecar units. Limit: 16 MiB; no partial output.")
+                Text(snapshot.pinnedIDs == nil ? "Table filters do not limit export. Summaries count all rows; full reports include every row in canonical sidecar units." : "All pins are included regardless of table filters. Full reports use canonical sidecar units. Limit: 16 MiB; no partial output.")
                     .font(.callout).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -110,7 +136,9 @@ struct ExportSheet: View {
                 Button("Release acceptance export") { acceptanceExportGate.release() }
             }
             #endif
-            if let message { Text(message).font(.callout).textSelection(.enabled) }
+        }
+    }
+    private var exportActions: some View {
             HStack {
                 if busy { ProgressView().controlSize(.small) }
                 Button("Copy") { perform(copy: true) }.disabled(!canExport)
@@ -118,19 +146,8 @@ struct ExportSheet: View {
                 Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction).disabled(busy)
                 Button("Save…") { perform(copy: false) }.keyboardShortcut(.defaultAction).disabled(!canExport)
             }
-        }
-        .padding(24).frame(width: 520)
-        .interactiveDismissDisabled(busy)
-        .onChange(of: detail) { _, _ in acknowledged = false; message = nil }
-        .alert("Field hidden by current filters", isPresented: Binding(get: { pendingReview != nil }, set: { if !$0 { pendingReview = nil } })) {
-            Button("Cancel", role: .cancel) { pendingReview = nil }
-            if let request = pendingReview {
-                Button("Clear Filters and Review") { pendingReview = nil; reviewField(request) }
-            }
-        } message: {
-            Text("Leave export and clear table filters to review this field. Pins, sort order, display settings and the Find query stay unchanged. No report will be saved.")
-        }
     }
+
     private var statusBreakdown: some View {
         let counts = snapshot.reviewCounts
         return VStack(alignment: .leading, spacing: 6) {
@@ -147,14 +164,7 @@ struct ExportSheet: View {
                     }.controlSize(.small)
                 }
             }
-            if let reviewStatus {
-                HStack {
-                    Text("Review status: \(reviewStatus.rawValue)").font(.caption)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: 8)
-                    Button("Clear Status") { self.reviewStatus = nil }.controlSize(.small)
-                }
-            }
+
         }.disabled(busy)
     }
 
@@ -162,19 +172,22 @@ struct ExportSheet: View {
         let fields = snapshot.reviewFields(matching: reviewSearch, status: reviewStatus)
         return DisclosureGroup("Review included fields (\(snapshot.selectedCount))", isExpanded: $reviewIncluded) {
             VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 8) {
-                    TextField("Find included field…", text: $reviewSearch)
-                        .textFieldStyle(.roundedBorder)
-                    if !reviewSearch.isEmpty {
-                        Button("Clear Search") { reviewSearch = "" }.controlSize(.small)
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 6) {
+                        reviewSearchField
+                        reviewClearActions
+                    }
+                    VStack(alignment: .leading, spacing: 6) {
+                        reviewSearchField
+                        HStack(spacing: 6) { reviewClearActions }
                     }
                 }
-                Text("Showing \(fields.count) of \(snapshot.selectedCount) included fields")
-                    .font(.caption).monospacedDigit()
-                Text("Filters this review list only; all \(snapshot.selectedCount) pinned fields will be exported.")
-                    .font(.caption).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                Text("Field names are shown here for review only. Summary output excludes them.")
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Showing \(fields.count) of \(snapshot.selectedCount)")
+                    Spacer(minLength: 8)
+                    Text(reviewStatus?.rawValue ?? "All statuses")
+                }.font(.caption).monospacedDigit()
+                Text("Review filters affect this list only; all \(snapshot.selectedCount) pins will be exported. Summary excludes field names.")
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 ScrollView {
@@ -204,9 +217,22 @@ struct ExportSheet: View {
                             }.frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }.padding(.trailing, 8)
-                }.frame(height: 150)
+                }.frame(height: 120)
             }.padding(.top, 6)
         }.disabled(busy)
+    }
+
+    private var reviewSearchField: some View {
+        TextField("Find included field…", text: $reviewSearch)
+            .textFieldStyle(.roundedBorder).frame(minWidth: 120)
+    }
+    @ViewBuilder private var reviewClearActions: some View {
+        if !reviewSearch.isEmpty {
+            Button("Clear Search") { reviewSearch = "" }.controlSize(.small).fixedSize()
+        }
+        if reviewStatus != nil {
+            Button("Clear Status") { reviewStatus = nil }.controlSize(.small).fixedSize()
+        }
     }
 
     private var canExport: Bool { !busy && (detail == .summary || acknowledged) }
