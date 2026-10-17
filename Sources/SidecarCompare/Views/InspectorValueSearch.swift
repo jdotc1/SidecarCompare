@@ -7,6 +7,8 @@ import SidecarCore
 struct InspectorValueSearch: View {
     let row: ComparisonRow
     let revision: [UUID?]
+    let canCopy: Bool
+    let copyContext: (String) -> Void
     @Bindable var review: InspectorReviewState
 
     private var identity: SearchIdentity {
@@ -40,6 +42,9 @@ struct InspectorValueSearch: View {
                     HStack(spacing: 6) { matchButtons }
                     VStack(alignment: .leading, spacing: 6) { matchButtons }
                 }.controlSize(.small)
+                Button("Copy Match Context", action: copyMatchContext)
+                    .controlSize(.small)
+                    .disabled(!canCopy || currentOutcome?.excerpt(at: review.currentMatch) == nil)
                 if let result = currentOutcome {
                     if result.total == 0 {
                         Text("No matches in either complete value.").font(.caption).foregroundStyle(.secondary)
@@ -68,6 +73,16 @@ struct InspectorValueSearch: View {
             .disabled(currentOutcome == nil || review.currentMatch <= 0)
         Button("Next Match") { review.currentMatch += 1 }
             .disabled(currentOutcome == nil || review.currentMatch + 1 >= (currentOutcome?.total ?? 0))
+    }
+
+    private func copyMatchContext() {
+        guard canCopy, let match = currentOutcome?.excerpt(at: review.currentMatch) else { return }
+        let excerpt = match.excerpt
+        let text = "Match context excerpt · \(match.side) · byte \(excerpt.bytePosition)\n"
+            + "Bounded raw JSON excerpt; not a complete JSON value."
+            + (excerpt.matchTruncated ? " Match text is truncated." : "") + "\n"
+            + excerpt.before + excerpt.match + (excerpt.matchTruncated ? "…" : "") + excerpt.after
+        copyContext(text)
     }
 
     private func search() async {

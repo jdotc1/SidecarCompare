@@ -105,7 +105,7 @@ struct WorkspaceView: View {
                      next: { navigateDifference(forward: true) },
                      canShowInTable: selectedRow != nil && canModify && !session.isBusy,
                      showInTable: { tableRevealRequest = UUID() },
-                     canCopy: canCopyRow, copyMessage: rowCopyMessage, copy: copyRow, review: inspectorReview)
+                     copyMatchContext: copyMatchContext, canCopy: canCopyRow, copyMessage: rowCopyMessage, copy: copyRow, review: inspectorReview)
     }
     private var visibleRows: [ComparisonRow] {
         (session.comparison?.filtered(search: search, differencesOnly: differencesOnly, category: category) ?? [])
@@ -464,6 +464,14 @@ struct WorkspaceView: View {
         exportSnapshot = ExportSnapshot(comparison: result, documents: session.sourceDocuments, visibleRowCount: visibleRows.count)
     }
     private var canCopyRow: Bool { canModify && !session.isBusy && !isCopyingRow }
+    private func copyMatchContext(_ text: String) {
+        guard canCopyRow else { return }
+        NSPasteboard.general.clearContents()
+        let success = NSPasteboard.general.setString(text, forType: .string)
+        rowCopyMessage = success
+            ? "Copied match context excerpt. It may identify people; the clipboard may be shared across devices."
+            : "Match context could not be copied to the clipboard."
+    }
     private func copyRow(_ row: ComparisonRow, _ target: RowCopyTarget) {
         guard canCopyRow else { return }
         if target == .a && row.a == nil || target == .b && row.b == nil { return }

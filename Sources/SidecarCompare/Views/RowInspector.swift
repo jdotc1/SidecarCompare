@@ -14,6 +14,7 @@ struct RowInspector: View {
     let next: () -> Void
     let canShowInTable: Bool
     let showInTable: () -> Void
+    let copyMatchContext: (String) -> Void
     let canCopy: Bool
     let copyMessage: String?
     let copy: (ComparisonRow, RowCopyTarget) -> Void
@@ -54,7 +55,7 @@ struct RowInspector: View {
                             Button(review.expandedB ? "B · Show less" : "B · Show more") { review.expandedB.toggle() }
                         }
                     }.controlSize(.small)
-                    InspectorValueSearch(row: row, revision: revision, review: review)
+                    InspectorValueSearch(row: row, revision: revision, canCopy: canCopy, copyContext: copyMatchContext, review: review)
                 }
             }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
             Divider()
