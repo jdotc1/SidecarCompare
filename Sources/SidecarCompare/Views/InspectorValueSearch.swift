@@ -45,6 +45,9 @@ struct InspectorValueSearch: View {
                     Button("Clear Find") { review.query = "" }.controlSize(.small)
                 }
             }
+            Toggle("Follow match in value", isOn: $review.followMatch)
+                .toggleStyle(.checkbox).controlSize(.small)
+                .help("Reveal and scroll to the current occurrence when navigating matches.")
             Text("Literal, case-sensitive · complete raw A/B JSON")
                 .font(.caption).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -94,6 +97,12 @@ struct InspectorValueSearch: View {
             }
         }
         .onChange(of: Data(review.query.utf8)) { _, _ in review.pendingMatch = nil }
+        .onChange(of: review.followMatch) { _, _ in
+            if canReveal { review.followCurrentMatch(rowID: row.id, revision: revision) }
+        }
+        .onChange(of: review.scope) { _, _ in
+            if canReveal { review.followCurrentMatch(rowID: row.id, revision: revision) }
+        }
         .task(id: identity) { await search() }
     }
 
@@ -122,9 +131,9 @@ struct InspectorValueSearch: View {
     }
 
     @ViewBuilder private var matchButtons: some View {
-        Button("Previous Match") { review.currentMatch -= 1 }
+        Button("Previous Match") { review.moveMatch(by: -1, rowID: row.id, revision: revision, canReveal: canReveal) }
             .disabled(currentOutcome == nil || review.currentMatch <= matchRange.lowerBound)
-        Button("Next Match") { review.currentMatch += 1 }
+        Button("Next Match") { review.moveMatch(by: 1, rowID: row.id, revision: revision, canReveal: canReveal) }
             .disabled(currentOutcome == nil || review.currentMatch + 1 >= matchRange.upperBound)
     }
 
@@ -197,6 +206,7 @@ fileprivate struct SearchOutcome: Sendable {
 final class InspectorReviewState {
     var query = "" { didSet { if Data(query.utf8) != Data(oldValue.utf8) { revealedMatch = nil } } }
     var scope: InspectorFindScope = .both { didSet { if scope != oldValue { normalizeMatch() } } }
+    var followMatch = false
     var showFind = true
     var expandedA = false
     var expandedB = false
@@ -213,6 +223,18 @@ final class InspectorReviewState {
         guard let outcome, outcome.identity.queryBytes == Data(query.utf8) else { return }
         let range = outcome.range(for: scope)
         if !range.contains(currentMatch) { currentMatch = range.lowerBound }
+    }
+
+    func moveMatch(by offset: Int, rowID: String, revision: [UUID?], canReveal: Bool) {
+        let identity = SearchIdentity(rowID: rowID, revision: revision, queryBytes: Data(query.utf8))
+        guard let outcome, outcome.identity == identity, [-1, 1].contains(offset),
+              outcome.range(for: scope).contains(currentMatch + offset) else { return }
+        currentMatch += offset
+        if canReveal { followCurrentMatch(rowID: rowID, revision: revision) }
+    }
+    func followCurrentMatch(rowID: String, revision: [UUID?]) {
+        guard followMatch else { return }
+        showCurrentMatch(rowID: rowID, revision: revision)
     }
 
     func showCurrentMatch(rowID: String, revision: [UUID?]) {
@@ -255,6 +277,7 @@ final class InspectorReviewState {
         currentMatch = 0; outcome = nil; failed = nil
     }
     func resetAll() {
+        followMatch = false
         showFind = true
         scope = .both
         query = ""
