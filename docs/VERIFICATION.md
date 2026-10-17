@@ -266,3 +266,9 @@ Native371: bundled synthetic example9pins, EchoTime filter1visible/8hidden, sele
 Debug staged373/release warnings-as-errors374 pass. Focused375 covers case-insensitive escaped-pointer matching, hidden/visible label retention, status/value/unpinned exclusion, no-match/clear behavior, stable order and unchanged snapshot membership/counts. Existing renderer/limit/writer/export checks358359370371 reused, not rerun.
 
 Native376: syntheticexample9pins/EchoTimefilter1visible/selectedEchoTime/Find0/Aclosed. Reviewsearch vendor shows3of9, allhidden, while reminder saysall9exported. Full+ack+PlainText choices and vendor query survive disclosurecollapse/reopen. no-such-field shows0of9 and explicitNo included fields match, while all9export reminder remains and fullack/plaintext remainselected. ClearSearch returns9of9. Cancel returns workspacepins9/filterEchoTime/selectedfield/Find0/Aclosed. No accessibility/permissions/settings changes or unchanged suites/oracles/signatures repeated.
+
+## Review in Inspector from pinned export — 2026-10-17
+
+Debug staged378/release warnings-as-errors379 pass. Focused snapshot380 passes visible direct/hidden recovery request classification, unpinned/stale rejection, review-search independence, immutable pins/visibility. Existing search/serialization/limit/writer/history receipts reused without rerun.
+
+Native381 syntheticexample: pin9, EchoTime Find0/Aclosed; visitNewFlag and collapseB, Back restoresEchoTime. FilterEchoTime then export reviewEchoTime directly: sheetcloses/filterretained/EchoTime selected/Find0/Aclosed/pins9. Reopen summarydefault; searchNewFlag hidden, Review prompts Clear Filters and Review/Cancel. Cancel retains sheet/query/disclosure; retryConfirm closesexport/clearsfilters/revealsNewFlag, pins9/Find0 and savedBclosed restored. No report saved. Native screenshot381 local. No accessibility/permissions/settings changes or repeatedunchanged suites/oracles/signatures.

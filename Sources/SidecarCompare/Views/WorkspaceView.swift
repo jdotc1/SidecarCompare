@@ -20,6 +20,7 @@ struct WorkspaceView: View {
     @State private var pendingHistory: Int?
     @State private var restoringHistoryReview: String?
     @State private var exportSnapshot: ExportSnapshot?
+    @State private var pendingExportReview: ExportInspectorRequest?
     @State private var search = ""
     @State private var searchScope = TableSearchScope.pathsAndPreviews
     @State private var differencesOnly = true
@@ -90,7 +91,12 @@ struct WorkspaceView: View {
                 showPinPicker = false
             }
         }
-        .sheet(item: $exportSnapshot) { ExportSheet(snapshot: $0) }
+        .sheet(item: $exportSnapshot, onDismiss: finishExportReview) { snapshot in
+            ExportSheet(snapshot: snapshot) { request in
+                pendingExportReview = request
+                exportSnapshot = nil
+            }
+        }
         .alert("Field hidden by current filters", isPresented: Binding(get: { pendingHistory != nil }, set: { if !$0 { pendingHistory = nil } })) {
             Button("Cancel", role: .cancel) { pendingHistory = nil }
             if let target = pendingHistory {
@@ -723,6 +729,18 @@ struct WorkspaceView: View {
     private func export() {
         guard canModify, let result = session.comparison else { return }
         exportSnapshot = ExportSnapshot(comparison: result, documents: session.sourceDocuments, visibleRowCount: visibleRows.count)
+    }
+    private func finishExportReview() {
+        guard let request = pendingExportReview else { return }
+        pendingExportReview = nil
+        guard canModify, !session.isBusy, pins.contains(request.id),
+              session.comparison?.rows.contains(where: { $0.id == request.id }) == true else { return }
+        if request.clearFilters { clearFilters() }
+        guard visibleRows.contains(where: { $0.id == request.id }) else { return }
+        if selection != request.id { restoringHistoryReview = request.id }
+        selection = request.id
+        showInspector = true
+        tableRevealRequest = UUID()
     }
     private func exportPinnedComparisons() {
         guard canModify, !session.isBusy, !pins.ids.isEmpty, let result = session.comparison else { return }

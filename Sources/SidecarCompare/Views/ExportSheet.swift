@@ -9,6 +9,11 @@ struct PinnedExportField: Identifiable {
     let hidden: Bool
 }
 
+struct ExportInspectorRequest {
+    let id: String
+    let clearFilters: Bool
+}
+
 struct ExportSnapshot: Identifiable {
     let id = UUID()
     let comparison: Comparison
@@ -27,6 +32,10 @@ struct ExportSnapshot: Identifiable {
         let fields = reviewFields
         return query.isEmpty ? fields : fields.filter { $0.pointer.localizedCaseInsensitiveContains(query) }
     }
+    func inspectorRequest(for id: String) -> ExportInspectorRequest? {
+        guard let field = reviewFields.first(where: { $0.id == id }) else { return nil }
+        return ExportInspectorRequest(id: field.id, clearFilters: field.hidden)
+    }
     var selectedCount: Int { comparison.rows.filter { pinnedIDs?.contains($0.id) ?? true }.count }
     static let pinnedByteLimit = 16 * 1024 * 1024
 
@@ -43,10 +52,12 @@ struct ExportSnapshot: Identifiable {
 @MainActor
 struct ExportSheet: View {
     let snapshot: ExportSnapshot
+    var reviewField: (ExportInspectorRequest) -> Void = { _ in }
     @Environment(\.dismiss) private var dismiss
     #if DEBUG
     @Environment(\.nativeAcceptanceExportGate) private var acceptanceExportGate
     #endif
+    @State private var pendingReview: ExportInspectorRequest?
     @State private var reviewIncluded = false
     @State private var reviewSearch = ""
     @State private var detail = ReportDetail.summary
@@ -104,6 +115,14 @@ struct ExportSheet: View {
         .padding(24).frame(width: 520)
         .interactiveDismissDisabled(busy)
         .onChange(of: detail) { _, _ in acknowledged = false; message = nil }
+        .alert("Field hidden by current filters", isPresented: Binding(get: { pendingReview != nil }, set: { if !$0 { pendingReview = nil } })) {
+            Button("Cancel", role: .cancel) { pendingReview = nil }
+            if let request = pendingReview {
+                Button("Clear Filters and Review") { pendingReview = nil; reviewField(request) }
+            }
+        } message: {
+            Text("Leave export and clear table filters to review this field. Pins, sort order, display settings and the Find query stay unchanged. No report will be saved.")
+        }
     }
     private var includedFields: some View {
         let fields = snapshot.reviewFields(matching: reviewSearch)
@@ -136,7 +155,15 @@ struct ExportSheet: View {
                                 Text(verbatim: field.pointer).font(.system(.caption, design: .monospaced))
                                     .lineLimit(2).truncationMode(.middle).help(field.pointer)
                                     .textSelection(.enabled)
-                                Text(field.status.rawValue).font(.caption)
+                                HStack {
+                                    Text(field.status.rawValue).font(.caption)
+                                    Spacer(minLength: 8)
+                                    Button("Review in Inspector") {
+                                        guard let request = snapshot.inspectorRequest(for: field.id) else { return }
+                                        if request.clearFilters { pendingReview = request }
+                                        else { reviewField(request) }
+                                    }.controlSize(.small)
+                                }
                                 if field.hidden {
                                     Text("Hidden in current view").font(.caption).foregroundStyle(.secondary)
                                 }
