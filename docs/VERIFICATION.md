@@ -152,3 +152,7 @@ Search in offers Paths & previews/default, JSON Pointers only and Value previews
 ## Clear Filters in nonempty views
 
 Filter-row Clear Filters beside Reset View reuses existing callback and disables without active filters/modal permission. Debug259 staging/release260 warnings-as-errors pass. Native261 bundled synthetic confirms1of22 matching EchoTime query→all22, selected EchoTime/Find0.085/descending pointers/Milliseconds/JSON Pointers only retained and button disabled after clear. Existing empty-recovery202/scope256/filter/navigation/search receipts reused; no tests/oracles/accessibility. Modal/no-comparison/category/status variants source-reviewed, no width/appearance/race campaign.
+
+## Scope-aware search prompts
+
+Searchable prompt now follows combined/pointer/preview scope, with matching Search in help and full-value inspector Find guidance. Debug263 staging/release264 warnings-as-errors pass. Native265 empty workspace confirms default prompt/help, active queryneedle retained through pointer→preview changes with Search JSON Pointers/Search value previews placeholders and correct help. Existing scope252/255/256/filter261/Find receipts reused; no tests/oracles/accessibility. Hover activation/comparison-state/width/appearance variants source-reviewed or reused. Owner authorized publishing this plus prepared Clear Filters c6d792f; no repeat verification of pending increment.

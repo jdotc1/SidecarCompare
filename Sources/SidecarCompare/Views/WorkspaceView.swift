@@ -54,7 +54,7 @@ struct WorkspaceView: View {
             }
         }
         .frame(minWidth: showInspector ? 1128 : 850, minHeight: 580)
-        .searchable(text: $search, prompt: "Search paths and value previews")
+        .searchable(text: $search, prompt: Text(searchPrompt))
         .toolbar { toolbar }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json, .plainText], allowsMultipleSelection: false) { result in
             switch result {
@@ -186,7 +186,7 @@ struct WorkspaceView: View {
             Spacer(minLength: 0)
             Picker("Search in", selection: $searchScope) {
                 ForEach(TableSearchScope.allCases, id: \.self) { Text($0.rawValue).tag($0) }
-            }.frame(width: 265).disabled(!canModify)
+            }.frame(width: 265).disabled(!canModify).help(searchScopeHelp)
 
             }
             if status != nil || category != nil || !search.isEmpty {
@@ -236,6 +236,20 @@ struct WorkspaceView: View {
                 Image(systemName: "xmark")
             }
         }.help(help)
+    }
+    private var searchPrompt: String {
+        switch searchScope {
+        case .pathsAndPreviews: "Search paths and value previews"
+        case .pointers: "Search JSON Pointers"
+        case .previews: "Search value previews"
+        }
+    }
+    private var searchScopeHelp: String {
+        switch searchScope {
+        case .pointers: "Search JSON Pointer text. Changing scope keeps the query."
+        case .pathsAndPreviews: "Search paths and short A/B value previews. Use Find in values in the inspector to search complete values."
+        case .previews: "Search short A/B value previews. Use Find in values in the inspector to search complete values."
+        }
     }
     private var hasActiveFilters: Bool {
         differencesOnly || status != nil || category != nil || !search.isEmpty
