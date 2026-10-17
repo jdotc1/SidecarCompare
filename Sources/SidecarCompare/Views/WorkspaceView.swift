@@ -19,6 +19,7 @@ struct WorkspaceView: View {
     @State private var pendingHistory: Int?
     @State private var exportSnapshot: ExportSnapshot?
     @State private var search = ""
+    @State private var searchScope = TableSearchScope.pathsAndPreviews
     @State private var differencesOnly = true
     @State private var status: DifferenceStatus?
     @State private var sortOrder = [KeyPathComparator(\ComparisonRow.path)]
@@ -140,7 +141,7 @@ struct WorkspaceView: View {
                      copyMatchContext: copyMatchContext, canCopy: canCopyRow, copyMessage: rowCopyMessage, copy: copyRow, review: inspectorReview)
     }
     private var visibleRows: [ComparisonRow] {
-        (session.comparison?.filtered(search: search, differencesOnly: differencesOnly, category: category) ?? [])
+        (session.comparison?.filtered(search: search, differencesOnly: differencesOnly, category: category, scope: searchScope) ?? [])
             .filter { status == nil || $0.status == status }
             .sorted(using: sortOrder + [KeyPathComparator(\ComparisonRow.id)])
     }
@@ -180,6 +181,10 @@ struct WorkspaceView: View {
             }.frame(width: 200)
             Button("Reset View", action: resetView).disabled(!canModify)
             Spacer(minLength: 0)
+            Picker("Search in", selection: $searchScope) {
+                ForEach(TableSearchScope.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+            }.frame(width: 265).disabled(!canModify)
+
             }
             if status != nil || category != nil || !search.isEmpty {
                 activeFilterChips
@@ -218,7 +223,7 @@ struct WorkspaceView: View {
             filterChip("Category: \(category.rawValue)", help: "Clear category filter") { self.category = nil }
         }
         if !search.isEmpty {
-            filterChip("Search active", help: "Clear search") { search = "" }
+            filterChip("Search: \(searchScope.rawValue)", help: "Clear search") { search = "" }
         }
     }
     private func filterChip(_ title: String, help: String, clear: @escaping () -> Void) -> some View {
@@ -232,7 +237,7 @@ struct WorkspaceView: View {
     private var activeFilterSummary: String {
         var filters = [status?.rawValue ?? (differencesOnly ? "Differences only" : "All rows")]
         if let category { filters.append(category.rawValue) }
-        if !search.isEmpty { filters.append("Search active") }
+        if !search.isEmpty { filters.append("Search: \(searchScope.rawValue)") }
         return filters.joined(separator: " · ")
     }
     private func differenceBreakdown(_ result: Comparison) -> some View {
@@ -280,6 +285,12 @@ struct WorkspaceView: View {
                                     .foregroundStyle(.secondary)
                                     .multilineTextAlignment(.center)
                                     .fixedSize(horizontal: false, vertical: true)
+                                if !search.isEmpty {
+                                    Text("Search scope: \(searchScope.rawValue). Value search covers previews, not complete values.")
+                                        .font(.caption).foregroundStyle(.secondary)
+                                        .multilineTextAlignment(.center)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
                                 Button("Clear Filters", action: clearFilters)
                                     .buttonStyle(.borderedProminent).disabled(!canModify)
                                 Text("Sort order, time display and comparison rule stay unchanged.")
@@ -523,6 +534,7 @@ struct WorkspaceView: View {
         guard canModify else { return }
         inspectorReview.resetAll()
         reloadSelection = nil
+        searchScope = .pathsAndPreviews
         search = ""; category = nil; status = nil; differencesOnly = true
         milliseconds = false; sortOrder = [KeyPathComparator(\ComparisonRow.path)]
         selection = nil; notification = nil; refreshFeedback = nil

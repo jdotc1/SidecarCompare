@@ -1,0 +1,33 @@
+Building for debugging...
+[2 / 34]
+[3 / 35] SidecarCore
+[14 / 46] SidecarCore
+[19 / 39] sidecar-compare-product
+[30 / 50] SidecarCompare-product
+[31 / 50] SidecarCompare-product
+[32 / 50] SidecarCore
+[35 / 49] SidecarCore-product
+[37 / 50] SidecarCompare-product
+[37 / 50] SidecarCoreTests-product
+[41 / 57] SidecarCoreTests-product
+[43 / 57] SidecarCoreTests-product
+[46 / 55] SidecarCoreTests-product
+[47 / 56] SidecarCompare-product
+[50 / 56] SidecarCompare-product
+[52 / 56] SidecarCoreTests-product
+[54 / 56] SidecarCompare-product
+[56 / 58] SidecarCompare-product
+Build complete! (7.34 sec)
+Test Suite 'Selected tests' started at 2026-10-17 01:51:12.433.
+Test Suite 'SidecarCoreTests.xctest' started at 2026-10-17 01:51:12.434.
+Test Suite 'TableSearchScopeTests' started at 2026-10-17 01:51:12.434.
+Test Case '-[SidecarCoreTests.TableSearchScopeTests testPreviewScopeDoesNotSearchBeyondPreview]' started.
+Test Case '-[SidecarCoreTests.TableSearchScopeTests testPreviewScopeDoesNotSearchBeyondPreview]' passed (0.001 seconds).
+Test Case '-[SidecarCoreTests.TableSearchScopeTests testScopeSelectsPathsOrEitherPreview]' started.
+Test Case '-[SidecarCoreTests.TableSearchScopeTests testScopeSelectsPathsOrEitherPreview]' passed (0.000 seconds).
+Test Suite 'TableSearchScopeTests' passed at 2026-10-17 01:51:12.436.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'SidecarCoreTests.xctest' passed at 2026-10-17 01:51:12.436.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'Selected tests' passed at 2026-10-17 01:51:12.436.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.003) seconds

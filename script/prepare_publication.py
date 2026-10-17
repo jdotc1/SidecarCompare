@@ -58,7 +58,9 @@ receipts = {'33-final-debug-oracle.log', '34-final-release-oracle.log',
             '234-history-model-check.log', '235-history-final-debug-build.log', '236-history-final-release-build.log',
             '239-field-copy-debug-build.log', '240-field-copy-release-build.log',
             '243-field-header-debug-build.log', '244-field-header-release-build.log',
-            '247-collapsible-find-debug-build.log', '248-collapsible-find-release-build.log'}
+            '247-collapsible-find-debug-build.log', '248-collapsible-find-release-build.log',
+            '252-search-scope-release-tests.log', '253-search-scope-debug-build.log',
+            '254-search-scope-release-build.log', '255-search-scope-final-debug-tests.log'}
 files = subprocess.check_output(['git', 'ls-files', '-z'], cwd=ROOT).decode().split('\0')
 for relative in filter(None, files):
     p = Path(relative)

@@ -58,6 +58,12 @@ public struct ComparisonRow: Identifiable, Sendable {
     }
 }
 
+public enum TableSearchScope: String, CaseIterable, Sendable {
+    case pathsAndPreviews = "Paths & previews"
+    case pointers = "JSON Pointers only"
+    case previews = "Value previews only"
+}
+
 public struct Comparison: Sendable {
     public let rows: [ComparisonRow]
     public let policy: ComparisonPolicy
@@ -65,12 +71,13 @@ public struct Comparison: Sendable {
     public var counts: [DifferenceStatus: Int] {
         Dictionary(grouping: rows, by: \.status).mapValues(\.count)
     }
-    public func filtered(search: String, differencesOnly: Bool, category: FieldCategory?) -> [ComparisonRow] {
+    public func filtered(search: String, differencesOnly: Bool, category: FieldCategory?, scope: TableSearchScope = .pathsAndPreviews) -> [ComparisonRow] {
         rows.filter { row in
             (!differencesOnly || row.status != .equal) && (category == nil || category == row.category) &&
-            (search.isEmpty || row.path.localizedCaseInsensitiveContains(search) ||
-             (row.a?.compactPreview.localizedCaseInsensitiveContains(search) ?? false) ||
-             (row.b?.compactPreview.localizedCaseInsensitiveContains(search) ?? false))
+            (search.isEmpty ||
+             (scope != .previews && row.path.localizedCaseInsensitiveContains(search)) ||
+             (scope != .pointers && ((row.a?.compactPreview.localizedCaseInsensitiveContains(search) ?? false) ||
+                                    (row.b?.compactPreview.localizedCaseInsensitiveContains(search) ?? false))))
         }
     }
 }
