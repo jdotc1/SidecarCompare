@@ -21,6 +21,15 @@ for index in 0..<105 { history.visit(String(index)) }
 assert(history.entries.count == 100 && history.entries.first == "5" && history.index == 99)
 history.retain([])
 assert(history.entries.isEmpty && history.index == -1)
-print("History model checks passed: endpoints, traversal, duplicate visits, branching, pruning, 100-entry bound, empty pruning.")
+var reviewed = InspectorHistory()
+reviewed.visit("A"); reviewed.visit("B")
+let saved = InspectorReviewBookmark(query: Data("needle".utf8), revision: [UUID(), UUID()], expandedA: true, expandedB: false, match: 2)
+reviewed.save(saved, for: "B")
+assert(reviewed.review(for: "B")?.match == 2 && reviewed.review(for: "B")?.expandedA == true)
+reviewed.move(to: 0); reviewed.visit("C")
+assert(reviewed.review(for: "B") == nil)
+reviewed.save(saved, for: "A"); reviewed.clearReviews()
+assert(reviewed.review(for: "A") == nil)
+print("History model checks passed: traversal/bounds/pruning plus review save, branch eviction and invalidation.")
 SWIFT
 swift "$CHECK"

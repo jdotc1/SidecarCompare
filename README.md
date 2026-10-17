@@ -142,8 +142,8 @@ sort, time display, comparison rule, and the inspector Find query.
 Inspector **Back / Forward** follows your field-review history independently of
 Previous/Next Difference. History is session-only, limited to 100 entries; a new
 selection after Back replaces the forward branch. Returning to a field retains view
-settings and Find query, restarting match navigation/collapsing previews when the
-field changes. Hidden targets offer **Clear Filters and Go**; Cancel leaves the
+settings and Find query, restoring saved match/expansion when the query and input
+snapshots are unchanged. Hidden targets offer **Clear Filters and Go**; Cancel leaves the
 view/history position unchanged. Clear/replacement inputs/example discard history;
 successful Reload/Swap/rule changes retain only pointers still present in the full
 comparison.
@@ -203,8 +203,9 @@ clears only inspector search; it does not change table filters, previews, or
 exports.
 
 Hiding and reopening the inspector on the same field and snapshots preserves
-Find, the current match, and independent A/B expansion. Changing fields or
-reloading snapshots keeps the query but restarts match navigation and expansion.
+Find, the current match, and independent A/B expansion. Ordinary field changes or
+reloading snapshots keep the query but restart match navigation and expansion;
+Back/Forward can restore saved review when its query and snapshots still match.
 Clear, replacement inputs, loading the example, and Reset View clear saved review
 state. This state exists only for the current session.
 
@@ -359,3 +360,5 @@ The inspector’s fixed header shows the selected **JSON Pointer and status** ab
 **Clear Filters** is also available beside Reset View whenever search, category, status or Differences only is active, including views that still contain matching rows. It reveals all rows while preserving visible selection, sort order, time display, search scope, comparison rule and inspector Find query. It disables when no filters remain; Reset View continues to restore broader presentation defaults.
 
 The table-search prompt follows **Search in**: “Search paths and value previews,” “Search JSON Pointers,” or “Search value previews.” Changing scope preserves the query. Preview-mode help directs you to inspector Find for complete-value searches.
+
+Back/Forward now restores a visited field’s A/B expansion and Find match when the current Find query and input snapshots still match its saved review. It never replaces the current query. Matches are recomputed and the saved index is bounded to the new result count; raw values/search results are not retained per history entry. Changed queries use fresh search/default expansion. Reload, Swap, rule changes and Reset View invalidate saved review settings; replacement inputs/Clear/example discard history as before.

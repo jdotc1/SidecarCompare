@@ -17,6 +17,7 @@ struct WorkspaceView: View {
     @State private var tableRevealRequest = UUID()
     @State private var inspectorHistory = InspectorHistory()
     @State private var pendingHistory: Int?
+    @State private var restoringHistoryReview: String?
     @State private var exportSnapshot: ExportSnapshot?
     @State private var search = ""
     @State private var searchScope = TableSearchScope.pathsAndPreviews
@@ -99,8 +100,15 @@ struct WorkspaceView: View {
         .onChange(of: visibleRows.map(\.id)) { _, ids in
             if !restoringReloadSelection, let selection, !ids.contains(selection) { self.selection = nil }
         }
-        .onChange(of: selection) { _, selected in
+        .onChange(of: selection) { previous, selected in
+            if !restoringReloadSelection, !session.isBusy, let previous {
+                inspectorHistory.save(inspectorReview.bookmark(rowID: previous, revision: [session.a?.id, session.b?.id]), for: previous)
+            }
             rowCopyMessage = nil; inspectorReview.resetField()
+            if let selected, selected == restoringHistoryReview, let saved = inspectorHistory.review(for: selected) {
+                inspectorReview.restore(saved, rowID: selected, revision: [session.a?.id, session.b?.id])
+            }
+            restoringHistoryReview = nil
             if !restoringReloadSelection, !session.isBusy, let selected, selectedRow != nil {
                 inspectorHistory.visit(selected)
             }
@@ -473,6 +481,8 @@ struct WorkspaceView: View {
         session.setPolicy(policy)
     }
     private func beginReload(_ slots: [FileSlot]) {
+        inspectorHistory.clearReviews()
+        restoringHistoryReview = nil
         comparisonChange = .swap
         reloadSlots = slots
         reloadSelection = selection
@@ -542,6 +552,7 @@ struct WorkspaceView: View {
         if clearingFilters { search = ""; category = nil; status = nil; differencesOnly = false }
         guard visibleRows.contains(where: { $0.id == id }) else { return }
         inspectorHistory.move(to: target)
+        restoringHistoryReview = id
         selection = id
         showInspector = true
         tableRevealRequest = UUID()
@@ -552,6 +563,8 @@ struct WorkspaceView: View {
     }
     private func resetView() {
         guard canModify else { return }
+        inspectorHistory.clearReviews()
+        restoringHistoryReview = nil
         inspectorReview.resetAll()
         reloadSelection = nil
         searchScope = .pathsAndPreviews

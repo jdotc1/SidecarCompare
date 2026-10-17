@@ -72,6 +72,7 @@ struct InspectorValueSearch: View {
                     .monospacedDigit().fixedSize(horizontal: false, vertical: true)
             }
         }
+        .onChange(of: Data(review.query.utf8)) { _, _ in review.pendingMatch = nil }
         .task(id: identity) { await search() }
     }
 
@@ -104,6 +105,7 @@ struct InspectorValueSearch: View {
     private func search() async {
         let request = identity, query = review.query, a = row.a, b = row.b
         guard !Task.isCancelled, review.outcome?.identity != request else { return }
+        let restoredMatch = review.pendingMatch?.identity == request ? review.pendingMatch?.index : nil
         review.outcome = nil; review.failed = nil; review.currentMatch = 0
         guard !query.isEmpty else { return }
         do {
@@ -116,6 +118,8 @@ struct InspectorValueSearch: View {
             let result = try await withTaskCancellationHandler(operation: { try await worker.value }, onCancel: { worker.cancel() })
             guard !Task.isCancelled, request == identity else { return }
             review.outcome = result
+            review.currentMatch = min(restoredMatch ?? 0, max(0, result.total - 1))
+            if review.pendingMatch?.identity == request { review.pendingMatch = nil }
         } catch is CancellationError { }
         catch {
             guard !Task.isCancelled, request == identity else { return }
@@ -128,6 +132,10 @@ fileprivate struct SearchIdentity: Hashable, Sendable {
     let rowID: String
     let revision: [UUID?]
     let queryBytes: Data
+}
+fileprivate struct PendingMatch {
+    let identity: SearchIdentity
+    let index: Int
 }
 fileprivate struct SearchOutcome: Sendable {
     let identity: SearchIdentity
@@ -150,8 +158,21 @@ final class InspectorReviewState {
     var currentMatch = 0
     fileprivate var outcome: SearchOutcome?
     fileprivate var failed: SearchIdentity?
+    fileprivate var pendingMatch: PendingMatch?
 
+    func bookmark(rowID: String, revision: [UUID?]) -> InspectorReviewBookmark {
+        let identity = SearchIdentity(rowID: rowID, revision: revision, queryBytes: Data(query.utf8))
+        let match = outcome?.identity == identity ? currentMatch : (pendingMatch?.identity == identity ? pendingMatch?.index ?? 0 : 0)
+        return InspectorReviewBookmark(query: Data(query.utf8), revision: revision,
+                                       expandedA: expandedA, expandedB: expandedB, match: match)
+    }
+    func restore(_ bookmark: InspectorReviewBookmark, rowID: String, revision: [UUID?]) {
+        guard bookmark.query == Data(query.utf8), bookmark.revision == revision else { return }
+        expandedA = bookmark.expandedA; expandedB = bookmark.expandedB
+        pendingMatch = PendingMatch(identity: SearchIdentity(rowID: rowID, revision: revision, queryBytes: bookmark.query), index: bookmark.match)
+    }
     func resetField() {
+        pendingMatch = nil
         expandedA = false; expandedB = false
         currentMatch = 0; outcome = nil; failed = nil
     }

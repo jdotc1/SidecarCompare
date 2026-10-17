@@ -140,7 +140,6 @@ struct RowInspector: View {
             }.padding(16).frame(maxWidth: .infinity, alignment: .leading).id("inspector-top")
         }
         .onChange(of: row?.id) { _, _ in
-            review.resetField()
             proxy.scrollTo("inspector-top", anchor: .top)
         }
         }
