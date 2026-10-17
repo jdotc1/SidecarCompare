@@ -4,6 +4,7 @@ import SidecarCore
 @MainActor
 struct RowInspector: View {
     let row: ComparisonRow?
+    let position: String
     let canPrevious: Bool
     let canNext: Bool
     let previous: () -> Void
@@ -17,12 +18,16 @@ struct RowInspector: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Button(action: previous) { Label("Previous", systemImage: "chevron.up") }
-                        .disabled(!canPrevious)
-                    Button(action: next) { Label("Next", systemImage: "chevron.down") }
-                        .disabled(!canNext)
-                    Spacer(minLength: 0)
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 10) {
+                        navigationButtons
+                        Text(position).font(.caption).foregroundStyle(.secondary).fixedSize()
+                    }
+                    VStack(alignment: .leading, spacing: 6) {
+                        navigationButtons
+                        Text(position).font(.caption).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 if let row {
                     Menu("Copy") { RowCopyMenu(row: row, enabled: canCopy, copy: copy) }
@@ -97,6 +102,15 @@ struct RowInspector: View {
         }
         .inspectorColumnWidth(min: 270, ideal: 315, max: 500)
     }
+    private var navigationButtons: some View {
+        HStack {
+            Button(action: previous) { Label("Previous", systemImage: "chevron.up") }
+                .disabled(!canPrevious)
+            Button(action: next) { Label("Next", systemImage: "chevron.down") }
+                .disabled(!canNext)
+        }
+    }
+
 }
 
 @MainActor

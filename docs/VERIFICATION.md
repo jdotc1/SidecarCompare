@@ -72,3 +72,7 @@ Export captures visible-row count alongside full comparison and shows Total rows
 ## Exact row copying
 
 Inspector Copy menu and table context actions copy JSON Pointer or complete A/B original JSON independently of preview/display units. Missing-side actions disabled; null copyable. Final debug142 staging/release143 compilation pass warnings-as-errors. Native synthetic clipboard assertions confirmed escaped pointer, original beyond2^53 numeric token with exponent spelling, complete9602-character JSON string beyond preview cap, and null. Original-metadata/device-sharing feedback observed. Context actions/missing-side disabling observed; execution verified through inspector/shared callback. Core/parser/report receipts reused; no suites/accessibility work.
+
+## Selected difference position
+
+View-only fixed-header indicator follows current visible difference order, excluding Equal. Debug146 staging and release147 compilation pass warnings-as-errors. Focused bundled synthetic native observations confirmed no-comparison/no-selection states, navigation positions1→2→3 of9, filtered1 of1 with disabled endpoints, zero-difference text and readable narrow-header fallback. Existing core/session/oracle/navigation/sorting receipts reused; no suites rerun or accessibility work. Equal-row and reordered-position text are source-reviewed behavior, not newly exercised native checks.

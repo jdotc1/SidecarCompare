@@ -45,7 +45,7 @@ struct WorkspaceView: View {
         .searchable(text: $search, prompt: "Search paths and value previews")
         .toolbar { toolbar }
          .inspector(isPresented: $showInspector) {
-            RowInspector(row: selectedRow,
+            RowInspector(row: selectedRow, position: differencePosition,
                          canPrevious: differenceTarget(forward: false) != nil,
                          canNext: differenceTarget(forward: true) != nil,
                          previous: { navigateDifference(forward: false) },
@@ -250,6 +250,16 @@ struct WorkspaceView: View {
                          nextDifference: { navigateDifference(forward: true) }, canOpen: canModify, canSwap: session.canSwap && canModify, canExport: session.comparison != nil && canModify,
                          openA: { choose(.a) }, openB: { choose(.b) }, swap: { session.swap() }, clear: clear,
                          example: example, export: export, copySummary: copySummary)
+    }
+    private var differencePosition: String {
+        guard !session.isBusy, session.comparison != nil else { return "No comparison ready" }
+        let differences = visibleRows.filter { $0.status != .equal }
+        guard !differences.isEmpty else { return "No differences in this view" }
+        if let index = differences.firstIndex(where: { $0.id == selection }) {
+            return "Difference \(index + 1) of \(differences.count) in this view"
+        }
+        if selectedRow?.status == .equal { return "Equal row · \(differences.count) differences in this view" }
+        return "\(differences.count) differences in this view · select a row"
     }
     private func differenceTarget(forward: Bool) -> String? {
         guard !session.isBusy, canModify else { return nil }

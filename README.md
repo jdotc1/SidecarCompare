@@ -99,3 +99,5 @@ The export sheet shows **Total rows** and **Currently visible** rows when opened
 ### Copying a finding
 
 The inspector’s fixed **Copy** menu and a row’s context menu provide **Copy JSON Pointer**, **Copy A Value · Original JSON**, and **Copy B Value · Original JSON**. Pointer escaping and original numeric tokens are preserved. Value copy includes the complete raw JSON, even when the inspector preview is truncated; it can contain identifying metadata. Missing-side value actions are disabled, while JSON `null` copies as `null`. Feedback reports success/failure and reminds you that the system clipboard may be shared across devices.
+
+The inspector shows the selected difference’s position in the current filtered, sorted view, such as **Difference 3 of 9 in this view**. The count excludes Equal rows and updates with filters. The indicator sits beside Previous/Next when space permits and wraps beneath them in a narrow inspector.
