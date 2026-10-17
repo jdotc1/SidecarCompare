@@ -561,6 +561,7 @@ struct WorkspaceView: View {
     private func copyRow(_ row: ComparisonRow, _ target: RowCopyTarget) {
         guard canCopyRow else { return }
         if target == .a && row.a == nil || target == .b && row.b == nil { return }
+        let policy = session.comparison?.policy ?? session.policy
         isCopyingRow = true
         rowCopyMessage = nil
         Task { @MainActor in
@@ -570,12 +571,18 @@ struct WorkspaceView: View {
                 case .pointer: return row.path
                 case .a: return row.a?.serialized()
                 case .b: return row.b?.serialized()
+                case .comparison: return FieldComparisonCopy.text(row: row, policy: policy)
                 }
             }.value
             guard let text else { return }
             NSPasteboard.general.clearContents()
             let success = NSPasteboard.general.setString(text, forType: .string)
-            let subject = target == .pointer ? "JSON Pointer copied." : "Complete original JSON value copied; it may identify people."
+            let subject: String
+            switch target {
+            case .pointer: subject = "JSON Pointer copied."
+            case .comparison: subject = "Single-field comparison copied with complete original metadata; it may identify people."
+            case .a, .b: subject = "Complete original JSON value copied; it may identify people."
+            }
             let feedback = success ? subject + " The system clipboard may be shared with your other devices." : "The clipboard could not be updated."
             rowCopyMessage = feedback
             notification = feedback

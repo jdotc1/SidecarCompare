@@ -347,3 +347,5 @@ example. Review sidecars and full reports for identifying metadata before sharin
 All supplied fixtures are synthetic. The repository includes no clinical data,
 third-party runtime, build cache, signing identity, or compiled application
 executable. Licensed under [MIT](LICENSE).
+
+**Copy Field Comparison · Original JSON** in the inspector Copy menu or row context menu copies labeled single-field text: the JSON Pointer encoded as a JSON string, status, current comparison rule, complete original A/B JSON, and exact signed raw numeric delta/canonical unit when available. Missing sides use an explicit `[missing — field absent]` marker; JSON `null` remains `null`. The text contains original metadata, is not de-identified and is independent of table filters/display conversions. Copying preserves inspector review state.
