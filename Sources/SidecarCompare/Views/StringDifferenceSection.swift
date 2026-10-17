@@ -5,6 +5,7 @@ import SidecarCore
 struct StringDifferenceIdentity: Hashable {
     let rowID: String
     let revision: [UUID?]
+
 }
 
 @MainActor
@@ -12,13 +13,14 @@ struct StringDifferenceSection: View {
     let a: String
     let b: String
     let identity: StringDifferenceIdentity
+    @Binding var collapsed: Bool
     @State private var summary: StringDifferenceSummary?
     @State private var loading = true
     @State private var failed = false
 
     var body: some View {
+        DisclosureGroup(isExpanded: Binding(get: { !collapsed }, set: { collapsed = !$0 })) {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Text difference").font(.headline)
             if let summary {
                 Text(summary.kind).font(.subheadline)
                 Text("Shared prefix: \(summary.sharedPrefixScalars) · suffix: \(summary.sharedSuffixScalars) Unicode scalars")
@@ -34,6 +36,15 @@ struct StringDifferenceSection: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
+        } label: {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Text difference").font(.headline)
+                if collapsed {
+                    Text(compactSummary).font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
         .task(id: identity) {
             summary = nil; loading = true; failed = false
             let a = a, b = b
@@ -46,6 +57,14 @@ struct StringDifferenceSection: View {
             catch { guard !Task.isCancelled else { return }; failed = true; loading = false }
         }
     }
+    private var compactSummary: String {
+        guard let summary else {
+            return loading ? "Comparing text…" : failed ? "Summary unavailable" : "Identical Unicode scalar sequences"
+        }
+        return "\(summary.kind) · A: \(summary.a.changedScalarCount) / B: \(summary.b.changedScalarCount) scalars"
+            + (summary.a.truncated || summary.b.truncated ? " · Preview truncated" : "")
+    }
+
 }
 
 @MainActor

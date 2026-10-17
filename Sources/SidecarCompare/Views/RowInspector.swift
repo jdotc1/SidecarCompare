@@ -108,13 +108,13 @@ struct RowInspector: View {
                         }
                     }
                     if row.status != .equal, case .string(let a) = row.a, case .string(let b) = row.b {
-                        StringDifferenceSection(a: a, b: b, identity: StringDifferenceIdentity(rowID: row.id, revision: revision))
+                        StringDifferenceSection(a: a, b: b, identity: StringDifferenceIdentity(rowID: row.id, revision: revision), collapsed: $review.collapsedTextSummary)
                     }
                     InspectorValueCard(title: "A · Reference", value: row.a, expanded: review.expandedA, collapsed: review.collapsedA, match: review.revealedValueMatch(rowID: row.id, revision: revision, side: "A")).id(row.id + ":A")
                     InspectorValueCard(title: "B · Comparison", value: row.b, expanded: review.expandedB, collapsed: review.collapsedB, match: review.revealedValueMatch(rowID: row.id, revision: revision, side: "B")).id(row.id + ":B")
                     if let delta = row.delta {
+                        DisclosureGroup(isExpanded: Binding(get: { !review.collapsedNumericSummary }, set: { review.collapsedNumericSummary = !$0 })) {
                         VStack(alignment: .leading, spacing: 5) {
-                            Text("Numeric difference").font(.headline)
                             Text("Absolute delta · |B − A|").font(.subheadline)
                             Text(delta.magnitude.scaled(byPowerOfTen: row.unit == "s" && milliseconds ? 3 : 0).canonicalString
                                  + (row.unit.map { " " + ($0 == "s" && milliseconds ? "ms" : $0) } ?? ""))
@@ -129,6 +129,17 @@ struct RowInspector: View {
                             Text(delta.canonicalString).font(.system(.body, design: .monospaced)).textSelection(.enabled)
                             Text(row.unit.map { "Canonical unit: \($0)" } ?? "Unit unspecified; no physical interpretation inferred.")
                                 .font(.caption).foregroundStyle(.secondary)
+                        }
+                        } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Numeric difference").font(.headline)
+                                if review.collapsedNumericSummary {
+                                    Text("|B − A|: " + delta.magnitude.scaled(byPowerOfTen: row.unit == "s" && milliseconds ? 3 : 0).canonicalString
+                                         + (row.unit.map { " " + ($0 == "s" && milliseconds ? "ms" : $0) } ?? ""))
+                                        .font(.caption).foregroundStyle(.secondary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
                         }
                     }
                     Divider()

@@ -212,6 +212,8 @@ final class InspectorReviewState {
     var expandedB = false
     var collapsedA = false
     var collapsedB = false
+    var collapsedTextSummary = false
+    var collapsedNumericSummary = false
     var currentMatch = 0 { didSet { if currentMatch != oldValue { revealedMatch = nil } } }
     var valueRevealRequest = UUID()
     fileprivate var revealedMatch: PendingMatch?
@@ -261,12 +263,14 @@ final class InspectorReviewState {
         let identity = SearchIdentity(rowID: rowID, revision: revision, queryBytes: Data(query.utf8))
         let match = outcome?.identity == identity ? currentMatch : (pendingMatch?.identity == identity ? pendingMatch?.index ?? 0 : 0)
         return InspectorReviewBookmark(query: Data(query.utf8), revision: revision,
-                                       expandedA: expandedA, expandedB: expandedB, collapsedA: collapsedA, collapsedB: collapsedB, match: match, scope: scope)
+                                       expandedA: expandedA, expandedB: expandedB, collapsedA: collapsedA, collapsedB: collapsedB, match: match, scope: scope,
+                                       collapsedTextSummary: collapsedTextSummary, collapsedNumericSummary: collapsedNumericSummary)
     }
     func restore(_ bookmark: InspectorReviewBookmark, rowID: String, revision: [UUID?]) {
         guard bookmark.query == Data(query.utf8), bookmark.revision == revision else { return }
         expandedA = bookmark.expandedA; expandedB = bookmark.expandedB
         collapsedA = bookmark.collapsedA; collapsedB = bookmark.collapsedB
+        collapsedTextSummary = bookmark.collapsedTextSummary; collapsedNumericSummary = bookmark.collapsedNumericSummary
         scope = bookmark.scope
         pendingMatch = PendingMatch(identity: SearchIdentity(rowID: rowID, revision: revision, queryBytes: bookmark.query), index: bookmark.match)
     }
@@ -274,6 +278,7 @@ final class InspectorReviewState {
         pendingMatch = nil; revealedMatch = nil
         expandedA = false; expandedB = false
         collapsedA = false; collapsedB = false
+        collapsedTextSummary = false; collapsedNumericSummary = false
         currentMatch = 0; outcome = nil; failed = nil
     }
     func resetAll() {

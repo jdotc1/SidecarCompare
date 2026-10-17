@@ -47,4 +47,6 @@ struct InspectorReviewBookmark {
     let collapsedB: Bool
     let match: Int
     var scope: InspectorFindScope = .both
+    var collapsedTextSummary = false
+    var collapsedNumericSummary = false
 }
