@@ -25,6 +25,7 @@ struct WorkspaceView: View {
     @State private var restoringReloadSelection = false
     @State private var reloadSelection: String?
     @State private var reloadSlots: [FileSlot] = []
+    @State private var comparisonChange = ComparisonChange.swap
     @State private var refreshFeedback: String?
     @State private var actionError: String?
     @State private var notification: String?
@@ -153,9 +154,23 @@ struct WorkspaceView: View {
                 activeFilterChips
             }
             if let result = session.comparison {
+                comparisonRuleSummary
                 differenceBreakdown(result)
             }
         }.padding(.horizontal, 16).padding(.bottom, 12)
+    }
+    private var comparisonRuleSummary: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 10) {
+                Text(session.policy.label).font(.callout.weight(.medium))
+                    .fixedSize(horizontal: false, vertical: true)
+                Button("Edit Rule…") { showPolicy = true }
+                    .controlSize(.small).disabled(!canModify || session.isBusy)
+            }
+            Text("Tolerance applies only to curated numeric fields; unknown fields and counters remain exact.")
+                .font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
     private var activeFilterChips: some View {
         ViewThatFits(in: .horizontal) {
@@ -314,7 +329,7 @@ struct WorkspaceView: View {
                 .disabled(differenceTarget(forward: true) == nil)
             Button { showPolicy = true } label: { Label("Comparison Rule", systemImage: "slider.horizontal.3") }
                 .disabled(!canModify)
-                .popover(isPresented: $showPolicy) { PolicyEditor(policy: session.policy, apply: { session.setPolicy($0) }) }
+                .popover(isPresented: $showPolicy) { PolicyEditor(policy: session.policy, apply: applyPolicy) }
             Button(action: export) { Label("Export", systemImage: "square.and.arrow.up") }.disabled(session.comparison == nil || !canModify)
             Button { showInspector.toggle() } label: { Label("Inspector", systemImage: "sidebar.right") }
         }
@@ -387,7 +402,15 @@ struct WorkspaceView: View {
         inspectorReview.resetField()
         session.swap()
     }
+    private func applyPolicy(_ policy: ComparisonPolicy) {
+        guard canModify, policy != session.policy else { return }
+        beginReload([])
+        comparisonChange = .rule
+        inspectorReview.resetField()
+        session.setPolicy(policy)
+    }
     private func beginReload(_ slots: [FileSlot]) {
+        comparisonChange = .swap
         reloadSlots = slots
         reloadSelection = selection
         restoringReloadSelection = true
@@ -400,7 +423,7 @@ struct WorkspaceView: View {
         selection = visibleRows.first(where: { $0.id == reloadSelection })?.id
         var messages: [String] = []
         if reloadSlots.isEmpty {
-            messages.append(session.comparison != nil ? "A and B swapped." : "Swap did not produce a comparison.")
+            messages.append(session.comparison != nil ? comparisonChange.rawValue : "Comparison unavailable.")
         } else if reloadSlots.count == 2 && reloadSlots.allSatisfy({ session.document(for: $0) != nil }) {
             messages.append("Both sidecars refreshed.")
         } else {
@@ -511,4 +534,9 @@ struct WorkspaceView: View {
             notification = "Summary copied; no input keys, values, filenames, or paths were included. The system clipboard may be shared with your other devices."
         } else { actionError = "The summary could not be copied." }
     }
+}
+
+private enum ComparisonChange: String {
+    case swap = "A and B swapped."
+    case rule = "Comparison rule updated."
 }
