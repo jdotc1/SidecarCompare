@@ -68,7 +68,7 @@ struct RowInspector: View {
                 if let row {
                     Button(isPinned ? "Unpin Field" : "Pin Field", action: togglePin)
                         .controlSize(.small).disabled(!canPin)
-                    Menu("Copy") { RowCopyMenu(row: row, enabled: canCopy, copy: copy) }
+                    Menu("Copy") { RowCopyMenu(row: row, enabled: canCopy, copy: copy, includeDifferenceSummary: true) }
                         .disabled(!canCopy)
                     Text(copyMessage ?? "Value copy includes complete original JSON, which may identify people.")
                         .font(.caption).foregroundStyle(.secondary)

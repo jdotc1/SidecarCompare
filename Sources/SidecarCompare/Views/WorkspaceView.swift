@@ -801,6 +801,7 @@ struct WorkspaceView: View {
     }
     private func copyRow(_ row: ComparisonRow, _ target: RowCopyTarget) {
         guard canCopyRow else { return }
+        if target == .differenceSummary { copyDifferenceSummary(row); return }
         if target == .a && row.a == nil || target == .b && row.b == nil { return }
         let policy = session.comparison?.policy ?? session.policy
         isCopyingRow = true
@@ -809,6 +810,7 @@ struct WorkspaceView: View {
             defer { isCopyingRow = false }
             let text = await Task.detached(priority: .userInitiated) { () -> String? in
                 switch target {
+                case .differenceSummary: return nil
                 case .pointer: return row.path
                 case .a: return row.a?.serialized()
                 case .b: return row.b?.serialized()
@@ -820,6 +822,7 @@ struct WorkspaceView: View {
             let success = NSPasteboard.general.setString(text, forType: .string)
             let subject: String
             switch target {
+            case .differenceSummary: subject = "Difference summary copied."
             case .pointer: subject = "JSON Pointer copied."
             case .comparison: subject = "Single-field comparison copied with complete original metadata; it may identify people."
             case .a, .b: subject = "Complete original JSON value copied; it may identify people."
@@ -827,6 +830,30 @@ struct WorkspaceView: View {
             let feedback = success ? subject + " The system clipboard may be shared with your other devices." : "The clipboard could not be updated."
             rowCopyMessage = feedback
             notification = feedback
+        }
+    }
+    private func copyDifferenceSummary(_ row: ComparisonRow) {
+        let policy = session.comparison?.policy ?? session.policy
+        isCopyingRow = true
+        rowCopyMessage = nil
+        Task { @MainActor in
+            defer { isCopyingRow = false }
+            do {
+                let text = try await Task.detached(priority: .userInitiated) {
+                    try DifferenceSummaryCopy.text(row: row, policy: policy)
+                }.value
+                NSPasteboard.general.clearContents()
+                let success = NSPasteboard.general.setString(text, forType: .string)
+                let feedback = success
+                    ? "Difference summary copied; it may identify people. The system clipboard may be shared with your other devices."
+                    : "The clipboard could not be updated."
+                rowCopyMessage = feedback
+                notification = feedback
+            } catch {
+                let feedback = "Difference summary could not be prepared. Clipboard unchanged. " + error.localizedDescription
+                rowCopyMessage = feedback
+                notification = feedback
+            }
         }
     }
     private func copySummary() {

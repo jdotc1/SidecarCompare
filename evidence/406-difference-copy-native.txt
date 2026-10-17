@@ -1,0 +1,15 @@
+Difference summary · not a complete field comparison
+May contain identifying metadata; not de-identified.
+JSON Pointer (JSON string): "/EchoTime"
+Status: Changed
+Rule: Exact comparison
+A type: number
+B type: number
+
+A · Original JSON number: 0.085
+B · Original JSON number: 0.08501
+Exact raw delta · B − A: 0.00001
+Absolute delta: 0.00001
+Canonical unit: s
+Relative change from A: 0.011765%
+(B − A) / |A| × 100%; rounded to 6 decimal places, ties away from zero. Tolerance classification uses max(|A|, |B|) instead.
