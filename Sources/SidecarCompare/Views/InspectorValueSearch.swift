@@ -155,6 +155,8 @@ final class InspectorReviewState {
     var showFind = true
     var expandedA = false
     var expandedB = false
+    var collapsedA = false
+    var collapsedB = false
     var currentMatch = 0
     fileprivate var outcome: SearchOutcome?
     fileprivate var failed: SearchIdentity?
@@ -164,16 +166,18 @@ final class InspectorReviewState {
         let identity = SearchIdentity(rowID: rowID, revision: revision, queryBytes: Data(query.utf8))
         let match = outcome?.identity == identity ? currentMatch : (pendingMatch?.identity == identity ? pendingMatch?.index ?? 0 : 0)
         return InspectorReviewBookmark(query: Data(query.utf8), revision: revision,
-                                       expandedA: expandedA, expandedB: expandedB, match: match)
+                                       expandedA: expandedA, expandedB: expandedB, collapsedA: collapsedA, collapsedB: collapsedB, match: match)
     }
     func restore(_ bookmark: InspectorReviewBookmark, rowID: String, revision: [UUID?]) {
         guard bookmark.query == Data(query.utf8), bookmark.revision == revision else { return }
         expandedA = bookmark.expandedA; expandedB = bookmark.expandedB
+        collapsedA = bookmark.collapsedA; collapsedB = bookmark.collapsedB
         pendingMatch = PendingMatch(identity: SearchIdentity(rowID: rowID, revision: revision, queryBytes: bookmark.query), index: bookmark.match)
     }
     func resetField() {
         pendingMatch = nil
         expandedA = false; expandedB = false
+        collapsedA = false; collapsedB = false
         currentMatch = 0; outcome = nil; failed = nil
     }
     func resetAll() {

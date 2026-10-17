@@ -74,6 +74,10 @@ struct RowInspector: View {
                         .font(.caption).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     HStack(spacing: 8) {
+                        Button(review.collapsedA ? "A · Expand section" : "A · Collapse section") { review.collapsedA.toggle() }
+                        Button(review.collapsedB ? "B · Expand section" : "B · Collapse section") { review.collapsedB.toggle() }
+                    }.controlSize(.small)
+                    HStack(spacing: 8) {
                         if (row.a?.serialized().count ?? 0) > 512 {
                             Button(review.expandedA ? "A · Show less" : "A · Show more") { review.expandedA.toggle() }
                         }
@@ -103,8 +107,8 @@ struct RowInspector: View {
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                     }
-                    InspectorValueCard(title: "A · Reference", value: row.a, expanded: review.expandedA).id(row.id + ":A")
-                    InspectorValueCard(title: "B · Comparison", value: row.b, expanded: review.expandedB).id(row.id + ":B")
+                    InspectorValueCard(title: "A · Reference", value: row.a, expanded: review.expandedA, collapsed: review.collapsedA).id(row.id + ":A")
+                    InspectorValueCard(title: "B · Comparison", value: row.b, expanded: review.expandedB, collapsed: review.collapsedB).id(row.id + ":B")
                     if let delta = row.delta {
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Numeric difference").font(.headline)
@@ -166,11 +170,9 @@ private struct InspectorValueCard: View {
     let title: String
     let value: JSONValue?
     let expanded: Bool
+    let collapsed: Bool
 
     var body: some View {
-        let raw = value?.serialized() ?? "<missing>"
-        let limit = expanded ? 8192 : 512
-        let shown = String(raw.prefix(limit))
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 Text(title).font(.headline)
@@ -183,22 +185,29 @@ private struct InspectorValueCard: View {
             Text(value?.inspectorSummary ?? "Field absent")
                 .font(.caption).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            Divider()
-            if value == nil {
-                Text("Field absent from this sidecar.").font(.callout).foregroundStyle(.secondary)
+            if collapsed {
+                Text("Section collapsed").font(.caption).foregroundStyle(.secondary)
             } else {
-                Text("Raw JSON").font(.caption).foregroundStyle(.secondary)
-                Text(verbatim: shown)
-                    .font(.system(.callout, design: .monospaced))
-                    .textSelection(.enabled)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                if raw.count > 512 {
-                    Text("Showing \(shown.count.formatted()) of \(raw.count.formatted()) characters.")
-                        .font(.caption).foregroundStyle(.secondary)
-                    if expanded && raw.count > 8192 {
-                        Text("Preview limited to 8,192 characters. Detailed export retains the complete value.")
+                let raw = value?.serialized() ?? "<missing>"
+                let limit = expanded ? 8192 : 512
+                let shown = String(raw.prefix(limit))
+                Divider()
+                if value == nil {
+                    Text("Field absent from this sidecar.").font(.callout).foregroundStyle(.secondary)
+                } else {
+                    Text("Raw JSON").font(.caption).foregroundStyle(.secondary)
+                    Text(verbatim: shown)
+                        .font(.system(.callout, design: .monospaced))
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    if raw.count > 512 {
+                        Text("Showing \(shown.count.formatted()) of \(raw.count.formatted()) characters.")
                             .font(.caption).foregroundStyle(.secondary)
+                        if expanded && raw.count > 8192 {
+                            Text("Preview limited to 8,192 characters. Detailed export retains the complete value.")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
                     }
                 }
             }

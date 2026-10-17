@@ -38,5 +38,7 @@ struct InspectorReviewBookmark {
     let revision: [UUID?]
     let expandedA: Bool
     let expandedB: Bool
+    let collapsedA: Bool
+    let collapsedB: Bool
     let match: Int
 }

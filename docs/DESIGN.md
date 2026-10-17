@@ -26,7 +26,7 @@ No document values or paths in logs/errors. The app never adds selected-file nam
 `script`: SwiftPM app-bundle staging, test/smoke/build-and-run; no runtime Python. Python is used only by repository verification scripts.
 
 ## Acceptance
-Parser/comparison/report/session/file-I/O tests must pass under Swift 6 with warnings treated as errors. Deterministic synthetic cases and a Python Decimal/JSON oracle cross-check must pass. On macOS, build the GUI, stage/sign the development bundle, launch it and run the manual keyboard, drag/drop, accessibility, privacy, cancellation and export acceptance list. Linux testing cannot satisfy this native gate. No publish/push, Developer ID signing, notarization, or distribution claim occurs in this handoff.
+Parser/comparison/report/session/file-I/O tests must pass under Swift 6 with warnings treated as errors. Deterministic synthetic cases and a Python Decimal/JSON oracle cross-check must pass. On macOS, build the GUI, stage/sign the development bundle, launch it and run the manual keyboard, drag/drop, accessibility, privacy, cancellation and export acceptance list. Linux testing cannot satisfy this native gate. No publish/push, Developer ID signing, notarization, or distribution claim occurs in this record.
 
 ## Comparison review controls
 
@@ -144,3 +144,8 @@ One small-control row contains Pins(count) menu with existing Pin All Visible/co
 ## Undo Clear Pins
 
 PinnedFields owns one optional cleared-ID snapshot bounded by the current comparison row limit. clearForUndo copies IDs then empties pins; undoClear restores once and consumes snapshot. Toggle/add/retain invalidate; model reset discards snapshot. Workspace invalidates at beginReload (reload/Swap/rule), accepted importer URL and received drop, in addition to replacement/Clear/example resets. Cleared-count toolbar message and guarded Undo only mutate pins/pinnedOnlyfalse, no selected/query/sort/display/expansion/history mutations. Ordinary view filtering does not invalidate snapshot.
+
+
+## Collapsible inspector A/B sections
+
+Workspace-owned InspectorReviewState adds independent collapsedA/B flags, reset to open by resetField/resetAll. Fixed section controls toggle only those flags. Cards retain header/type/summary/collapsed indicator while conditionally omitting value body/serialization; expandedA/B are independent and retained. InspectorReviewBookmark saves collapse flags alongside preview flags/match, restored under existing exact query/source-revision guard and bounded history lifecycle. Find task remains mounted outside cards, copy paths unchanged. No source/filter/sort/query mutations.

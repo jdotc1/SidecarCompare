@@ -8,7 +8,6 @@ import os
 import plistlib
 import subprocess
 import tempfile
-import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -28,11 +27,7 @@ with (ROOT / "Packaging/SidecarCompare.entitlements").open("rb") as file:
     entitlements = plistlib.load(file)
 assert entitlements == {"com.apple.security.app-sandbox": True,
                         "com.apple.security.files.user-selected.read-write": True}
-with (ROOT / ".codex/environments/environment.toml").open("rb") as file:
-    environment = tomllib.load(file)
-assert environment["version"] == 1
-assert any(a["name"] == "Run" and a["command"] == "./script/build_and_run.sh" for a in environment["actions"])
-print("PASS: bundle metadata, sandbox/no-network entitlements, Codex Run configuration.", flush=True)
+print("PASS: bundle metadata and sandbox/no-network entitlements.", flush=True)
 
 views = sorted((ROOT / "Sources/SidecarCompare").rglob("*.swift"))
 run("swiftc", "-frontend", "-parse", *(str(file) for file in views))

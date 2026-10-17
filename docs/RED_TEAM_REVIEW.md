@@ -4,7 +4,7 @@ Date: 2026-10-14. Scope: design, plan, source, session concurrency, parser/numbe
 
 ## Method and independence
 
-This was a separate adversarial self-review pass within the implementation session, not a separately dispatched or independently isolated reviewer. No such reviewer facility was available. The numerical/structural oracle is an independently implemented Python JSON/Decimal reference exercising the compiled Swift CLI; that is algorithmic cross-checking, not independent human/agent code review. `INDEPENDENT_REVIEW_PROMPT.md` supplies the next review gate for Codex.
+This was an implementation self-review, not an independent review. The numerical/structural oracle is an independently implemented Python JSON/Decimal reference exercising the compiled Swift CLI; that is algorithmic cross-checking, not an independent review of the implementation. `INDEPENDENT_REVIEW_PROMPT.md` supplies criteria for a further independent review.
 
 The review sought counterexamples and reproduced failures before repairs where executable. It also inspected platform-conditional code and attempted an Observation-enabled Swift 6 typecheck, rather than treating a Linux-only build as sufficient. No native macOS SDK build, GUI run, screenshot audit, or accessibility evaluation was performed.
 

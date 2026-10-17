@@ -16,7 +16,7 @@ if DEST.exists():
 if ROOT not in DEST.parents:
     raise SystemExit('Publication working files must stay inside this checkout.')
 DEST.mkdir(parents=True)
-allowed_roots = {'Sources', 'Tests', 'Fixtures', 'script', 'Packaging', '.github', '.codex'}
+allowed_roots = {'Sources', 'Tests', 'Fixtures', 'script', 'Packaging', '.github'}
 allowed_files = {'Package.swift', '.gitignore', 'LICENSE', 'README.md'}
 allowed_docs = {'DESIGN.md', 'COMPARISON_RULES.md', 'SOURCES.md', 'UI_DESIGN.md', 'RED_TEAM_REVIEW.md'}
 receipts = {'33-final-debug-oracle.log', '34-final-release-oracle.log',
@@ -75,7 +75,8 @@ receipts = {'33-final-debug-oracle.log', '34-final-release-oracle.log',
             '306-go-to-pin-debug-build.log', '307-go-to-pin-release-build.log',
             '310-pinned-comparisons-debug-build.log', '311-pinned-comparisons-model.log', '312-pinned-comparisons-release-build.log', '313-pinned-comparisons-model.log',
             '316-compact-pin-toolbar-debug-build.log', '317-compact-pin-toolbar-release-build.log',
-            '320-clear-pins-undo-model.log', '321-clear-pins-undo-debug-build.log', '322-clear-pins-undo-release-build.log'}
+            '320-clear-pins-undo-model.log', '321-clear-pins-undo-debug-build.log', '322-clear-pins-undo-release-build.log',
+            '325-collapsible-values-debug-build.log', '326-collapsible-values-model.log', '327-collapsible-values-release-build.log', '328-collapsible-values-model.log'}
 files = subprocess.check_output(['git', 'ls-files', '-z'], cwd=ROOT).decode().split('\0')
 for relative in filter(None, files):
     p = Path(relative)
@@ -100,9 +101,6 @@ for relative in filter(None, files):
     if p.suffix in {'.md', '.log', '.txt'}:
         text = re.sub(r'/Users/[^/\s"<>]+', '/Users/<user>', text)
         text = re.sub(r'/home/[^/\s"<>]+', '/home/<user>', text)
-    if p.name == 'README.md' and p.parts[0] == 'README.md':
-        text = text.replace('Begin with [CODEX_HANDOFF.md](CODEX_HANDOFF.md).',
-                            'See [verification](docs/VERIFICATION.md) for accepted evidence and scope.')
     if re.search(r'(?:gh[pousr]_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9]{20,}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----)', text):
         raise SystemExit(f'Credential-shaped content in publication input: {p}')
     dst.write_text(text)

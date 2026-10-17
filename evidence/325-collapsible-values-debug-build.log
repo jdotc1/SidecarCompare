@@ -1,0 +1,16 @@
+Building for debugging...
+[2 / 14]
+[3 / 15] SidecarCore
+[5 / 16] SidecarCore
+[8 / 11] SidecarCompare-product
+[12 / 15] SidecarCompare-product
+[15 / 18] SidecarCompare-product
+[16 / 18] SidecarCompare-product
+[18 / 20] SidecarCompare-product
+Build complete! (5.36 sec)
+dist/.stage.UvGAD6/SidecarCompare.app/Contents/Info.plist: OK
+Packaging/SidecarCompare.entitlements: OK
+dist/.stage.UvGAD6/SidecarCompare.app: replacing existing signature
+dist/.stage.UvGAD6/SidecarCompare.app: valid on disk
+dist/.stage.UvGAD6/SidecarCompare.app: satisfies its Designated Requirement
+Built: dist/SidecarCompare.app

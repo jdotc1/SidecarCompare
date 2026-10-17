@@ -47,8 +47,7 @@ The checked-in [fixtures](Fixtures/README.md) are also synthetic.
 
 SwiftPM is the canonical project and has no third-party package dependencies or
 runtime. Xcode can open [Package.swift](Package.swift). Use the checked-in script
-when testing the sandboxed app bundle; the configured Codex Run action uses the
-same path.
+when testing the sandboxed app bundle.
 
 | Development command | Purpose |
 | --- | --- |
@@ -381,3 +380,6 @@ Pin management uses the compact **Pins (count)** menu, preserving each action’
 
 
 After **Clear Pins**, the toolbar shows **Cleared N pins — Undo**. Undo restores the entire cleared set, including hidden pins, while keeping Pinned only off and preserving other view settings and inspector review state. This is a single session-only snapshot: another pin edit, refresh, Swap, rule change, replacement input, Clear or example load invalidates it.
+
+
+The inspector’s **A · Collapse section / B · Collapse section** controls hide each value body independently, retaining the A/B header, type and summary. Reopening a section restores its Show more/Show less preview state. Find continues to search complete A/B values while either section is collapsed. Collapse state survives inspector hiding and is restored with expansion and match position through Back/Forward when the Find query and source revisions still match. New field visits and source/reset operations start with open sections.

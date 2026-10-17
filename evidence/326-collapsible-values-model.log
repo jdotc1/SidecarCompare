@@ -1,0 +1,17 @@
+Sources/SidecarCompare/Views/InspectorValueSearch.swift:59:26: error: '+' was deprecated in macOS 26.0: Use string interpolation on `Text` instead: `Text("Hello \(name)")` [#DeprecatedDeclaration]
+ 57 |                             .fixedSize(horizontal: false, vertical: true)
+ 58 |                         (Text(verbatim: match.excerpt.before) + Text(verbatim: match.excerpt.match).bold().underline()
+ 59 |                          + Text(verbatim: (match.excerpt.matchTruncated ? "…" : "") + match.excerpt.after))
+    |                          `- error: '+' was deprecated in macOS 26.0: Use string interpolation on `Text` instead: `Text("Hello \(name)")` [#DeprecatedDeclaration]
+ 60 |                             .font(.system(.caption, design: .monospaced)).textSelection(.enabled)
+ 61 |                             .fixedSize(horizontal: false, vertical: true)
+
+Sources/SidecarCompare/Views/InspectorValueSearch.swift:58:63: error: '+' was deprecated in macOS 26.0: Use string interpolation on `Text` instead: `Text("Hello \(name)")` [#DeprecatedDeclaration]
+ 56 |                             .font(.caption).monospacedDigit()
+ 57 |                             .fixedSize(horizontal: false, vertical: true)
+ 58 |                         (Text(verbatim: match.excerpt.before) + Text(verbatim: match.excerpt.match).bold().underline()
+    |                                                               `- error: '+' was deprecated in macOS 26.0: Use string interpolation on `Text` instead: `Text("Hello \(name)")` [#DeprecatedDeclaration]
+ 59 |                          + Text(verbatim: (match.excerpt.matchTruncated ? "…" : "") + match.excerpt.after))
+ 60 |                             .font(.system(.caption, design: .monospaced)).textSelection(.enabled)
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
