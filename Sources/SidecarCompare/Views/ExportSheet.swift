@@ -7,6 +7,18 @@ struct ExportSnapshot: Identifiable {
     let comparison: Comparison
     let documents: [SidecarDocument]
     let visibleRowCount: Int
+    var pinnedIDs: Set<String>? = nil
+    var selectedCount: Int { comparison.rows.filter { pinnedIDs?.contains($0.id) ?? true }.count }
+    static let pinnedByteLimit = 16 * 1024 * 1024
+
+    func render(detail: ReportDetail, json: Bool, limit: Int = pinnedByteLimit) throws -> String {
+        let scope: ReportScope = pinnedIDs.map { .pinned($0) } ?? .all
+        let text = json ? ReportRenderer.json(comparison, detail: detail, scope: scope) : ReportRenderer.text(comparison, detail: detail, scope: scope)
+        guard pinnedIDs == nil || text.utf8.count <= limit else {
+            throw SidecarError("Pinned report exceeds the 16 MiB export limit. Nothing was saved or copied. Unpin some fields and try again.")
+        }
+        return text
+    }
 }
 
 @MainActor
@@ -24,14 +36,14 @@ struct ExportSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Export comparison").font(.title2.weight(.semibold))
+            Text(snapshot.pinnedIDs == nil ? "Export comparison" : "Export pinned comparisons").font(.title2.weight(.semibold))
             VStack(alignment: .leading, spacing: 8) {
-                Text("Export scope · full comparison").font(.headline)
+                Text(snapshot.pinnedIDs == nil ? "Export scope · full comparison" : "Export scope · pinned fields, including hidden pins").font(.headline)
                 HStack(spacing: 24) {
-                    Text("Total rows: \(snapshot.comparison.rows.count)")
-                    Text("Currently visible: \(snapshot.visibleRowCount)")
+                    Text(snapshot.pinnedIDs == nil ? "Total rows: \(snapshot.comparison.rows.count)" : "Pinned fields: \(snapshot.selectedCount)")
+                    Text(snapshot.pinnedIDs == nil ? "Currently visible: \(snapshot.visibleRowCount)" : "Visible pins: \(snapshot.visibleRowCount)")
                 }.monospacedDigit()
-                Text("Table filters do not limit export. Summaries count all rows; full reports include every row in canonical sidecar units.")
+                Text(snapshot.pinnedIDs == nil ? "Table filters do not limit export. Summaries count all rows; full reports include every row in canonical sidecar units." : "Table filters do not exclude pins. Summary counts cover all pinned fields; full reports contain only pinned rows in JSON Pointer order and canonical sidecar units. Limit: 16 MiB; no partial output.")
                     .font(.callout).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -75,15 +87,15 @@ struct ExportSheet: View {
     private func perform(copy: Bool) {
         guard canExport else { return }
         busy = true; message = nil
-        let comparison = snapshot.comparison, detail = detail, json = json
+        let snapshot = snapshot, detail = detail, json = json
         Task {
-            let text = await Task.detached(priority: .userInitiated) {
-                json ? ReportRenderer.json(comparison, detail: detail) : ReportRenderer.text(comparison, detail: detail)
+            do {
+            let text = try await Task.detached(priority: .userInitiated) {
+                try snapshot.render(detail: detail, json: json)
             }.value
             #if DEBUG
             await acceptanceExportGate?.holdIfArmed()
             #endif
-            do {
                 if copy {
                     NSPasteboard.general.clearContents()
                     let success = NSPasteboard.general.setString(text, forType: .string)

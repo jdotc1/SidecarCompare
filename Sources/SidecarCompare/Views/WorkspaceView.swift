@@ -226,6 +226,8 @@ struct WorkspaceView: View {
                     Button("Copy Pinned Pointers (\(pins.ids.count))", action: copyPinnedPointers)
                         .disabled(!canCopyRow || pins.ids.isEmpty)
                         .help("Copy all pinned JSON Pointers, including hidden fields, one per line in pointer order.")
+                    Button("Export Pinned Comparisons…", action: exportPinnedComparisons)
+                        .disabled(!canModify || session.isBusy || pins.ids.isEmpty)
                     Button("Copy Pinned Comparisons (\(pins.ids.count))", action: copyPinnedComparisons)
                         .disabled(!canCopyRow || pins.ids.isEmpty)
                         .help("Copy complete original A/B metadata for all pins, including hidden fields. Limit: 4 MiB; no partial output.")
@@ -711,6 +713,11 @@ struct WorkspaceView: View {
     private func export() {
         guard canModify, let result = session.comparison else { return }
         exportSnapshot = ExportSnapshot(comparison: result, documents: session.sourceDocuments, visibleRowCount: visibleRows.count)
+    }
+    private func exportPinnedComparisons() {
+        guard canModify, !session.isBusy, !pins.ids.isEmpty, let result = session.comparison else { return }
+        exportSnapshot = ExportSnapshot(comparison: result, documents: session.sourceDocuments,
+            visibleRowCount: visibleRows.filter { pins.ids.contains($0.id) }.count, pinnedIDs: pins.ids)
     }
     private var canCopyRow: Bool { canModify && !session.isBusy && !isCopyingRow }
     private func copyPinnedComparisons() {
