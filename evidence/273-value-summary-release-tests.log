@@ -1,0 +1,33 @@
+Building for production...
+[Computing dependencies]
+[Pre-planning 1 / 153]
+[Planning deferred tasks]
+[8 / 28]
+[9 / 29] SidecarCore
+[11 / 30] SidecarCore
+[17 / 32] SidecarCore
+[21 / 34] sidecar-compare-product
+[23 / 36] SidecarCoreTests-product
+[25 / 37] sidecar-compare-product
+[27 / 37] sidecar-compare-product
+[27 / 37] SidecarCoreTests-product
+[31 / 36] SidecarCoreTests-product
+[33 / 36] SidecarCoreTests-product
+[35 / 37] sidecar-compare-product
+[37 / 38] SidecarCompare-product
+[39 / 41] SidecarCompare-product
+[40 / 41] SidecarCompare-product
+Build complete! (19.86 sec)
+Test Suite 'Selected tests' started at 2026-10-17 03:04:01.763.
+Test Suite 'SidecarCoreTests.xctest' started at 2026-10-17 03:04:01.765.
+Test Suite 'JSONValueSummaryTests' started at 2026-10-17 03:04:01.765.
+Test Case '-[SidecarCoreTests.JSONValueSummaryTests testDecodedStringsAndScalarDistinctions]' started.
+Test Case '-[SidecarCoreTests.JSONValueSummaryTests testDecodedStringsAndScalarDistinctions]' passed (0.002 seconds).
+Test Case '-[SidecarCoreTests.JSONValueSummaryTests testImmediateContainerCounts]' started.
+Test Case '-[SidecarCoreTests.JSONValueSummaryTests testImmediateContainerCounts]' passed (0.000 seconds).
+Test Suite 'JSONValueSummaryTests' passed at 2026-10-17 03:04:01.768.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'SidecarCoreTests.xctest' passed at 2026-10-17 03:04:01.768.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'Selected tests' passed at 2026-10-17 03:04:01.768.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.002 (0.004) seconds

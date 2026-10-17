@@ -175,6 +175,9 @@ private struct InspectorValueCard: View {
                     .padding(.horizontal, 7).padding(.vertical, 3)
                     .background(.quaternary, in: Capsule())
             }
+            Text(value?.inspectorSummary ?? "Field absent")
+                .font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             Divider()
             if value == nil {
                 Text("Field absent from this sidecar.").font(.callout).foregroundStyle(.secondary)
