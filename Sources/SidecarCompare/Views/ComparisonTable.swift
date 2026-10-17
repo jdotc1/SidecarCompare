@@ -4,6 +4,9 @@ import SidecarCore
 @MainActor
 struct ComparisonTable: View {
     let rows: [ComparisonRow]
+    let pinnedIDs: Set<String>
+    let canPin: Bool
+    let togglePin: (ComparisonRow) -> Void
     let revealRequest: UUID
     let milliseconds: Bool
     let canCopy: Bool
@@ -39,6 +42,9 @@ struct ComparisonTable: View {
         }
         .contextMenu(forSelectionType: String.self) { ids in
             if ids.count == 1, let id = ids.first, let row = rows.first(where: { $0.id == id }) {
+                Button(pinnedIDs.contains(row.id) ? "Unpin Field" : "Pin Field") { togglePin(row) }
+                    .disabled(!canPin)
+                Divider()
                 RowCopyMenu(row: row, enabled: canCopy, copy: copy)
             }
         }

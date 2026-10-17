@@ -22,6 +22,8 @@ struct WorkspaceView: View {
     @State private var search = ""
     @State private var searchScope = TableSearchScope.pathsAndPreviews
     @State private var differencesOnly = true
+    @State private var pins = PinnedFields()
+    @State private var pinnedOnly = false
     @State private var status: DifferenceStatus?
     @State private var sortOrder = [KeyPathComparator(\ComparisonRow.path)]
     @State private var category: FieldCategory?
@@ -68,7 +70,7 @@ struct WorkspaceView: View {
         .sheet(isPresented: $showPointer) {
             GoToPointerSheet(rows: session.comparison?.rows ?? [], visibleIDs: Set(visibleRows.map(\.id))) { row, clear in
                 guard !session.isBusy, session.comparison?.rows.contains(where: { $0.id == row.id }) == true else { return }
-                if clear { search = ""; category = nil; status = nil; differencesOnly = false }
+                if clear { search = ""; category = nil; status = nil; differencesOnly = false; pinnedOnly = false }
                 selection = row.id
                 showInspector = true
                 tableRevealRequest = UUID()
@@ -113,8 +115,8 @@ struct WorkspaceView: View {
                 inspectorHistory.visit(selected)
             }
         }
-        .onChange(of: session.a?.id) { _, _ in if !restoringReloadSelection { selection = nil; refreshFeedback = nil; inspectorReview.resetAll(); inspectorHistory = InspectorHistory() } else { inspectorReview.resetField() }; notification = nil }
-        .onChange(of: session.b?.id) { _, _ in if !restoringReloadSelection { selection = nil; refreshFeedback = nil; inspectorReview.resetAll(); inspectorHistory = InspectorHistory() } else { inspectorReview.resetField() }; notification = nil }
+        .onChange(of: session.a?.id) { _, _ in if !restoringReloadSelection { selection = nil; refreshFeedback = nil; inspectorReview.resetAll(); inspectorHistory = InspectorHistory(); pins = PinnedFields(); pinnedOnly = false } else { inspectorReview.resetField() }; notification = nil }
+        .onChange(of: session.b?.id) { _, _ in if !restoringReloadSelection { selection = nil; refreshFeedback = nil; inspectorReview.resetAll(); inspectorHistory = InspectorHistory(); pins = PinnedFields(); pinnedOnly = false } else { inspectorReview.resetField() }; notification = nil }
         .onChange(of: session.isBusy || !restoringReloadSelection) { _, waiting in
             guard !waiting else { return }
             finishReload()
@@ -146,11 +148,14 @@ struct WorkspaceView: View {
                      next: { navigateDifference(forward: true) },
                      canShowInTable: selectedRow != nil && canModify && !session.isBusy,
                      showInTable: { tableRevealRequest = UUID() },
+                     isPinned: selectedRow.map { pins.contains($0.id) } ?? false,
+                     canPin: canModify && !session.isBusy,
+                     togglePin: { if let row = selectedRow { togglePin(row) } },
                      copyMatchContext: copyMatchContext, canCopy: canCopyRow, copyMessage: rowCopyMessage, copy: copyRow, review: inspectorReview)
     }
     private var visibleRows: [ComparisonRow] {
         (session.comparison?.filtered(search: search, differencesOnly: differencesOnly, category: category, scope: searchScope) ?? [])
-            .filter { status == nil || $0.status == status }
+            .filter { (!pinnedOnly || pins.contains($0.id)) && (status == nil || $0.status == status) }
             .sorted(using: sortOrder + [KeyPathComparator(\ComparisonRow.id)])
     }
     private var selectedRow: ComparisonRow? {
@@ -170,6 +175,8 @@ struct WorkspaceView: View {
         VStack(alignment: .leading, spacing: 8) {
         HStack(spacing: 14) {
             Toggle("Differences only", isOn: $differencesOnly).toggleStyle(.checkbox)
+            Toggle("Pinned only (\(pins.ids.count))", isOn: $pinnedOnly)
+                .toggleStyle(.checkbox).disabled(!canModify)
             Picker("Category", selection: $category) {
                 Text("All categories").tag(Optional<FieldCategory>.none)
                 ForEach(FieldCategory.allCases) { Text($0.rawValue).tag(Optional($0)) }
@@ -197,7 +204,7 @@ struct WorkspaceView: View {
             }.frame(width: 265).disabled(!canModify).help(searchScopeHelp)
 
             }
-            if status != nil || category != nil || !search.isEmpty {
+            if pinnedOnly || status != nil || category != nil || !search.isEmpty {
                 activeFilterChips
             }
             if let result = session.comparison {
@@ -227,6 +234,9 @@ struct WorkspaceView: View {
         .buttonStyle(.bordered).controlSize(.small).disabled(!canModify)
     }
     @ViewBuilder private var filterChipButtons: some View {
+        if pinnedOnly {
+            filterChip("Pinned only (\(pins.ids.count))", help: "Clear pinned-only filter") { pinnedOnly = false }
+        }
         if let status {
             filterChip("Status: \(status.rawValue)", help: "Clear status filter") { self.status = nil }
         }
@@ -260,10 +270,11 @@ struct WorkspaceView: View {
         }
     }
     private var hasActiveFilters: Bool {
-        differencesOnly || status != nil || category != nil || !search.isEmpty
+        pinnedOnly || differencesOnly || status != nil || category != nil || !search.isEmpty
     }
     private var activeFilterSummary: String {
         var filters = [status?.rawValue ?? (differencesOnly ? "Differences only" : "All rows")]
+        if pinnedOnly { filters.append("Pinned only (\(pins.ids.count))") }
         if let category { filters.append(category.rawValue) }
         if !search.isEmpty { filters.append("Search: \(searchScope.rawValue)") }
         return filters.joined(separator: " · ")
@@ -304,7 +315,7 @@ struct WorkspaceView: View {
             if result.rows.isEmpty {
                 ContentUnavailableView("Both objects are empty", systemImage: "doc", description: Text("There are no fields to compare. This does not establish metadata completeness."))
             } else {
-                ComparisonTable(rows: visibleRows, revealRequest: tableRevealRequest, milliseconds: milliseconds, canCopy: canCopyRow, copy: copyRow, selection: $selection, sortOrder: $sortOrder)
+                ComparisonTable(rows: visibleRows, pinnedIDs: pins.ids, canPin: canModify && !session.isBusy, togglePin: togglePin, revealRequest: tableRevealRequest, milliseconds: milliseconds, canCopy: canCopyRow, copy: copyRow, selection: $selection, sortOrder: $sortOrder)
                     .overlay {
                         if visibleRows.isEmpty {
                             VStack(spacing: 10) {
@@ -492,7 +503,11 @@ struct WorkspaceView: View {
         rowCopyMessage = nil
     }
     private func finishReload() {
-        if let comparison = session.comparison { inspectorHistory.retain(Set(comparison.rows.map(\.id))) }
+        if let comparison = session.comparison {
+            let ids = Set(comparison.rows.map(\.id))
+            inspectorHistory.retain(ids)
+            pins.retain(ids)
+        }
         let hadSelection = reloadSelection != nil
         selection = visibleRows.first(where: { $0.id == reloadSelection })?.id
         var messages: [String] = []
@@ -549,7 +564,7 @@ struct WorkspaceView: View {
         guard canModify, !session.isBusy, inspectorHistory.entries.indices.contains(target) else { return }
         let id = inspectorHistory.entries[target]
         guard session.comparison?.rows.contains(where: { $0.id == id }) == true else { return }
-        if clearingFilters { search = ""; category = nil; status = nil; differencesOnly = false }
+        if clearingFilters { search = ""; category = nil; status = nil; differencesOnly = false; pinnedOnly = false }
         guard visibleRows.contains(where: { $0.id == id }) else { return }
         inspectorHistory.move(to: target)
         restoringHistoryReview = id
@@ -557,9 +572,14 @@ struct WorkspaceView: View {
         showInspector = true
         tableRevealRequest = UUID()
     }
+    private func togglePin(_ row: ComparisonRow) {
+        guard canModify, !session.isBusy,
+              session.comparison?.rows.contains(where: { $0.id == row.id }) == true else { return }
+        pins.toggle(row.id)
+    }
     private func clearFilters() {
         guard canModify else { return }
-        search = ""; category = nil; status = nil; differencesOnly = false
+        search = ""; category = nil; status = nil; differencesOnly = false; pinnedOnly = false
     }
     private func resetView() {
         guard canModify else { return }
@@ -568,6 +588,7 @@ struct WorkspaceView: View {
         inspectorReview.resetAll()
         reloadSelection = nil
         searchScope = .pathsAndPreviews
+        pinnedOnly = false
         search = ""; category = nil; status = nil; differencesOnly = true
         milliseconds = false; sortOrder = [KeyPathComparator(\ComparisonRow.path)]
         selection = nil; notification = nil; refreshFeedback = nil
@@ -575,6 +596,7 @@ struct WorkspaceView: View {
     private func clear() {
         guard canModify else { return }
         inspectorHistory = InspectorHistory()
+        pins = PinnedFields(); pinnedOnly = false
         inspectorReview.resetAll()
         restoringReloadSelection = false; reloadSelection = nil; reloadSlots = []; refreshFeedback = nil
         session.clear(); fileWellReset = UUID(); selection = nil; notification = nil
@@ -582,6 +604,7 @@ struct WorkspaceView: View {
     private func example() {
         guard canModify else { return }
         inspectorHistory = InspectorHistory()
+        pins = PinnedFields(); pinnedOnly = false
         inspectorReview.resetAll()
         restoringReloadSelection = false; reloadSelection = nil; reloadSlots = []; refreshFeedback = nil
         do {

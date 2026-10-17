@@ -19,6 +19,9 @@ struct RowInspector: View {
     let next: () -> Void
     let canShowInTable: Bool
     let showInTable: () -> Void
+    let isPinned: Bool
+    let canPin: Bool
+    let togglePin: () -> Void
     let copyMatchContext: (String) -> Void
     let canCopy: Bool
     let copyMessage: String?
@@ -63,6 +66,8 @@ struct RowInspector: View {
                 Button("Show in Table", action: showInTable)
                     .controlSize(.small).disabled(!canShowInTable)
                 if let row {
+                    Button(isPinned ? "Unpin Field" : "Pin Field", action: togglePin)
+                        .controlSize(.small).disabled(!canPin)
                     Menu("Copy") { RowCopyMenu(row: row, enabled: canCopy, copy: copy) }
                         .disabled(!canCopy)
                     Text(copyMessage ?? "Value copy includes complete original JSON, which may identify people.")
