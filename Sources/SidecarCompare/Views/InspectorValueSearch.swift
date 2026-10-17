@@ -25,8 +25,18 @@ struct InspectorValueSearch: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Button(review.showFind ? "Hide Find" : "Show Find") { review.showFind.toggle() }
-                .controlSize(.small)
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Button(review.showFind ? "Hide Find" : "Show Find") { review.showFind.toggle() }
+                    .controlSize(.small)
+                if review.showFind {
+                    Picker("Find in", selection: $review.scope) {
+                        ForEach(InspectorFindScope.allCases) { scope in Text(scope.rawValue).tag(scope) }
+                    }.pickerStyle(.menu).controlSize(.small)
+                } else {
+                    Text(collapsedSummary).font(.caption).foregroundStyle(.secondary)
+                        .monospacedDigit().fixedSize(horizontal: false, vertical: true)
+                }
+            }
             if review.showFind {
             HStack(spacing: 6) {
                 TextField("Find in values…", text: $review.query)
@@ -35,9 +45,6 @@ struct InspectorValueSearch: View {
                     Button("Clear Find") { review.query = "" }.controlSize(.small)
                 }
             }
-            Picker("Find in", selection: $review.scope) {
-                ForEach(InspectorFindScope.allCases) { scope in Text(scope.rawValue).tag(scope) }
-            }.pickerStyle(.menu).controlSize(.small)
             Text("Literal, case-sensitive · complete raw A/B JSON")
                 .font(.caption).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -52,20 +59,24 @@ struct InspectorValueSearch: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 6) { matchButtons }
-                    VStack(alignment: .leading, spacing: 6) { matchButtons }
+                    HStack(spacing: 8) {
+                        matchButtons
+                        matchPosition.fixedSize()
+                    }
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 6) { matchButtons }
+                        matchPosition
+                    }
                 }.controlSize(.small)
-                Button("Show Match in Value") { review.showCurrentMatch(rowID: row.id, revision: revision) }
-                    .controlSize(.small)
-                    .disabled(!canReveal || currentExcerpt == nil)
-                Button("Copy Match Context", action: copyMatchContext)
-                    .controlSize(.small)
-                    .disabled(!canCopy || currentExcerpt == nil)
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 6) { matchActions }
+                    VStack(alignment: .leading, spacing: 6) { matchActions }
+                }.controlSize(.small)
                 if currentOutcome != nil {
                     if matchRange.isEmpty {
                         Text(review.scope == .both ? "No matches in either complete value." : "No matches in \(review.scope == .a ? "A" : "B").").font(.caption).foregroundStyle(.secondary)
                     } else if let match = currentExcerpt {
-                        Text("Match \(review.currentMatch - matchRange.lowerBound + 1) of \(matchRange.count) · \(match.side) · byte \(match.excerpt.bytePosition)")
+                        Text("Raw JSON · byte \(match.excerpt.bytePosition)")
                             .font(.caption).monospacedDigit()
                             .fixedSize(horizontal: false, vertical: true)
                         (Text(verbatim: match.excerpt.before) + Text(verbatim: match.excerpt.match).bold().underline()
@@ -80,9 +91,6 @@ struct InspectorValueSearch: View {
                     }
                 }
             }
-            } else {
-                Text(collapsedSummary).font(.caption).foregroundStyle(.secondary)
-                    .monospacedDigit().fixedSize(horizontal: false, vertical: true)
             }
         }
         .onChange(of: Data(review.query.utf8)) { _, _ in review.pendingMatch = nil }
@@ -90,12 +98,27 @@ struct InspectorValueSearch: View {
     }
 
     private var collapsedSummary: String {
-        guard !review.query.isEmpty else { return "Find: No query" }
+        guard !review.query.isEmpty else { return "\(review.scope.rawValue) · No query" }
         guard currentOutcome != nil else {
-            return review.failed == identity ? "Find: Search unavailable" : "Find: Searching…"
+            return "\(review.scope.rawValue) · " + (review.failed == identity ? "Search unavailable" : "Searching…")
         }
-        guard !matchRange.isEmpty, let match = currentExcerpt else { return "Find: No matches · \(review.scope.rawValue)" }
-        return "Find: Match \(review.currentMatch - matchRange.lowerBound + 1) of \(matchRange.count) · \(match.side)"
+        guard !matchRange.isEmpty, let match = currentExcerpt else { return "\(review.scope.rawValue) · No matches" }
+        return "\(review.scope.rawValue) · \(match.side) · Match \(review.currentMatch - matchRange.lowerBound + 1) of \(matchRange.count)"
+    }
+
+    @ViewBuilder private var matchPosition: some View {
+        if let match = currentExcerpt {
+            Text("\(match.side) · Match \(review.currentMatch - matchRange.lowerBound + 1) of \(matchRange.count)")
+                .font(.caption).monospacedDigit()
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    @ViewBuilder private var matchActions: some View {
+        Button("Show Match in Value") { review.showCurrentMatch(rowID: row.id, revision: revision) }
+            .disabled(!canReveal || currentExcerpt == nil)
+        Button("Copy Match Context", action: copyMatchContext)
+            .disabled(!canCopy || currentExcerpt == nil)
     }
 
     @ViewBuilder private var matchButtons: some View {
