@@ -349,3 +349,5 @@ third-party runtime, build cache, signing identity, or compiled application
 executable. Licensed under [MIT](LICENSE).
 
 **Copy Field Comparison · Original JSON** in the inspector Copy menu or row context menu copies labeled single-field text: the JSON Pointer encoded as a JSON string, status, current comparison rule, complete original A/B JSON, and exact signed raw numeric delta/canonical unit when available. Missing sides use an explicit `[missing — field absent]` marker; JSON `null` remains `null`. The text contains original metadata, is not de-identified and is independent of table filters/display conversions. Copying preserves inspector review state.
+
+The inspector’s fixed header shows the selected **JSON Pointer and status** above its review controls, so field context remains visible while scrolling long values. Long pointers use at most two lines with middle truncation; the full escaped pointer is available on hover and through Copy JSON Pointer. When selection clears, the header shows **No field selected**. The header does not reset Find, current match, history or A/B expansion.

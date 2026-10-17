@@ -28,6 +28,17 @@ struct RowInspector: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
+                if let row {
+                    Text(verbatim: row.visiblePath)
+                        .font(.system(.callout, design: .monospaced))
+                        .lineLimit(2).truncationMode(.middle)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .help(row.visiblePath)
+                    Label(row.status.rawValue, systemImage: row.status.symbol)
+                        .font(.caption).foregroundStyle(.secondary)
+                } else {
+                    Text("No field selected").font(.callout).foregroundStyle(.secondary)
+                }
                 HStack(spacing: 8) {
                     Button("Back", action: back).disabled(!canBack)
                     Button("Forward", action: forward).disabled(!canForward)
