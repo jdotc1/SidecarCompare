@@ -4,42 +4,312 @@
 
 # SidecarCompare
 
-A small native macOS utility for comparing two MRI JSON sidecars. Inspect acquisition metadata, typed differences, and documented units without modifying either input.
+**Compare MRI JSON sidecars with exact numbers and clear, inspectable differences.**
 
-**Version 0.1.0 — native macOS development release.** Built and exercised on macOS with Apple Swift 6. Native feature receipts cover comparison, sandboxed imports/exports, source-write protection, drag/drop, cancellation and Light/Dark presentation. The core and CLI also have portable verification. See [verification and limitations](docs/VERIFICATION.md). Distribution signing, notarization and install qualification are separate from these development checks.
+SidecarCompare is a native macOS utility for reviewing acquisition metadata in
+two JSON sidecars. See what changed, inspect original values and documented
+units, and copy or export a finding without modifying either input. A Swift
+library and optional CLI use the same comparison core.
+
+Use it when reviewing acquisition-parameter changes, checking converter output,
+or discussing metadata differences with a collaborator. It compares the supplied
+metadata; it does not read images or establish that two scans are scientifically
+or clinically comparable.
+
+**[Build and try it](#build-and-run-on-a-mac)** ·
+**[Try the CLI](#command-line-comparison)** ·
+**[Comparison rules](docs/COMPARISON_RULES.md)** ·
+**[Report an issue](https://github.com/jdotc1/SidecarCompare/issues)**
+
+**Status:** version 0.1.0, available as a source/development build. The native app
+requires macOS 15+ and Apple Swift 6. Development bundles are ad-hoc signed and
+sandboxed; distribution signing, notarization, and install qualification are
+separate from the recorded development checks.
 
 ## Build and run on a Mac
 
-Requires macOS 15 or later and an Apple Swift 6 toolchain with the macOS SDK. SwiftPM is the canonical project; no Xcode project generator or third-party runtime is needed.
+Install an Apple Swift 6 toolchain with the macOS SDK, then run:
 
 ```sh
-./script/test.sh
+git clone https://github.com/jdotc1/SidecarCompare.git
+cd SidecarCompare
 ./script/build_and_run.sh
 ```
 
-The run script stages a real development app at `dist/SidecarCompare.app`, applies an ad-hoc sandbox signature, and opens the bundle. It restarts any existing SidecarCompare process, discarding that process's in-memory session. It never edits the input files. `--verify` checks process existence only; `--debug` uses LLDB; `--logs` streams system process logs. Source builds run on the Mac's selected host architecture; universal binaries are not produced by this script.
+The script builds and opens `dist/SidecarCompare.app` with an ad-hoc sandbox
+signature. It restarts an existing SidecarCompare process and discards that
+process's in-memory session. Input files remain unchanged. The script builds for
+the selected host architecture; it does not produce a universal binary.
 
-Open the project folder in Codex and use its configured **Run** action. See [verification](docs/VERIFICATION.md) for accepted evidence and scope. Xcode can also open `Package.swift`; use the checked-in script when testing the sandboxed app bundle rather than launching a bare executable.
+In the app, choose **Load Synthetic Example** to explore the interface, or choose
+or drop one JSON file into **A · Reference** and another into **B · Comparison**.
+The checked-in [fixtures](Fixtures/README.md) are also synthetic.
 
-## Use
+SwiftPM is the canonical project and has no third-party package dependencies or
+runtime. Xcode can open [Package.swift](Package.swift). Use the checked-in script
+when testing the sandboxed app bundle; the configured Codex Run action uses the
+same path.
 
-Choose or drop one JSON file into **A · Reference** and another into **B · Comparison**, or load the built-in synthetic example. The table shows statuses, escaped JSON Pointers, both values, and known units. Select a row for types, original values, exact `B − A` differences, and interpretation notes. The inspector bounds long previews; full exports retain the complete values.
+| Development command | Purpose |
+| --- | --- |
+| `./script/build.sh debug` | Stage a debug app without opening it. |
+| `./script/build.sh release` | Stage an optimized development app. |
+| `./script/build_and_run.sh --launch-built` | Open the last staged build. |
+| `./script/build_and_run.sh --debug` | Build and launch under LLDB. |
+| `./script/build_and_run.sh --logs` | Build, open, and stream system process logs. |
+| `./script/build_and_run.sh --verify` | Build, open, and check process existence; this is not GUI acceptance. |
 
-Search covers paths and short value previews, not hidden contents of a collapsed subtree. Differences-only and category filters change the table, never the exported comparison. The seconds/milliseconds control changes display only. Swap exchanges A and B, including delta direction. Clear resets the comparison rule to exact. Closing the single window discards the session and quits.
+## Read a comparison
 
-**Exact** is the default. Numbers compare mathematically without conversion to `Double`, so `1`, `1.0`, and `1e0` are equal, while integers beyond 2^53 remain distinguishable. Optional relative tolerance applies only to curated numeric MRI quantities, not counters or unknown/nested fields. Within-tolerance values remain visibly different. The app recommends no scientific tolerance and does not establish scan equivalence. See [comparison rules](docs/COMPARISON_RULES.md).
+The table shows status, escaped **JSON Pointer**, A/B values, and known units.
+Select a row to see explicit JSON types, original values, exact **B − A**
+differences, and interpretation notes. Unknown fields remain available as raw
+JSON.
 
-Objects ignore member order; arrays remain positional. Missing, null, strings, booleans, and container types remain distinct. Unknown fields are preserved. Documented top-level field names determine unit annotations; the app never guesses units from magnitude or a generic `Units` field. The catalog is deliberately partial, not a BIDS validator.
+| Status | Meaning |
+| --- | --- |
+| Equal | Matching typed values; mathematically equal numbers may have different original spellings. |
+| Changed | Unequal values of the same JSON type. |
+| Type changed | A value was replaced with another JSON type. |
+| A only / B only | A value exists on one side only. |
+| Within tolerance | Unequal numbers satisfy your selected rule in an eligible field; they still count as a difference. |
 
-## Privacy and safety
+### Exact numbers and units
 
-Inputs are read-only snapshots. There are no app network requests, accounts, telemetry, recent-file database, or persistent sessions. The development app is sandboxed with user-selected file access and no network entitlement. The operating system, cloud-backed/network-mounted folders, backups, screenshots, and clipboard synchronization are outside this boundary.
+**Exact** is the default. Numbers compare mathematically without conversion to
+`Double`: `1`, `1.0`, and `1e0` are equal, while integers beyond 2^53 remain
+distinguishable. Original numeric tokens are retained for inspection and full
+reports.
 
-Exports default to **summary only**, without input keys, values, filenames, or paths. Full export/copy requires acknowledgment and preserves original metadata, including identifiers or paths already embedded in that metadata. The app does not append selected-file names or paths. Full export is not de-identification, and neither export mode is a compliance certification. The CLI's `--full` option is the explicit full-metadata opt-in.
+Objects ignore member order; arrays remain positional. Missing, null, strings,
+booleans, and container types remain distinct. A missing subtree or container-type
+replacement is one row at its root with the full value retained for export.
+Counts describe comparison rows, not acquisitions or original header fields.
 
-The app's atomic writer rejects replacement of loaded source paths and their detected symlink/hardlink aliases. This protects against accidental overwrites, not a hostile concurrent filesystem actor. CLI stdout redirection is performed by your shell and cannot receive this protection: **never redirect CLI output over an input file**.
+Documented top-level field names determine unit annotations. The app does not
+infer units from magnitude or a generic `Units` field. The seconds/milliseconds
+control changes display only; raw values, comparison status, exact signed raw
+deltas, and exported units remain unchanged. The [field catalog](Sources/SidecarCore/FieldCatalog.swift)
+is deliberately partial and is not a BIDS validator.
 
-## Verification
+Numeric scalar rows show **Absolute delta · |B − A|** in the selected supported
+display unit, alongside the existing exact signed raw delta. **Relative change from
+A** uses `(B − A) / |A| × 100%`, calculated with decimal integer division and rounded
+only for display to six decimal places, ties away from zero. Trailing zeros may be
+omitted and extreme results may use scientific notation. A zero reference reports
+relative change unavailable. This percentage does not determine tolerance status,
+which uses `max(|A|, |B|)`. Reports and comparison classification are unchanged.
+
+**Edit Rule…** opens the numeric rule editor. Optional relative tolerance applies
+only to curated MRI quantities with supported numeric shapes; counters, unknown
+fields, and nested vendor fields remain exact. For a chosen fraction `r`, the
+rule is:
+
+```text
+abs(B - A) <= r * max(abs(A), abs(B))
+```
+
+There is no absolute tolerance floor. The GUI accepts a percentage; the CLI
+accepts a fraction from 0 to 1. Within-tolerance values remain visibly different.
+SidecarCompare recommends no scientific tolerance and does not establish scan
+equivalence. See the [complete rules and resource limits](docs/COMPARISON_RULES.md).
+
+### Filter, sort, and navigate
+
+Search covers paths and short value previews. Category, Status, and
+**Differences only** narrow the table. The **Differences by status** buttons
+show counts for the full comparison; clicking one applies its status and enables
+Differences only while retaining search/category filters. The view summary shows
+active restrictions and visible/total row counts without repeating search text.
+
+Click any column header to sort, then click again to reverse. A/B number sorting
+uses exact decimal values; string sorting uses decoded UTF-8 text. Ascending
+mixed-type order is missing, null, boolean, number, string, array, object.
+Equivalent numeric spellings tie, containers use bounded previews, and stable
+row IDs break ties. Descending reverses the order.
+
+**Previous/Next Difference** follows the visible table order and stops at either
+end. Use the inspector controls or **Command-Option-Up/Down** from the Comparison
+menu. The inspector shows the selected difference's position, such as
+“Difference 3 of 9 in this view”; Equal rows are excluded from that count.
+
+**Comparison → Go to JSON Pointer…** selects an exact RFC 6901 row pointer and
+opens its inspector. Enter escaped pointers as copied: `/a~1b~0c` refers to a key
+containing `/` and `~`. Input is case-sensitive, byte-exact, and not trimmed.
+Absent fields disable Go; hidden fields offer **Clear Filters and Go**, preserving
+sort, time display, comparison rule, and the inspector Find query.
+
+Inspector **Back / Forward** follows your field-review history independently of
+Previous/Next Difference. History is session-only, limited to 100 entries; a new
+selection after Back replaces the forward branch. Returning to a field retains view
+settings and Find query, restarting match navigation/collapsing previews when the
+field changes. Hidden targets offer **Clear Filters and Go**; Cancel leaves the
+view/history position unchanged. Clear/replacement inputs/example discard history;
+successful Reload/Swap/rule changes retain only pointers still present in the full
+comparison.
+
+| Recovery action | What changes |
+| --- | --- |
+| Remove a Status, Category, or Search active chip | Clear just that filter; retain the other presentation settings and any still-visible selection. |
+| **Clear Filters** in an empty view | Clear search/category/status and turn off Differences only to reveal all rows. Retain sorting, time display, rule, and snapshots. |
+| **Reset View** | Restore ascending JSON Pointer order, Differences only, and seconds display; clear filters, selection, and saved inspector review state. Keep snapshots and the comparison rule. |
+
+Filters, sorting, navigation, and display units never limit exported comparisons.
+
+## Inspect and copy a finding
+
+The inspector separates A/reference and B/comparison into typed value cards.
+Type changes show an A → B transition. Long values initially show 512 characters;
+**Show more** expands either side to at most 8,192 characters with shown/total
+counts, and **Show less** collapses it. Original numeric tokens and JSON escaping
+are preserved. Full export and value copying retain complete values.
+
+Previous/Next and side-specific Show more/Show less controls stay in a fixed
+header while values scroll. Moving to another field resets expansion and brings
+the field heading into view. **Show in Table** scrolls back to the selected field
+without changing filters, sort, Find/current match, or A/B expansion.
+
+Resize the inspector by dragging its visible left divider: 270–640 points when
+window space permits, with a default of 315. **Reset Inspector Width** restores
+that default while preserving the selected field and review state. The table
+keeps its minimum width; widening the window provides more room. Width is not
+written as an application preference.
+
+### Copy exact values
+
+The inspector's **Copy** menu and each row's context menu provide:
+
+- **Copy JSON Pointer** — the complete escaped pointer.
+- **Copy A Value · Original JSON** / **Copy B Value · Original JSON** — the full
+  raw JSON, including values beyond preview limits and original numeric tokens.
+  A missing side cannot be copied; JSON `null` copies as `null`.
+
+Copied metadata can identify people. Feedback reports success/failure and reminds
+you that the system clipboard may be shared across devices.
+
+### Find inside complete values
+
+**Find in values…** searches the selected field's complete A/B raw JSON, including
+content beyond the preview. It is literal, case-sensitive, and non-overlapping;
+JSON escapes and numeric tokens are searched as serialized. Separate A/B counts
+and **Previous Match / Next Match** navigate A first, then B, stopping at either
+end. An underlined bounded excerpt shows the current match and its one-based byte
+position. Long matches have an explicit excerpt-truncation notice.
+
+**Copy Match Context** copies that bounded excerpt with the side and byte
+position, clearly labelled as an excerpt. Use Copy A/B Value for the whole value.
+Copy is unavailable when results or matches are unavailable. **Clear Find**
+clears only inspector search; it does not change table filters, previews, or
+exports.
+
+Hiding and reopening the inspector on the same field and snapshots preserves
+Find, the current match, and independent A/B expansion. Changing fields or
+reloading snapshots keeps the query but restarts match navigation and expansion.
+Clear, replacement inputs, loading the example, and Reset View clear saved review
+state. This state exists only for the current session.
+
+## Refresh or change inputs
+
+Inputs are immutable in-memory snapshots and are not watched automatically.
+
+| Action | Result |
+| --- | --- |
+| **Reload A / Reload B** | Read that selected file again while the other snapshot remains loaded. A failure clears the failed side's old snapshot and comparison and offers Choose recovery. |
+| **Reload Both** | Refresh both selected files before comparing the new pair. A failed side shows its error while a successfully refreshed side stays loaded; no refreshed-versus-stale comparison is presented. |
+| **Swap A and B** | Exchange the loaded snapshots and reverse delta direction without rereading files. |
+| **Edit Rule…** | Recompute with the selected exact/tolerance rule. |
+| **Clear** | Clear the session and reset the comparison rule to exact. |
+
+Reload, Swap, and applying a changed rule preserve filters, sorting, time display,
+and the selected field when it remains visible. If selection becomes hidden, the
+app explains why it cleared. Swap and rule changes keep the Find query but
+recompute matches and collapse previews. Inline reload feedback distinguishes
+successful refreshes, failures, cancellation, and comparison errors; clipboard
+notices remain separate.
+
+Reload requires live selected sources and is disabled during pending work or
+import/export panels. Empty slots and built-in examples cannot reload. Choose
+recovery explains how to reopen or replace a missing file while retaining the
+other snapshot.
+
+**File → Reveal A in Finder / Reveal B in Finder**, also available from the file
+well context menu, reveals the original selected location without rereading it.
+If the file moved or access expired, choose it again. Reveal does not search for
+moved files or certify that the file now at that path matches the loaded
+snapshot. Empty slots and examples have no source to reveal. Closing the single
+window discards the session and quits.
+
+## Export and share
+
+Exports default to **summary only**, omitting input keys, values, filenames, and
+paths. Full export/copy requires acknowledgment and includes original metadata,
+including identifiers or paths already embedded in it. The app does not append
+selected-file names or paths. Full export is not de-identification, and neither
+mode is a compliance certification.
+
+The export sheet shows **Total rows** and **Currently visible** rows, but always
+exports the complete comparison. Summaries count every row; full reports include
+every row in canonical sidecar units. Reports record app version, catalog
+revision, scope, tolerance, and counts. JSON uses schema version 1 and typed
+presence markers. Numeric tokens and deterministic traversal are retained;
+source whitespace and object order are not a byte-for-byte snapshot.
+
+The app's atomic writer rejects replacement of loaded source paths and detected
+symlink/hardlink aliases. This protects against accidental overwrites, not a
+hostile concurrent filesystem actor.
+
+## Command-line comparison
+
+The optional CLI uses the same `SidecarCore` library. Try the synthetic pair:
+
+```sh
+swift run sidecar-compare --help
+swift run sidecar-compare Fixtures/mri-baseline.json Fixtures/mri-followup.json
+```
+
+Default output is a JSON summary. Use `--text` for text output and `--full` to
+explicitly include original metadata. For example:
+
+```sh
+swift run sidecar-compare --full --relative-tolerance 0.001 \
+  Fixtures/mri-baseline.json Fixtures/mri-followup.json
+```
+
+The example tolerance is a CLI demonstration, not a recommended MRI tolerance.
+
+| Exit status | Meaning |
+| --- | --- |
+| `0` | No differences. |
+| `1` | Any difference, including a value within tolerance. |
+| `2` | An error. |
+
+CLI stdout redirection is performed by your shell and cannot receive the app's
+source-write protection. **Never redirect CLI output over an input file.**
+Consumers of full JSON reports need decimal handling suitable for the original
+numeric range and precision.
+
+## Privacy and scope
+
+There are no app network requests, accounts, telemetry, recent-file database,
+or persistent sessions. The development app is sandboxed with user-selected file
+access and no network entitlement. The operating system, cloud-backed or
+network-mounted folders, backups, screenshots, and clipboard synchronization are
+outside that boundary.
+
+The tool does not perform image reading, DICOM conversion, BIDS inheritance or
+dataset validation, automatic unit correction, metadata rewriting, registration,
+de-identification, clinical interpretation, or radiomics extraction. There are
+no model downloads or custom image-viewing framework.
+
+Inputs must be UTF-8 JSON objects. Malformed JSON, duplicate keys, unsupported
+roots, and exceeded resource budgets are rejected rather than silently
+truncated. The [comparison rules](docs/COMPARISON_RULES.md) define parser limits,
+comparison limits, numeric behavior, and the catalog's scope.
+
+## Development and verification
+
+Choose checks relevant to changed inputs; accepted results and their limits are
+recorded in [verification](docs/VERIFICATION.md).
 
 ```sh
 ./script/test.sh
@@ -50,86 +320,30 @@ python3 script/oracle_check.py --configuration release
 ./script/smoke.sh
 ```
 
-Repository verification scripts require Python 3.11+ and only its standard library. Python is not bundled with or required by the app or CLI. [Verification results](docs/VERIFICATION.md) identify the actual commands, environment, counts, and limitations. [Review findings](docs/RED_TEAM_REVIEW.md) document reproduced failures and incorporated fixes. The macOS CI workflow is manual-only. Publication does not automatically repeat accepted test suites; run verification when relevant inputs change.
+Verification scripts require Python 3.11+ and its standard library. Python is not
+bundled with or required by the app or CLI. Existing native receipts cover
+comparison, sandboxed import/export, source-write protection, drag/drop,
+cancellation, and Light/Dark presentation; the core and CLI also have portable
+verification. These records identify actual environments and limitations and do
+not imply a new test run for every documentation change. The macOS CI workflow
+is manual-only. [Review findings](docs/RED_TEAM_REVIEW.md) record earlier failures
+and fixes.
 
-The optional CLI uses the same core:
+## Repository and contribution
 
-```sh
-swift run sidecar-compare --help
-swift run sidecar-compare --full --relative-tolerance 0.001 \
-  Fixtures/mri-baseline.json Fixtures/mri-followup.json
-```
+| Path | Contents |
+| --- | --- |
+| [Sources/SidecarCore](Sources/SidecarCore/) | Parser, exact decimals, field catalog, comparison, reports, source protection, and session state. |
+| [Sources/SidecarCompare](Sources/SidecarCompare/) | SwiftUI app and narrow AppKit adapters. |
+| [Sources/SidecarCLI](Sources/SidecarCLI/) | Command-line interface. |
+| [Tests](Tests/) and [Fixtures](Fixtures/) | Regression tests and synthetic examples. |
+| [script](script/) and [Packaging](Packaging/) | Build/verification tools, bundle metadata, and accepted compiled icon resources. |
+| [docs](docs/) and [evidence](evidence/) | Design decisions, comparison rules, verification scope, and recorded logs. |
 
-Exit status is 0 for no differences, 1 for any difference (including within tolerance), and 2 for errors. CLI tolerance is a fraction; the GUI accepts a percentage.
+For a bug or improvement, [open an issue](https://github.com/jdotc1/SidecarCompare/issues)
+with the app version, comparison rule, expected behavior, and a minimal synthetic
+example. Review sidecars and full reports for identifying metadata before sharing.
 
-## Deliberate exclusions
-
-No image reading, DICOM conversion, BIDS inheritance/dataset validation, automatic unit correction, metadata rewriting, registration, de-identification, clinical interpretation, or radiomics extraction. No custom image-viewing framework or model downloads. Resource limits reject unsupported inputs or comparisons rather than silently truncating results.
-
-## Repository map
-
-`Sources/SidecarCore` contains parser, exact decimal arithmetic, catalog, comparator, reports, file protection, and session state. `Sources/SidecarCompare` contains the SwiftUI app and narrow AppKit adapters. `Sources/SidecarCLI` exposes the optional command-line interface. `Tests`, `Fixtures`, `script`, `Packaging`, `docs`, and `evidence` contain regression tests, synthetic examples, build/verification tools, bundle metadata, decisions, and actual logs.
-
-MIT license; see [LICENSE](LICENSE). All supplied fixtures are synthetic. No clinical data, third-party runtime, build cache, signing identity, or compiled application executable is included. The accepted compiled icon resources are included for reproducible app staging.
-
-### Reviewing results
-
-Use Status to narrow the table to a specific outcome; its counts describe the full comparison. Click any column header to sort, and click again to reverse direction. A/B columns sort numbers by exact decimal value and strings by decoded UTF-8 text. Previous/Next Difference follows the visible table order and opens the inspector; use Command-Option-Up/Down from the Comparison menu. Navigation stops at either end. Search, category, status and sorting affect the table only; exports retain the full comparison.
-
-### Refreshing changed sidecars
-
-Click **Reload A** or **Reload B** in the file well, or use the File menu, to read that side again without a picker. The other side remains its current snapshot. Reload is disabled for empty slots, built-in examples, pending work, and open import/export panels. If refresh fails, the old snapshot and comparison are cleared; use **Choose…** to reopen the file or restore access. Reload is explicit—files are not watched automatically.
-
-### Inspecting values
-
-The inspector separates A/reference and B/comparison into cards with explicit JSON types and raw values. Type changes show an A → B transition. Long values wrap and initially show 512 characters; **Show more** expands that side to at most 8,192 characters, with shown/total counts and **Show less**. Detailed export retains complete values. Original numeric tokens and JSON escaping are preserved.
-
-**Reset View** restores ascending JSON Pointer order, Differences only, seconds display, clears search/category/status filters and selection, and leaves both loaded snapshots and the comparison rule intact. It is also available in the Comparison menu. Ascending mixed-type A/B sorting uses missing, null, boolean, number, string, array, object; numbers retain exact decimal ordering, equivalent spellings tie, and containers use bounded previews. Descending reverses this order. Stable row IDs break ties.
-
-When only one sidecar is loaded, the workspace identifies the missing reference A or comparison B and offers a direct Choose action for that side. After a failed reload, the prompt explains how to reopen or replace the missing file while keeping the other snapshot loaded.
-
-The **Differences by status** buttons show full-comparison counts for Within tolerance, Changed, Type changed, A only and B only. Click a count to apply that status and enable Differences only while retaining search/category filters. A checkmark marks the active status. Zero-count buttons show the normal no-matching-rows state; Reset View restores the default review view. Counts and filters do not change exports.
-
-Status and Reset View share a compact row. The view summary lists the selected status (or Differences only/All rows), category and whether search is active, followed by visible/total row counts. This explains why combined filters may show fewer rows than the full-comparison count buttons. Search text itself is not repeated in the summary.
-
-### Locating selected sources
-
-Use **File → Reveal A in Finder / Reveal B in Finder**, or the corresponding file well’s context menu, to select that source in Finder. Reveal uses the original selected location and leaves the in-memory snapshot unchanged. If the file moved or access expired, an alert directs you to choose it again. Empty slots and built-in examples have no source to reveal. Reveal does not search for moved files or certify that a file currently at the pathname still matches the loaded snapshot.
-
-Inspector **Previous/Next** and side-specific **A/B · Show more / Show less** stay in a fixed header while values scroll. You can collapse a long preview or move to the next visible difference without scrolling back. Moving to another field resets expanded previews and brings its heading into view.
-
-The export sheet shows **Total rows** and **Currently visible** rows when opened, with an explicit full-comparison scope reminder. Filters do not limit export: summaries count all rows, and full reports include every row in canonical sidecar units. The visible count is informational and does not change report contents.
-
-### Copying a finding
-
-The inspector’s fixed **Copy** menu and a row’s context menu provide **Copy JSON Pointer**, **Copy A Value · Original JSON**, and **Copy B Value · Original JSON**. Pointer escaping and original numeric tokens are preserved. Value copy includes the complete raw JSON, even when the inspector preview is truncated; it can contain identifying metadata. Missing-side value actions are disabled, while JSON `null` copies as `null`. Feedback reports success/failure and reminds you that the system clipboard may be shared across devices.
-
-The inspector shows the selected difference’s position in the current filtered, sorted view, such as **Difference 3 of 9 in this view**. The count excludes Equal rows and updates with filters. The indicator sits beside Previous/Next when space permits and wraps beneath them in a narrow inspector.
-
-**Reload Both** in the toolbar or File menu refreshes both selected files before comparing the new pair. It preserves filters, sorting, time display and the selected row when that row remains visible. A failed side shows its read error and Choose recovery; a successfully refreshed side stays loaded. No refreshed-versus-stale comparison is presented. Reload Both is unavailable for built-in examples, missing sources, busy work or import/export panels.
-
-Active **Status**, **Category**, and **Search active** chips each have an × to clear only that filter. Removing a chip preserves the other filters, Differences only, sorting, time display, loaded sources and any still-visible selection. Reset View remains available to restore all presentation defaults.
-
-**Find in values…** in the inspector searches the selected field’s complete A/B raw JSON, including content beyond the preview limit. Search is literal, case-sensitive and non-overlapping; JSON escapes and original numeric tokens are searched as displayed in raw JSON. Separate A/B counts and **Previous Match / Next Match** navigate A first, then B, stopping at either end. An underlined bounded excerpt identifies the current match and its one-based byte position within that side’s serialized value. Long matches have an explicit excerpt-truncation notice. Changing fields restarts match navigation using the current query; **Clear Find** removes only inspector search. Table filtering, raw previews, exact copying and exports are unaffected.
-
-The inspector can be resized by dragging its visible left divider, from270 up to640 points when window space permits (default315). **Reset Inspector Width** returns it to the default without clearing the selected field, Find query/current match or expanded A/B previews. Resizing keeps the table’s existing minimum width; widen the window to make more room for the inspector. The toolbar’s Inspector button still hides/shows the pane. No application preference or source data is written for this feature.
-
-After Reload A, Reload B or Reload Both, a dismissible inline message reports which sidecars refreshed or failed. It confirms a retained selection or explains when the previously selected field is no longer visible in the current view. Single-side reloads now preserve a still-visible selected row too. Failures retain the successful fresh snapshot and direct Choose recovery; comparison failure and cancellation are not reported as successful comparison completion. Clipboard notices remain separate.
-
-Hiding and reopening the inspector on the same field and snapshots preserves **Find**, its current match and independent A/B expansion. Changing fields or reloading snapshots keeps the query but resets match navigation and expansion. Clear, replacement inputs, loading the example and Reset View clear the saved review state. This state is session-local.
-
-Use **Show in Table** in the inspector to bring the selected field back into view after scrolling the table. It preserves filters, sort order, Find/current match and A/B expansion. The action is disabled without a selected field or while session work or import/export panels are active.
-
-When filters hide every row, **No fields match this view** shows the total comparison row count. **Clear Filters** clears search, category and status and turns off Differences only, revealing all rows while preserving sort order, time display, comparison rule and loaded snapshots. **Reset View** remains the broader presentation reset.
-
-**Copy Match Context** in Find copies the current bounded excerpt with its A/B side and one-based byte position. The text is explicitly labeled as an excerpt, not a complete JSON value; long-match truncation is identified. It preserves Find/current match and A/B expansion. Copy is disabled while results are unavailable or there are no matches. Use **Copy A/B Value · Original JSON** for the complete value. Clipboard feedback reminds you that metadata may identify people and may be shared across devices.
-
-**Swap A and B** preserves filters, sort order and time display, and restores the selected field after comparison if its JSON Pointer remains visible. Find keeps its query but recomputes reversed A/B counts and restarts at the first match; both previews collapse. If the selected field becomes hidden by the current filters, selection clears with an explanation. Swap operates on the loaded snapshots without rereading files.
-
-The comparison-rule summary above the difference breakdown shows **Exact comparison** or the current relative tolerance percentage. **Edit Rule…** opens the existing numeric rule editor. Tolerance applies only to curated numeric quantities; unknown fields and counters remain exact. Applying a changed rule preserves filters, sort order, time display and the Find query, restoring the selected field if still visible. Hidden selections clear with an explanation. Match navigation and A/B expansion reset for the recomputed comparison.
-
-**Comparison → Go to JSON Pointer…** selects an exact RFC 6901 row pointer and opens its inspector. Enter escaped pointers as copied (for example, `/a~1b~0c` for a key containing `/` and `~`); input is case-sensitive, byte-exact and not trimmed. Absent fields disable Go. Hidden fields offer explicit **Clear Filters and Go**, clearing search/category/status/Differences only while preserving sort, time display, comparison rule and Find query. Navigation to a different field restarts match navigation and collapses A/B previews.
-
-Numeric scalar rows show **Absolute delta · |B − A|** in the selected supported display unit, alongside the existing exact signed raw delta. **Relative change from A** uses `(B − A) / |A| × 100%`, calculated with decimal integer division and rounded only for display to six decimal places, ties away from zero. Trailing zeros may be omitted and extreme results may use scientific notation. A zero reference reports relative change unavailable. This percentage does not determine tolerance status, which uses `max(|A|, |B|)`. Reports and comparison classification are unchanged.
-
-Inspector **Back / Forward** follows your field-review history independently of Previous/Next Difference. History is session-only, limited to100 entries; a new selection after Back replaces the forward branch. Returning to a field retains view settings and Find query, restarting match navigation/collapsing previews when the field changes. Hidden targets offer **Clear Filters and Go**; Cancel leaves the view/history position unchanged. Clear/replacement inputs/example discard history; successful Reload/Swap/rule changes retain only pointers still present in the full comparison.
+All supplied fixtures are synthetic. The repository includes no clinical data,
+third-party runtime, build cache, signing identity, or compiled application
+executable. Licensed under [MIT](LICENSE).
