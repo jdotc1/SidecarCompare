@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Packaging/Icon/Previews/Default-512.png" alt="SidecarCompare app icon" width="160" height="160">
+</p>
+
 # SidecarCompare
 
 A small native macOS utility for comparing two MRI JSON sidecars. Inspect acquisition metadata, typed differences, and documented units without modifying either input.
