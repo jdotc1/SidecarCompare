@@ -177,6 +177,10 @@ struct WorkspaceView: View {
             Toggle("Differences only", isOn: $differencesOnly).toggleStyle(.checkbox)
             Toggle("Pinned only (\(pins.ids.count))", isOn: $pinnedOnly)
                 .toggleStyle(.checkbox).disabled(!canModify)
+            Button("Clear Pins (\(pins.ids.count))", action: clearPins)
+                .controlSize(.small)
+                .disabled(!canModify || session.isBusy || pins.ids.isEmpty)
+                .help("Remove all pins and turn off Pinned only, preserving other view settings.")
             Picker("Category", selection: $category) {
                 Text("All categories").tag(Optional<FieldCategory>.none)
                 ForEach(FieldCategory.allCases) { Text($0.rawValue).tag(Optional($0)) }
@@ -576,6 +580,11 @@ struct WorkspaceView: View {
         guard canModify, !session.isBusy,
               session.comparison?.rows.contains(where: { $0.id == row.id }) == true else { return }
         pins.toggle(row.id)
+    }
+    private func clearPins() {
+        guard canModify, !session.isBusy, !pins.ids.isEmpty else { return }
+        pinnedOnly = false
+        pins = PinnedFields()
     }
     private func clearFilters() {
         guard canModify else { return }

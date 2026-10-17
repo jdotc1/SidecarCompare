@@ -104,3 +104,8 @@ Workspace PinnedFields holds session-only stable raw-pointer row IDs, admitting 
 ## Table pin markers
 
 Pinned rows show a secondary pin symbol before the escaped JSON Pointer, with Pinned field help. The marker derives only from the existing stable-ID pin set. Pointer sorting, row identity, selection, filtering and inspector review state remain unchanged.
+
+
+## Clear Pins
+
+A compact count-bearing Clear Pins action beside Pinned only disables with zero pins, busy work or modal restrictions. Its guarded callback turns off pinnedOnly and replaces the pin set in one synchronous main-actor action. It does not mutate selection, other filters, sort, display or inspector review/history. The visible set can only expand, preserving the selected row and avoiding selection-driven review resets.

@@ -173,3 +173,8 @@ Session stable-ID pins with inspector/context actions, count-bearing Pinned only
 ## Table pin markers
 
 Existing stable-ID pins now render a pin symbol beside table JSON Pointers with Pinned field help. Debug283 staging/release284 warnings-as-errors pass. Native285 existing synthetic Review-A/B confirms pin marker appears on FieldOne while FieldTwo remains unmarked; unpin removes marker. Selected FieldOne, Findneedle/Match3of5 B and both expanded values remain unchanged. Screenshot confirms marker placement; tooltip text source-reviewed, hover activation not exercised. Existing model278/pin281/search/history/filter/core/export receipts reused; no repeated tests, suites, oracles or accessibility work. No width/appearance/race campaign.
+
+
+## Clear Pins
+
+Count-bearing button beside Pinned only clears all pins and disables that filter in one guarded main-actor action; no other view/review state mutation. Debug287 staging/release288 warnings-as-errors pass. Native289 existing synthetic Review-A/B: selected FieldOne/descending pointers/table searchField/Differences only/Milliseconds/Findneedle Match3of5 B/both expanded; pin1 and enable Pinned only1of2, then Clear Pins restores2of2, count0/filteroff/chipremoved/buttondisabled/markerremoved while selected field and all configured settings/review remain. Default zero-pin disabled state and control placement observed. Existing model278/pin281/marker285/search/history/core/export receipts reused; no repeated tests/suites/oracles/accessibility. Status/category/scope/modal/busy branches source-reviewed; no broad width/appearance/race campaign.
