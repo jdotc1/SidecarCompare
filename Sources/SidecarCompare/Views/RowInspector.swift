@@ -4,6 +4,7 @@ import SidecarCore
 @MainActor
 struct RowInspector: View {
     let row: ComparisonRow?
+    let revision: [UUID?]
     let position: String
     let canPrevious: Bool
     let canNext: Bool
@@ -43,6 +44,7 @@ struct RowInspector: View {
                             Button(expandedB ? "B · Show less" : "B · Show more") { expandedB.toggle() }
                         }
                     }.controlSize(.small)
+                    InspectorValueSearch(row: row, revision: revision)
                 }
             }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
             Divider()

@@ -1,0 +1,34 @@
+Building for production...
+[Computing dependencies]
+[Planning deferred tasks]
+[12 / 34] SidecarCore
+[14 / 35] SidecarCore
+[24 / 38] sidecar-compare-product
+[26 / 40] SidecarCoreTests-product
+[28 / 41] sidecar-compare-product
+[30 / 41] sidecar-compare-product
+[30 / 41] SidecarCoreTests-product
+[34 / 40] SidecarCoreTests-product
+[36 / 40] SidecarCoreTests-product
+[39 / 41] sidecar-compare-product
+[40 / 44] SidecarCompare-product
+[42 / 44] SidecarCompare-product
+[43 / 44] SidecarCompare-product
+Build complete! (12.64 sec)
+Test Suite 'Selected tests' started at 2026-10-16 22:37:41.565.
+Test Suite 'SidecarCoreTests.xctest' started at 2026-10-16 22:37:41.566.
+Test Suite 'JSONValueSearchTests' started at 2026-10-16 22:37:41.566.
+Test Case '-[SidecarCoreTests.JSONValueSearchTests testCancelledSearchDoesNotReturnResults]' started.
+Test Case '-[SidecarCoreTests.JSONValueSearchTests testCancelledSearchDoesNotReturnResults]' passed (0.004 seconds).
+Test Case '-[SidecarCoreTests.JSONValueSearchTests testFullValueBeyondPreviewWithBoundedExcerpt]' started.
+Test Case '-[SidecarCoreTests.JSONValueSearchTests testFullValueBeyondPreviewWithBoundedExcerpt]' passed (0.002 seconds).
+Test Case '-[SidecarCoreTests.JSONValueSearchTests testLiteralNonOverlappingSearchPreservesUnicodeAndCase]' started.
+Test Case '-[SidecarCoreTests.JSONValueSearchTests testLiteralNonOverlappingSearchPreservesUnicodeAndCase]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.JSONValueSearchTests testRawJSONIncludesEscapesContainersNullAndExactNumbers]' started.
+Test Case '-[SidecarCoreTests.JSONValueSearchTests testRawJSONIncludesEscapesContainersNullAndExactNumbers]' passed (0.001 seconds).
+Test Suite 'JSONValueSearchTests' passed at 2026-10-16 22:37:41.576.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.007 (0.010) seconds
+Test Suite 'SidecarCoreTests.xctest' passed at 2026-10-16 22:37:41.576.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.007 (0.010) seconds
+Test Suite 'Selected tests' passed at 2026-10-16 22:37:41.576.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.007 (0.011) seconds

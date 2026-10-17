@@ -47,7 +47,7 @@ struct WorkspaceView: View {
         .searchable(text: $search, prompt: "Search paths and value previews")
         .toolbar { toolbar }
          .inspector(isPresented: $showInspector) {
-            RowInspector(row: selectedRow, position: differencePosition,
+            RowInspector(row: selectedRow, revision: [session.a?.id, session.b?.id], position: differencePosition,
                          canPrevious: differenceTarget(forward: false) != nil,
                          canNext: differenceTarget(forward: true) != nil,
                          previous: { navigateDifference(forward: false) },

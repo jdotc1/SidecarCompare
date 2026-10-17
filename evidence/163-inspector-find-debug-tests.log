@@ -1,0 +1,37 @@
+Building for debugging...
+[Pre-planning 1 / 153]
+[Planning deferred tasks]
+[8 / 37]
+[9 / 38] SidecarCore
+[20 / 49] SidecarCore
+[26 / 45] SidecarCore
+[26 / 45] SidecarCompare-product
+[36 / 56] SidecarCompare-product
+[40 / 58] sidecar-compare-product
+[43 / 60] SidecarCoreTests-product
+[45 / 60] sidecar-compare-product
+[47 / 60] SidecarCompare-product
+[52 / 71] SidecarCoreTests-product
+[58 / 72] SidecarCoreTests-product
+[64 / 72] SidecarCoreTests-product
+[66 / 72] SidecarCoreTests-product
+[70 / 72] SidecarCompare-product
+[72 / 74] SidecarCompare-product
+Build complete! (5.33 sec)
+Test Suite 'Selected tests' started at 2026-10-16 22:36:32.390.
+Test Suite 'SidecarCoreTests.xctest' started at 2026-10-16 22:36:32.392.
+Test Suite 'JSONValueSearchTests' started at 2026-10-16 22:36:32.392.
+Test Case '-[SidecarCoreTests.JSONValueSearchTests testCancelledSearchDoesNotReturnResults]' started.
+Test Case '-[SidecarCoreTests.JSONValueSearchTests testCancelledSearchDoesNotReturnResults]' passed (0.001 seconds).
+Test Case '-[SidecarCoreTests.JSONValueSearchTests testFullValueBeyondPreviewWithBoundedExcerpt]' started.
+Test Case '-[SidecarCoreTests.JSONValueSearchTests testFullValueBeyondPreviewWithBoundedExcerpt]' passed (0.004 seconds).
+Test Case '-[SidecarCoreTests.JSONValueSearchTests testLiteralNonOverlappingSearchPreservesUnicodeAndCase]' started.
+Test Case '-[SidecarCoreTests.JSONValueSearchTests testLiteralNonOverlappingSearchPreservesUnicodeAndCase]' passed (0.000 seconds).
+Test Case '-[SidecarCoreTests.JSONValueSearchTests testRawJSONIncludesEscapesContainersNullAndExactNumbers]' started.
+Test Case '-[SidecarCoreTests.JSONValueSearchTests testRawJSONIncludesEscapesContainersNullAndExactNumbers]' passed (0.000 seconds).
+Test Suite 'JSONValueSearchTests' passed at 2026-10-16 22:36:32.398.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.006 (0.006) seconds
+Test Suite 'SidecarCoreTests.xctest' passed at 2026-10-16 22:36:32.398.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.006 (0.006) seconds
+Test Suite 'Selected tests' passed at 2026-10-16 22:36:32.398.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.006 (0.007) seconds
