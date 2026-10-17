@@ -139,3 +139,8 @@ Pin action row copies snapshot full-comparison/pinned-ID list sorted by pointer 
 ## Compact pin-review toolbar
 
 One small-control row contains Pins(count) menu with existing Pin All Visible/copy pointers/copy comparisons/Clear Pins callbacks, labels/help/guards unchanged. Direct Go to Pin, Previous/Next (pinned-field help), and visible-pin position share that row when pins exist. All-hidden explanation/recovery stays on a separate contextual row. No state, lifecycle, filtering, navigation or clipboard implementation changes.
+
+
+## Undo Clear Pins
+
+PinnedFields owns one optional cleared-ID snapshot bounded by the current comparison row limit. clearForUndo copies IDs then empties pins; undoClear restores once and consumes snapshot. Toggle/add/retain invalidate; model reset discards snapshot. Workspace invalidates at beginReload (reload/Swap/rule), accepted importer URL and received drop, in addition to replacement/Clear/example resets. Cleared-count toolbar message and guarded Undo only mutate pins/pinnedOnlyfalse, no selected/query/sort/display/expansion/history mutations. Ordinary view filtering does not invalidate snapshot.

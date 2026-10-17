@@ -378,3 +378,6 @@ Each inspector A/B card now summarizes its parsed value beneath the JSON type: d
 
 
 Pin management uses the compact **Pins (count)** menu, preserving each action’s count, disabled state and copy limit. Hidden-pin recovery appears on a separate contextual row only when all pins are hidden.
+
+
+After **Clear Pins**, the toolbar shows **Cleared N pins — Undo**. Undo restores the entire cleared set, including hidden pins, while keeping Pinned only off and preserving other view settings and inspector review state. This is a single session-only snapshot: another pin edit, refresh, Swap, rule change, replacement input, Clear or example load invalidates it.

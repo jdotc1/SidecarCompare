@@ -63,7 +63,7 @@ struct WorkspaceView: View {
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json, .plainText], allowsMultipleSelection: false) { result in
             switch result {
             case .success(let urls):
-                if let url = urls.first { session.load(url, into: importSlot) }
+                if let url = urls.first { pins.invalidateUndo(); session.load(url, into: importSlot) }
             case .failure(let error):
                 if (error as NSError).code != NSUserCancelledError { actionError = "The selected file could not be opened." }
             }
@@ -234,6 +234,12 @@ struct WorkspaceView: View {
                         .disabled(!canModify || session.isBusy || pins.ids.isEmpty)
                         .help("Remove all pins and turn off Pinned only, preserving other view settings.")
                 }.fixedSize()
+                if pins.clearedCount > 0 {
+                    Text("Cleared \(pins.clearedCount) pins").font(.caption).foregroundStyle(.secondary)
+                    Button("Undo", action: undoClearPins)
+                        .disabled(!canModify || session.isBusy)
+                        .help("Restore the cleared pins, including hidden fields. Pinned only stays off.")
+                }
                 if !pins.ids.isEmpty {
                     Button("Go to Pin…") { showPolicy = false; showPinPicker = true }
                         .disabled(!canModify || session.isBusy || session.comparison == nil)
@@ -544,6 +550,7 @@ struct WorkspaceView: View {
         session.setPolicy(policy)
     }
     private func beginReload(_ slots: [FileSlot]) {
+        pins.invalidateUndo()
         inspectorHistory.clearReviews()
         restoringHistoryReview = nil
         comparisonChange = .swap
@@ -596,6 +603,7 @@ struct WorkspaceView: View {
     }
     private func receive(_ url: URL, into slot: FileSlot) {
         guard canModify else { return }
+        pins.invalidateUndo()
         restoringReloadSelection = false; reloadSelection = nil; reloadSlots = []; refreshFeedback = nil
         session.load(url, into: slot)
     }
@@ -657,7 +665,12 @@ struct WorkspaceView: View {
     private func clearPins() {
         guard canModify, !session.isBusy, !pins.ids.isEmpty else { return }
         pinnedOnly = false
-        pins = PinnedFields()
+        pins.clearForUndo()
+    }
+    private func undoClearPins() {
+        guard canModify, !session.isBusy, pins.clearedCount > 0, session.comparison != nil else { return }
+        pinnedOnly = false
+        pins.undoClear()
     }
     private func clearFilters() {
         guard canModify else { return }
