@@ -1,0 +1,1 @@
+Unpin visible passed: intersection/deduplication, hidden pins retained, exact one-shot snapshot restore, no-op preservation, edit/add/prune/refresh invalidation, replacement by Clear Pins, legacy clear restoration.

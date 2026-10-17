@@ -222,6 +222,9 @@ struct WorkspaceView: View {
                     Button("Pin All Visible (\(unpinnedVisibleCount))", action: pinAllVisible)
                         .disabled(!canModify || session.isBusy || unpinnedVisibleCount == 0)
                         .help("Add all currently visible fields to existing pins. Count shows newly pinnable fields.")
+                    Button("Unpin All Visible (\(pinnedVisibleCount))", action: unpinAllVisible)
+                        .disabled(!canModify || session.isBusy || pinnedVisibleCount == 0)
+                        .help("Remove only visible pins, preserving hidden pins and the current filters. Undo is available.")
                     Divider()
                     Button("Copy Pinned Pointers (\(pins.ids.count))", action: copyPinnedPointers)
                         .disabled(!canCopyRow || pins.ids.isEmpty)
@@ -236,11 +239,11 @@ struct WorkspaceView: View {
                         .disabled(!canModify || session.isBusy || pins.ids.isEmpty)
                         .help("Remove all pins and turn off Pinned only, preserving other view settings.")
                 }.fixedSize()
-                if pins.clearedCount > 0 {
-                    Text("Cleared \(pins.clearedCount) pins").font(.caption).foregroundStyle(.secondary)
+                if pins.undoCount > 0 {
+                    Text(pins.removedVisibleCount > 0 ? "Visible pins removed: \(pins.removedVisibleCount)" : "Cleared \(pins.clearedCount) pins").font(.caption).foregroundStyle(.secondary)
                     Button("Undo", action: undoClearPins)
                         .disabled(!canModify || session.isBusy)
-                        .help("Restore the cleared pins, including hidden fields. Pinned only stays off.")
+                        .help(pins.removedVisibleCount > 0 ? "Restore the removed visible pins, preserving the current filters." : "Restore the cleared pins, including hidden fields. Pinned only stays off.")
                 }
                 if !pins.ids.isEmpty {
                     Button("Go to Pin…") { showPolicy = false; showPinPicker = true }
@@ -642,6 +645,13 @@ struct WorkspaceView: View {
     private var unpinnedVisibleCount: Int {
         visibleRows.reduce(0) { $0 + (pins.contains($1.id) ? 0 : 1) }
     }
+    private var pinnedVisibleCount: Int {
+        visibleRows.reduce(0) { $0 + (pins.contains($1.id) ? 1 : 0) }
+    }
+    private func unpinAllVisible() {
+        guard canModify, !session.isBusy else { return }
+        pins.removeVisibleForUndo(visibleRows.map(\.id))
+    }
     private func pinAllVisible() {
         guard canModify, !session.isBusy else { return }
         pins.add(visibleRows.map(\.id))
@@ -670,8 +680,8 @@ struct WorkspaceView: View {
         pins.clearForUndo()
     }
     private func undoClearPins() {
-        guard canModify, !session.isBusy, pins.clearedCount > 0, session.comparison != nil else { return }
-        pinnedOnly = false
+        guard canModify, !session.isBusy, pins.undoCount > 0, session.comparison != nil else { return }
+        if pins.removedVisibleCount == 0 { pinnedOnly = false }
         pins.undoClear()
     }
     private func clearFilters() {
