@@ -1,0 +1,1 @@
+PASS: raw JSON byte mapping beyond8192 with escaped prefix/emoji/exact Unicode, empty boundaries, bounded span, invalid range; independent reveal preserves Find/query/scope/match/follow/expansion/disclosures and opposite collapse; revision/row/reset guards and explicit Find handoff

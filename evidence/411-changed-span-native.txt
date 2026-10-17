@@ -1,0 +1,10 @@
+Native acceptance 411 — Show Changed Span in Value
+Synthetic existing Text-A/B only; fixtures unchanged.
+Text /Text, shared prefix9003/suffix9000, A changed5scalars and B changed6scalars.
+Find query NEW/B Match1of1 retained. A Showless/expanded=true, B Showmore/expanded=false; both sections initially closed.
+Show A Change opens A only and scrolls A card into viewport. Raw JSON byte9005, exact é OLD span and bounded context visible beyond8192 preview. B remains closed; A expansion/Find unchanged.
+Show B Change opens B and scrolls B card into viewport; raw JSON byte9005, exact decomposed e+combining-accent NEW span6, A expansion unchanged. Find NEW/B Match1of1 remains.
+Show Match in Value returns to original B Find occurrence byte9009, retaining query/match and showing match excerpt instead of changed-span excerpt.
+Empty field Show A Change shows byte2,0 differing scalars, explicit empty-span insertion/deletion boundary and complete empty JSON string below.
+Back restores /Text, A Showless/B Showmore and Find NEW/B Match1of1. Existing history bookkeeping reused.
+Screenshots 411 A/B retained locally. No accessibility work or permissions/settings changes.

@@ -43,5 +43,5 @@ import Foundation
     }
 }
 SWIFT
-swiftc -target "$(uname -m)-apple-macosx15.0" -warnings-as-errors -parse-as-library -I "$ROOT/.build/out/Products/Debug" "$ROOT/.build/out/Products/Debug/SidecarCore.o" "$ROOT/Sources/SidecarCompare/Views/InspectorHistory.swift" "$ROOT/Sources/SidecarCompare/Views/InspectorValueSearch.swift" "$CHECK/Check.swift" -o "$CHECK/check"
+swiftc -target "$(uname -m)-apple-macosx15.0" -warnings-as-errors -parse-as-library -I "$ROOT/.build/out/Products/Debug" "$ROOT/.build/out/Products/Debug/SidecarCore.o" "$ROOT/Sources/SidecarCompare/Views/ChangedSpanReveal.swift" "$ROOT/Sources/SidecarCompare/Views/InspectorHistory.swift" "$ROOT/Sources/SidecarCompare/Views/InspectorValueSearch.swift" "$CHECK/Check.swift" -o "$CHECK/check"
 "$CHECK/check"

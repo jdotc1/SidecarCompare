@@ -216,6 +216,18 @@ final class InspectorReviewState {
     var collapsedNumericSummary = false
     var currentMatch = 0 { didSet { if currentMatch != oldValue { revealedMatch = nil } } }
     var valueRevealRequest = UUID()
+    private var revealedChange: ChangedSpanRequest?
+
+    func showChangedSpan(rowID: String, revision: [UUID?], side: String, excerpt: ChangedSpanExcerpt) {
+        guard side == "A" || side == "B" else { return }
+        if side == "A" { collapsedA = false } else { collapsedB = false }
+        revealedChange = ChangedSpanRequest(rowID: rowID, revision: revision, side: side, excerpt: excerpt)
+        valueRevealRequest = UUID()
+    }
+    func changedSpan(rowID: String, revision: [UUID?], side: String) -> ChangedSpanExcerpt? {
+        guard let revealedChange, revealedChange.rowID == rowID, revealedChange.revision == revision, revealedChange.side == side else { return nil }
+        return revealedChange.excerpt
+    }
     fileprivate var revealedMatch: PendingMatch?
     fileprivate var outcome: SearchOutcome?
     fileprivate var failed: SearchIdentity?
@@ -244,6 +256,7 @@ final class InspectorReviewState {
         guard outcome?.identity == identity, outcome?.range(for: scope).contains(currentMatch) == true,
               let match = outcome?.excerpt(at: currentMatch) else { return }
         if match.side == "A" { collapsedA = false } else { collapsedB = false }
+        revealedChange = nil
         revealedMatch = PendingMatch(identity: identity, index: currentMatch)
         valueRevealRequest = UUID()
     }
@@ -255,6 +268,7 @@ final class InspectorReviewState {
         return match.excerpt
     }
     func revealedValueSide(rowID: String, revision: [UUID?]) -> String? {
+        if let revealedChange, revealedChange.rowID == rowID, revealedChange.revision == revision { return revealedChange.side }
         for side in ["A", "B"] where revealedValueMatch(rowID: rowID, revision: revision, side: side) != nil { return side }
         return nil
     }
@@ -275,7 +289,7 @@ final class InspectorReviewState {
         pendingMatch = PendingMatch(identity: SearchIdentity(rowID: rowID, revision: revision, queryBytes: bookmark.query), index: bookmark.match)
     }
     func resetField() {
-        pendingMatch = nil; revealedMatch = nil
+        pendingMatch = nil; revealedMatch = nil; revealedChange = nil
         expandedA = false; expandedB = false
         collapsedA = false; collapsedB = false
         collapsedTextSummary = false; collapsedNumericSummary = false

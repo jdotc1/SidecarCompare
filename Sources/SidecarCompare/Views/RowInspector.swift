@@ -108,10 +108,13 @@ struct RowInspector: View {
                         }
                     }
                     if row.status != .equal, case .string(let a) = row.a, case .string(let b) = row.b {
-                        StringDifferenceSection(a: a, b: b, identity: StringDifferenceIdentity(rowID: row.id, revision: revision), collapsed: $review.collapsedTextSummary)
+                        StringDifferenceSection(a: a, b: b, identity: StringDifferenceIdentity(rowID: row.id, revision: revision), collapsed: $review.collapsedTextSummary, canReveal: canShowInTable) { side, excerpt in
+                            guard canShowInTable else { return }
+                            review.showChangedSpan(rowID: row.id, revision: revision, side: side, excerpt: excerpt)
+                        }
                     }
-                    InspectorValueCard(title: "A · Reference", value: row.a, expanded: review.expandedA, collapsed: review.collapsedA, match: review.revealedValueMatch(rowID: row.id, revision: revision, side: "A")).id(row.id + ":A")
-                    InspectorValueCard(title: "B · Comparison", value: row.b, expanded: review.expandedB, collapsed: review.collapsedB, match: review.revealedValueMatch(rowID: row.id, revision: revision, side: "B")).id(row.id + ":B")
+                    InspectorValueCard(title: "A · Reference", value: row.a, expanded: review.expandedA, collapsed: review.collapsedA, match: review.revealedValueMatch(rowID: row.id, revision: revision, side: "A"), change: review.changedSpan(rowID: row.id, revision: revision, side: "A")).id(row.id + ":A")
+                    InspectorValueCard(title: "B · Comparison", value: row.b, expanded: review.expandedB, collapsed: review.collapsedB, match: review.revealedValueMatch(rowID: row.id, revision: revision, side: "B"), change: review.changedSpan(rowID: row.id, revision: revision, side: "B")).id(row.id + ":B")
                     if let delta = row.delta {
                         DisclosureGroup(isExpanded: Binding(get: { !review.collapsedNumericSummary }, set: { review.collapsedNumericSummary = !$0 })) {
                         VStack(alignment: .leading, spacing: 5) {
@@ -191,6 +194,7 @@ private struct InspectorValueCard: View {
     let expanded: Bool
     let collapsed: Bool
     let match: JSONSearchExcerpt?
+    let change: ChangedSpanExcerpt?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -215,7 +219,22 @@ private struct InspectorValueCard: View {
                 if value == nil {
                     Text("Field absent from this sidecar.").font(.callout).foregroundStyle(.secondary)
                 } else {
-                    if let match {
+                    if let change {
+                        Text("Changed span · raw JSON byte \(change.bytePosition)")
+                            .font(.caption.weight(.semibold)).monospacedDigit()
+                        Text("\(change.scalarCount) differing Unicode scalars" + (change.scalarCount == 0 ? " · Empty span / insertion or deletion boundary" : ""))
+                            .font(.caption).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        (Text(verbatim: change.before)
+                         + Text(verbatim: change.scalarCount == 0 ? "[empty span]" : change.changed).bold().underline()
+                         + Text(verbatim: (change.truncated ? "…" : "") + change.after))
+                            .font(.system(.callout, design: .monospaced)).textSelection(.enabled)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(change.truncated ? "Bounded raw JSON excerpt; differing span truncated after 80 Unicode scalars." : "Bounded raw JSON excerpt; underlined text is the differing span.")
+                            .font(.caption).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Divider()
+                    } else if let match {
                         Text("Value around current match · byte \(match.bytePosition)")
                             .font(.caption.weight(.semibold)).monospacedDigit()
                             .fixedSize(horizontal: false, vertical: true)

@@ -301,3 +301,10 @@ Native401 uses uniquely named synthetic SummaryCollapse-A/B, AString100a/100b an
 ## Copy Difference Summary — 2026-10-17
 
 Debug staged403/release warnings-as-errors404 and focused405 pass. New-output checks cover original numeric lexemes beyond2^53, exact delta, relative/zero handling, canonical units, Unicode excerpt composition/truncation, missing/null, policy and exact all-or-nothing byte boundary. Existing text394395, numeric, raw-copy, Find and review-history399401 receipts reused; no unchanged suites/oracles/signatures repeated. Native406 uses the synthetic example EchoTime: clipboard retains0.085/0.08501, delta0.00001s and relative0.011765%; copied feedback appears. SelectedEchoTime/Find0/A Match1of5/Bclosed/numericclosed remain unchanged. No accessibility/permissions/settings changes.
+
+
+## Show Changed Span in Value — 2026-10-17
+
+Debug staged408 and release warnings-as-errors409 pass. Focused410 verifies raw-JSON UTF-8 positions beyond8192 with emoji/escaped prefix/composed and decomposed Unicode, empty value/internal insertion boundaries, bounded80scalar span, invalid ranges, and independent A/B reveal preserving Find query/scope/match/follow/previous Find reveal/expansion/disclosures/opposite collapse. Row/revision/reset guards and explicit Find handoff pass. Existing string394395, summary399401, copy405406 and Find/navigation receipts reused; unchanged suites/oracles/signatures not rerun. Existing focused harnesses now link the new review-model helper; those prior checks were not repeated.
+
+Native411 existing synthetic Text-A/B: A and B changes at rawbyte9005,5/6differing scalars respectively, shown in target card beyond8192. A reveal opens only A with Bclosed; B reveal keeps Aexpanded/Bshort. FindNEW/B Match1of1 retained; explicit ShowMatch returns byte9009. EmptyA shows byte2/0scalar boundary. Back restores Text/Aexpanded/Bshort/FindNEW/B Match1of1. A/B screenshots retained locally; textual receipt included. No accessibility/permissions/settings changes.
