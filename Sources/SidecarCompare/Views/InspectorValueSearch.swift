@@ -17,6 +17,12 @@ struct InspectorValueSearch: View {
     }
     private var currentOutcome: SearchOutcome? { review.outcome?.identity == identity ? review.outcome : nil }
 
+    private var matchRange: Range<Int> { currentOutcome?.range(for: review.scope) ?? 0..<0 }
+    private var currentExcerpt: (side: String, excerpt: JSONSearchExcerpt)? {
+        guard matchRange.contains(review.currentMatch) else { return nil }
+        return currentOutcome?.excerpt(at: review.currentMatch)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Button(review.showFind ? "Hide Find" : "Show Find") { review.showFind.toggle() }
@@ -29,12 +35,15 @@ struct InspectorValueSearch: View {
                     Button("Clear Find") { review.query = "" }.controlSize(.small)
                 }
             }
+            Picker("Find in", selection: $review.scope) {
+                ForEach(InspectorFindScope.allCases) { scope in Text(scope.rawValue).tag(scope) }
+            }.pickerStyle(.menu).controlSize(.small)
             Text("Literal, case-sensitive · complete raw A/B JSON")
                 .font(.caption).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             if !review.query.isEmpty {
                 if let result = currentOutcome {
-                    Text("A: \(result.a.count) matches · B: \(result.b.count) matches")
+                    Text("\(matchRange.count) matches in \(review.scope.rawValue) · A: \(result.a.count) · B: \(result.b.count)")
                         .font(.caption).monospacedDigit()
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
@@ -48,15 +57,15 @@ struct InspectorValueSearch: View {
                 }.controlSize(.small)
                 Button("Show Match in Value") { review.showCurrentMatch(rowID: row.id, revision: revision) }
                     .controlSize(.small)
-                    .disabled(!canReveal || currentOutcome?.excerpt(at: review.currentMatch) == nil)
+                    .disabled(!canReveal || currentExcerpt == nil)
                 Button("Copy Match Context", action: copyMatchContext)
                     .controlSize(.small)
-                    .disabled(!canCopy || currentOutcome?.excerpt(at: review.currentMatch) == nil)
-                if let result = currentOutcome {
-                    if result.total == 0 {
-                        Text("No matches in either complete value.").font(.caption).foregroundStyle(.secondary)
-                    } else if let match = result.excerpt(at: review.currentMatch) {
-                        Text("Match \(review.currentMatch + 1) of \(result.total) · \(match.side) · byte \(match.excerpt.bytePosition)")
+                    .disabled(!canCopy || currentExcerpt == nil)
+                if currentOutcome != nil {
+                    if matchRange.isEmpty {
+                        Text(review.scope == .both ? "No matches in either complete value." : "No matches in \(review.scope == .a ? "A" : "B").").font(.caption).foregroundStyle(.secondary)
+                    } else if let match = currentExcerpt {
+                        Text("Match \(review.currentMatch - matchRange.lowerBound + 1) of \(matchRange.count) · \(match.side) · byte \(match.excerpt.bytePosition)")
                             .font(.caption).monospacedDigit()
                             .fixedSize(horizontal: false, vertical: true)
                         (Text(verbatim: match.excerpt.before) + Text(verbatim: match.excerpt.match).bold().underline()
@@ -82,22 +91,22 @@ struct InspectorValueSearch: View {
 
     private var collapsedSummary: String {
         guard !review.query.isEmpty else { return "Find: No query" }
-        guard let result = currentOutcome else {
+        guard currentOutcome != nil else {
             return review.failed == identity ? "Find: Search unavailable" : "Find: Searching…"
         }
-        guard result.total > 0, let match = result.excerpt(at: review.currentMatch) else { return "Find: No matches" }
-        return "Find: Match \(review.currentMatch + 1) of \(result.total) · \(match.side)"
+        guard !matchRange.isEmpty, let match = currentExcerpt else { return "Find: No matches · \(review.scope.rawValue)" }
+        return "Find: Match \(review.currentMatch - matchRange.lowerBound + 1) of \(matchRange.count) · \(match.side)"
     }
 
     @ViewBuilder private var matchButtons: some View {
         Button("Previous Match") { review.currentMatch -= 1 }
-            .disabled(currentOutcome == nil || review.currentMatch <= 0)
+            .disabled(currentOutcome == nil || review.currentMatch <= matchRange.lowerBound)
         Button("Next Match") { review.currentMatch += 1 }
-            .disabled(currentOutcome == nil || review.currentMatch + 1 >= (currentOutcome?.total ?? 0))
+            .disabled(currentOutcome == nil || review.currentMatch + 1 >= matchRange.upperBound)
     }
 
     private func copyMatchContext() {
-        guard canCopy, let match = currentOutcome?.excerpt(at: review.currentMatch) else { return }
+        guard canCopy, let match = currentExcerpt else { return }
         let excerpt = match.excerpt
         let text = "Match context excerpt · \(match.side) · byte \(excerpt.bytePosition)\n"
             + "Bounded raw JSON excerpt; not a complete JSON value."
@@ -122,7 +131,8 @@ struct InspectorValueSearch: View {
             let result = try await withTaskCancellationHandler(operation: { try await worker.value }, onCancel: { worker.cancel() })
             guard !Task.isCancelled, request == identity else { return }
             review.outcome = result
-            review.currentMatch = min(restoredMatch ?? 0, max(0, result.total - 1))
+            review.currentMatch = restoredMatch ?? 0
+            review.normalizeMatch()
             if review.pendingMatch?.identity == request { review.pendingMatch = nil }
         } catch is CancellationError { }
         catch {
@@ -146,6 +156,13 @@ fileprivate struct SearchOutcome: Sendable {
     let a: JSONValueSearch
     let b: JSONValueSearch
     var total: Int { a.count + b.count }
+    func range(for scope: InspectorFindScope) -> Range<Int> {
+        switch scope {
+        case .both: return 0..<total
+        case .a: return 0..<a.count
+        case .b: return a.count..<total
+        }
+    }
     func excerpt(at index: Int) -> (side: String, excerpt: JSONSearchExcerpt)? {
         if index < a.count { return a.excerpt(at: index).map { ("A", $0) } }
         return b.excerpt(at: index - a.count).map { ("B", $0) }
@@ -156,6 +173,7 @@ fileprivate struct SearchOutcome: Sendable {
 @Observable @MainActor
 final class InspectorReviewState {
     var query = "" { didSet { if Data(query.utf8) != Data(oldValue.utf8) { revealedMatch = nil } } }
+    var scope: InspectorFindScope = .both { didSet { if scope != oldValue { normalizeMatch() } } }
     var showFind = true
     var expandedA = false
     var expandedB = false
@@ -168,9 +186,16 @@ final class InspectorReviewState {
     fileprivate var failed: SearchIdentity?
     fileprivate var pendingMatch: PendingMatch?
 
+    func normalizeMatch() {
+        guard let outcome, outcome.identity.queryBytes == Data(query.utf8) else { return }
+        let range = outcome.range(for: scope)
+        if !range.contains(currentMatch) { currentMatch = range.lowerBound }
+    }
+
     func showCurrentMatch(rowID: String, revision: [UUID?]) {
         let identity = SearchIdentity(rowID: rowID, revision: revision, queryBytes: Data(query.utf8))
-        guard outcome?.identity == identity, let match = outcome?.excerpt(at: currentMatch) else { return }
+        guard outcome?.identity == identity, outcome?.range(for: scope).contains(currentMatch) == true,
+              let match = outcome?.excerpt(at: currentMatch) else { return }
         if match.side == "A" { collapsedA = false } else { collapsedB = false }
         revealedMatch = PendingMatch(identity: identity, index: currentMatch)
         valueRevealRequest = UUID()
@@ -178,7 +203,8 @@ final class InspectorReviewState {
     func revealedValueMatch(rowID: String, revision: [UUID?], side: String) -> JSONSearchExcerpt? {
         let identity = SearchIdentity(rowID: rowID, revision: revision, queryBytes: Data(query.utf8))
         guard revealedMatch?.identity == identity, revealedMatch?.index == currentMatch,
-              outcome?.identity == identity, let match = outcome?.excerpt(at: currentMatch), match.side == side else { return nil }
+              outcome?.identity == identity, outcome?.range(for: scope).contains(currentMatch) == true,
+              let match = outcome?.excerpt(at: currentMatch), match.side == side else { return nil }
         return match.excerpt
     }
     func revealedValueSide(rowID: String, revision: [UUID?]) -> String? {
@@ -190,12 +216,13 @@ final class InspectorReviewState {
         let identity = SearchIdentity(rowID: rowID, revision: revision, queryBytes: Data(query.utf8))
         let match = outcome?.identity == identity ? currentMatch : (pendingMatch?.identity == identity ? pendingMatch?.index ?? 0 : 0)
         return InspectorReviewBookmark(query: Data(query.utf8), revision: revision,
-                                       expandedA: expandedA, expandedB: expandedB, collapsedA: collapsedA, collapsedB: collapsedB, match: match)
+                                       expandedA: expandedA, expandedB: expandedB, collapsedA: collapsedA, collapsedB: collapsedB, match: match, scope: scope)
     }
     func restore(_ bookmark: InspectorReviewBookmark, rowID: String, revision: [UUID?]) {
         guard bookmark.query == Data(query.utf8), bookmark.revision == revision else { return }
         expandedA = bookmark.expandedA; expandedB = bookmark.expandedB
         collapsedA = bookmark.collapsedA; collapsedB = bookmark.collapsedB
+        scope = bookmark.scope
         pendingMatch = PendingMatch(identity: SearchIdentity(rowID: rowID, revision: revision, queryBytes: bookmark.query), index: bookmark.match)
     }
     func resetField() {
@@ -206,6 +233,7 @@ final class InspectorReviewState {
     }
     func resetAll() {
         showFind = true
+        scope = .both
         query = ""
         resetField()
     }

@@ -33,6 +33,11 @@ struct InspectorHistory {
     mutating func clearReviews() { reviews.removeAll() }
 }
 
+enum InspectorFindScope: String, CaseIterable, Identifiable {
+    case both = "Both", a = "A only", b = "B only"
+    var id: String { rawValue }
+}
+
 struct InspectorReviewBookmark {
     let query: Data
     let revision: [UUID?]
@@ -41,4 +46,5 @@ struct InspectorReviewBookmark {
     let collapsedA: Bool
     let collapsedB: Bool
     let match: Int
+    var scope: InspectorFindScope = .both
 }
