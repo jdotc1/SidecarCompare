@@ -179,6 +179,9 @@ struct WorkspaceView: View {
                     Text("\(item.rawValue) (\(session.comparison?.counts[item] ?? 0))").tag(Optional(item))
                 }
             }.frame(width: 200)
+            Button("Clear Filters", action: clearFilters)
+                .disabled(!canModify || !hasActiveFilters)
+                .help("Show all rows while preserving sort order, time display and search scope.")
             Button("Reset View", action: resetView).disabled(!canModify)
             Spacer(minLength: 0)
             Picker("Search in", selection: $searchScope) {
@@ -233,6 +236,9 @@ struct WorkspaceView: View {
                 Image(systemName: "xmark")
             }
         }.help(help)
+    }
+    private var hasActiveFilters: Bool {
+        differencesOnly || status != nil || category != nil || !search.isEmpty
     }
     private var activeFilterSummary: String {
         var filters = [status?.rawValue ?? (differencesOnly ? "Differences only" : "All rows")]
