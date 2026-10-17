@@ -215,6 +215,22 @@ struct WorkspaceView: View {
                     .disabled(!canModify || session.isBusy || pins.ids.isEmpty)
                     .help("Remove all pins and turn off Pinned only, preserving other view settings.")
             }.controlSize(.small)
+            if !pins.ids.isEmpty {
+                HStack(spacing: 10) {
+                    Button("Previous Pinned Field") { navigatePin(forward: false) }
+                        .disabled(!canModify || session.isBusy || pinnedNavigation.target(forward: false) == nil)
+                    Button("Next Pinned Field") { navigatePin(forward: true) }
+                        .disabled(!canModify || session.isBusy || pinnedNavigation.target(forward: true) == nil)
+                    if pinnedNavigation.visiblePins.isEmpty {
+                        Text("All \(pins.ids.count) pinned fields are hidden by filters.")
+                            .font(.caption).foregroundStyle(.secondary)
+                        Button("Show Pinned Fields", action: showPinnedFields)
+                            .disabled(!canModify || session.isBusy || session.comparison == nil)
+                    } else {
+                        Text(pinnedNavigation.position).font(.caption).foregroundStyle(.secondary)
+                    }
+                }.controlSize(.small)
+            }
             if pinnedOnly || status != nil || category != nil || !search.isEmpty {
                 activeFilterChips
             }
@@ -594,6 +610,24 @@ struct WorkspaceView: View {
     private func pinAllVisible() {
         guard canModify, !session.isBusy else { return }
         pins.add(visibleRows.map(\.id))
+    }
+    private var pinnedNavigation: PinnedNavigation {
+        PinnedNavigation(visibleIDs: visibleRows.map(\.id), pinnedIDs: pins.ids, selection: selection)
+    }
+    private func navigatePin(forward: Bool) {
+        guard canModify, !session.isBusy, let target = pinnedNavigation.target(forward: forward) else { return }
+        selection = target
+        showInspector = true
+        tableRevealRequest = UUID()
+    }
+    private func showPinnedFields() {
+        guard canModify, !session.isBusy, session.comparison != nil, !pins.ids.isEmpty else { return }
+        clearFilters()
+        pinnedOnly = true
+        guard let target = pinnedNavigation.visiblePins.first else { return }
+        selection = target
+        showInspector = true
+        tableRevealRequest = UUID()
     }
     private func clearPins() {
         guard canModify, !session.isBusy, !pins.ids.isEmpty else { return }

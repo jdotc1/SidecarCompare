@@ -119,3 +119,8 @@ Compact action row below filters groups Pin All Visible and Clear Pins. Newly pi
 ## Copy Pinned JSON Pointers
 
 Pin action row offers Copy Pinned Pointers with full pin count, disabled with no pins or existing copy/modal/busy guard. Captures full comparison and pinned ID set, worker filters by stable IDs and sorts original RFC 6901 pointers by UTF-8 bytes before joining with newline (no trailing newline). No display escaping/normalization, values or source filenames added. Existing pasteboard/notification and inspector feedback show count or failure. Selection, filters, sort, pin state and inspector review/history remain untouched.
+
+
+## Pinned field navigation and recovery
+
+Previous/Next Pinned Field and position appear below pin actions when pins exist. Pure navigation uses already-filtered/sorted visible IDs, scanning before/after current row (including unpinned selection); absent selection starts at first/last, no wrap. Guarded main-actor selection/showInspector/tableReveal use existing fresh-field review behavior and history recording, retaining Find query and settings. All-hidden explanation offers explicit Show Pinned Fields: clears row filters through existing callback, enables Pinned only, selects first visible pin in retained sort order and reveals inspector/table. No pin mutation, sort/time/scope/query/history resets.
