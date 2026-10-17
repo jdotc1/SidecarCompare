@@ -129,10 +129,39 @@ struct WorkspaceView: View {
             Button("Reset View", action: resetView).disabled(!canModify)
             Spacer(minLength: 0)
             }
+            if status != nil || category != nil || !search.isEmpty {
+                activeFilterChips
+            }
             if let result = session.comparison {
                 differenceBreakdown(result)
             }
         }.padding(.horizontal, 16).padding(.bottom, 12)
+    }
+    private var activeFilterChips: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 6) { filterChipButtons }.fixedSize(horizontal: true, vertical: false)
+            VStack(alignment: .leading, spacing: 6) { filterChipButtons }
+        }
+        .buttonStyle(.bordered).controlSize(.small).disabled(!canModify)
+    }
+    @ViewBuilder private var filterChipButtons: some View {
+        if let status {
+            filterChip("Status: \(status.rawValue)", help: "Clear status filter") { self.status = nil }
+        }
+        if let category {
+            filterChip("Category: \(category.rawValue)", help: "Clear category filter") { self.category = nil }
+        }
+        if !search.isEmpty {
+            filterChip("Search active", help: "Clear search") { search = "" }
+        }
+    }
+    private func filterChip(_ title: String, help: String, clear: @escaping () -> Void) -> some View {
+        Button(action: clear) {
+            HStack(spacing: 5) {
+                Text(title)
+                Image(systemName: "xmark")
+            }
+        }.help(help)
     }
     private var activeFilterSummary: String {
         var filters = [status?.rawValue ?? (differencesOnly ? "Differences only" : "All rows")]

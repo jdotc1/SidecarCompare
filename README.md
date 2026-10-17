@@ -103,3 +103,5 @@ The inspector’s fixed **Copy** menu and a row’s context menu provide **Copy 
 The inspector shows the selected difference’s position in the current filtered, sorted view, such as **Difference 3 of 9 in this view**. The count excludes Equal rows and updates with filters. The indicator sits beside Previous/Next when space permits and wraps beneath them in a narrow inspector.
 
 **Reload Both** in the toolbar or File menu refreshes both selected files before comparing the new pair. It preserves filters, sorting, time display and the selected row when that row remains visible. A failed side shows its read error and Choose recovery; a successfully refreshed side stays loaded. No refreshed-versus-stale comparison is presented. Reload Both is unavailable for built-in examples, missing sources, busy work or import/export panels.
+
+Active **Status**, **Category**, and **Search active** chips each have an × to clear only that filter. Removing a chip preserves the other filters, Differences only, sorting, time display, loaded sources and any still-visible selection. Reset View remains available to restore all presentation defaults.
