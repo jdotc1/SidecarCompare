@@ -369,3 +369,6 @@ Each inspector A/B card now summarizes its parsed value beneath the JSON type: d
 
 
 **Previous Pinned Field / Next Pinned Field** step through visible pins in the current table order, with a pinned-position indicator and no wrapping. Filters, sorting, display settings and inspector Find query are preserved; new-field selection uses normal inspector navigation, while Back/Forward retains saved review state. If all pins are hidden, **Show Pinned Fields** explicitly clears row filters, enables Pinned only and selects the first pin in the retained sort order. Search scope and display settings remain unchanged.
+
+
+**Go to Pin…** opens a searchable list of all pinned fields, including hidden pins, with comparison status and table visibility. Search matches displayed pointers case-insensitively and stays local to the picker. Select a visible target and choose **Go**, or explicitly choose **Clear Filters and Go** for a hidden target. Sort order, time display, search scope and inspector Find query are preserved. Cancel leaves the current review unchanged.

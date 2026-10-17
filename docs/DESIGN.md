@@ -124,3 +124,8 @@ Pin action row offers Copy Pinned Pointers with full pin count, disabled with no
 ## Pinned field navigation and recovery
 
 Previous/Next Pinned Field and position appear below pin actions when pins exist. Pure navigation uses already-filtered/sorted visible IDs, scanning before/after current row (including unpinned selection); absent selection starts at first/last, no wrap. Guarded main-actor selection/showInspector/tableReveal use existing fresh-field review behavior and history recording, retaining Find query and settings. All-hidden explanation offers explicit Show Pinned Fields: clears row filters through existing callback, enables Pinned only, selects first visible pin in retained sort order and reveals inspector/table. No pin mutation, sort/time/scope/query/history resets.
+
+
+## Go to Pinned Field
+
+Go to Pin sheet owns local query/optional stable-ID selection. Full pinned comparison rows sort by exact UTF8 pointer order; local case-insensitive displayed-pointer search does not mutate workspace search. Rows show status and visible/hidden label. Only a selected search result enables Go; hidden result requires explicit Clear Filters and Go. Workspace callback rechecks nonbusy/current membership/pin, optionally clears row filters, selects/reveals inspector/table and closes. Pin sheet participates in canModify modal guard. No pin/sort/display/scope/Find/history resets; existing fresh-field selection behavior applies. Cancel mutates no workspace review state.

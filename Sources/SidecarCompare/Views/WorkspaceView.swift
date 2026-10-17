@@ -11,6 +11,7 @@ struct WorkspaceView: View {
     @State private var showImporter = false
     @State private var showPolicy = false
     @State private var showPointer = false
+    @State private var showPinPicker = false
     @State private var showInspector = true
     @State private var inspectorWidth: CGFloat = 315
     @State private var inspectorReview = InspectorReviewState()
@@ -75,6 +76,18 @@ struct WorkspaceView: View {
                 showInspector = true
                 tableRevealRequest = UUID()
                 showPointer = false
+            }
+        }
+        .sheet(isPresented: $showPinPicker) {
+            GoToPinnedFieldSheet(rows: (session.comparison?.rows ?? []).filter { pins.contains($0.id) },
+                                 visibleIDs: Set(visibleRows.map(\.id))) { row, clear in
+                guard !session.isBusy, pins.contains(row.id),
+                      session.comparison?.rows.contains(where: { $0.id == row.id }) == true else { return }
+                if clear { search = ""; category = nil; status = nil; differencesOnly = false; pinnedOnly = false }
+                selection = row.id
+                showInspector = true
+                tableRevealRequest = UUID()
+                showPinPicker = false
             }
         }
         .sheet(item: $exportSnapshot) { ExportSheet(snapshot: $0) }
@@ -217,6 +230,8 @@ struct WorkspaceView: View {
             }.controlSize(.small)
             if !pins.ids.isEmpty {
                 HStack(spacing: 10) {
+                    Button("Go to Pin…") { showPolicy = false; showPinPicker = true }
+                        .disabled(!canModify || session.isBusy || session.comparison == nil)
                     Button("Previous Pinned Field") { navigatePin(forward: false) }
                         .disabled(!canModify || session.isBusy || pinnedNavigation.target(forward: false) == nil)
                     Button("Next Pinned Field") { navigatePin(forward: true) }
@@ -442,7 +457,7 @@ struct WorkspaceView: View {
             Button { showInspector.toggle() } label: { Label("Inspector", systemImage: "sidebar.right") }
         }
     }
-    private var canModify: Bool { !showImporter && exportSnapshot == nil && !showPointer && pendingHistory == nil }
+    private var canModify: Bool { !showImporter && exportSnapshot == nil && !showPointer && !showPinPicker && pendingHistory == nil }
     private var actions: WorkspaceActions {
         WorkspaceActions(canGoToPointer: canModify && !session.isBusy && session.comparison != nil,
                          goToPointer: { showPolicy = false; showPointer = true }, canRevealA: canReveal(.a), canRevealB: canReveal(.b),
