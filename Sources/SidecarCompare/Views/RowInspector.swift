@@ -12,6 +12,8 @@ struct RowInspector: View {
     let canNext: Bool
     let previous: () -> Void
     let next: () -> Void
+    let canShowInTable: Bool
+    let showInTable: () -> Void
     let canCopy: Bool
     let copyMessage: String?
     let copy: (ComparisonRow, RowCopyTarget) -> Void
@@ -36,6 +38,8 @@ struct RowInspector: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
+                Button("Show in Table", action: showInTable)
+                    .controlSize(.small).disabled(!canShowInTable)
                 if let row {
                     Menu("Copy") { RowCopyMenu(row: row, enabled: canCopy, copy: copy) }
                         .disabled(!canCopy)

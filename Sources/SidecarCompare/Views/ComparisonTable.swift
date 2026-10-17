@@ -4,6 +4,7 @@ import SidecarCore
 @MainActor
 struct ComparisonTable: View {
     let rows: [ComparisonRow]
+    let revealRequest: UUID
     let milliseconds: Bool
     let canCopy: Bool
     let copy: (ComparisonRow, RowCopyTarget) -> Void
@@ -42,6 +43,11 @@ struct ComparisonTable: View {
             }
         }
         .accessibilityLabel("Sidecar metadata comparison")
+        .onChange(of: revealRequest) { _, _ in
+            if let selection, rows.contains(where: { $0.id == selection }) {
+                proxy.scrollTo(selection, anchor: .center)
+            }
+        }
         .onChange(of: selection) { _, selection in
             if let selection { proxy.scrollTo(selection) }
         }

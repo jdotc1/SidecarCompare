@@ -13,6 +13,7 @@ struct WorkspaceView: View {
     @State private var showInspector = true
     @State private var inspectorWidth: CGFloat = 315
     @State private var inspectorReview = InspectorReviewState()
+    @State private var tableRevealRequest = UUID()
     @State private var exportSnapshot: ExportSnapshot?
     @State private var search = ""
     @State private var differencesOnly = true
@@ -102,6 +103,8 @@ struct WorkspaceView: View {
                      canNext: differenceTarget(forward: true) != nil,
                      previous: { navigateDifference(forward: false) },
                      next: { navigateDifference(forward: true) },
+                     canShowInTable: selectedRow != nil && canModify && !session.isBusy,
+                     showInTable: { tableRevealRequest = UUID() },
                      canCopy: canCopyRow, copyMessage: rowCopyMessage, copy: copyRow, review: inspectorReview)
     }
     private var visibleRows: [ComparisonRow] {
@@ -222,7 +225,7 @@ struct WorkspaceView: View {
             if result.rows.isEmpty {
                 ContentUnavailableView("Both objects are empty", systemImage: "doc", description: Text("There are no fields to compare. This does not establish metadata completeness."))
             } else {
-                ComparisonTable(rows: visibleRows, milliseconds: milliseconds, canCopy: canCopyRow, copy: copyRow, selection: $selection, sortOrder: $sortOrder)
+                ComparisonTable(rows: visibleRows, revealRequest: tableRevealRequest, milliseconds: milliseconds, canCopy: canCopyRow, copy: copyRow, selection: $selection, sortOrder: $sortOrder)
                     .overlay {
                         if visibleRows.isEmpty {
                             VStack(spacing: 10) {
