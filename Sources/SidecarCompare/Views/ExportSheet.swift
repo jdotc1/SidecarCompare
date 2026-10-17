@@ -28,9 +28,12 @@ struct ExportSnapshot: Identifiable {
             .map { PinnedExportField(id: $0.id, pointer: $0.visiblePath, status: $0.status,
                                     hidden: !visiblePinnedIDs.contains($0.id)) }
     }
-    func reviewFields(matching query: String) -> [PinnedExportField] {
+    var reviewCounts: [DifferenceStatus: Int] {
+        Dictionary(grouping: reviewFields, by: \.status).mapValues(\.count)
+    }
+    func reviewFields(matching query: String, status: DifferenceStatus? = nil) -> [PinnedExportField] {
         let fields = reviewFields
-        return query.isEmpty ? fields : fields.filter { $0.pointer.localizedCaseInsensitiveContains(query) }
+        return fields.filter { (status == nil || $0.status == status) && (query.isEmpty || $0.pointer.localizedCaseInsensitiveContains(query)) }
     }
     func inspectorRequest(for id: String) -> ExportInspectorRequest? {
         guard let field = reviewFields.first(where: { $0.id == id }) else { return nil }
@@ -60,6 +63,7 @@ struct ExportSheet: View {
     @State private var pendingReview: ExportInspectorRequest?
     @State private var reviewIncluded = false
     @State private var reviewSearch = ""
+    @State private var reviewStatus: DifferenceStatus?
     @State private var detail = ReportDetail.summary
     @State private var json = true
     @State private var acknowledged = false
@@ -81,7 +85,10 @@ struct ExportSheet: View {
             }
             .padding(12).frame(maxWidth: .infinity, alignment: .leading)
             .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
-            if snapshot.pinnedIDs != nil { includedFields }
+            if snapshot.pinnedIDs != nil {
+                statusBreakdown
+                includedFields
+            }
             Picker("Contents", selection: $detail) {
                 Text("Summary only").tag(ReportDetail.summary)
                 Text("Full metadata comparison").tag(ReportDetail.full)
@@ -124,8 +131,35 @@ struct ExportSheet: View {
             Text("Leave export and clear table filters to review this field. Pins, sort order, display settings and the Find query stay unchanged. No report will be saved.")
         }
     }
+    private var statusBreakdown: some View {
+        let counts = snapshot.reviewCounts
+        return VStack(alignment: .leading, spacing: 6) {
+            Text("All pinned fields · status counts").font(.caption).foregroundStyle(.secondary)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 145), spacing: 6)], alignment: .leading, spacing: 6) {
+                ForEach(DifferenceStatus.allCases.filter { (counts[$0] ?? 0) > 0 }, id: \.self) { status in
+                    Button {
+                        reviewStatus = status
+                        reviewIncluded = true
+                    } label: {
+                        Text((reviewStatus == status ? "✓ " : "") + "\(status.rawValue) · \(counts[status] ?? 0)")
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity)
+                    }.controlSize(.small)
+                }
+            }
+            if let reviewStatus {
+                HStack {
+                    Text("Review status: \(reviewStatus.rawValue)").font(.caption)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 8)
+                    Button("Clear Status") { self.reviewStatus = nil }.controlSize(.small)
+                }
+            }
+        }.disabled(busy)
+    }
+
     private var includedFields: some View {
-        let fields = snapshot.reviewFields(matching: reviewSearch)
+        let fields = snapshot.reviewFields(matching: reviewSearch, status: reviewStatus)
         return DisclosureGroup("Review included fields (\(snapshot.selectedCount))", isExpanded: $reviewIncluded) {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 8) {
@@ -146,7 +180,7 @@ struct ExportSheet: View {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 10) {
                         if fields.isEmpty {
-                            Text("No included fields match this search. Clear Search to review all pinned fields.")
+                            Text("No included fields match these review filters. Clear Search or Clear Status to broaden the list.")
                                 .font(.callout).foregroundStyle(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
