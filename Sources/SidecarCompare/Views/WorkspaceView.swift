@@ -11,6 +11,7 @@ struct WorkspaceView: View {
     @State private var showImporter = false
     @State private var showPolicy = false
     @State private var showInspector = true
+    @State private var inspectorWidth: CGFloat = 315
     @State private var exportSnapshot: ExportSnapshot?
     @State private var search = ""
     @State private var differencesOnly = true
@@ -32,28 +33,20 @@ struct WorkspaceView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(alignment: .top, spacing: 12) {
-                fileWell(.a)
-                fileWell(.b)
-            }.padding(16)
-            filterBar
-            Divider()
-            comparisonContent
-            Divider()
-            footer
+        GeometryReader { geometry in
+            let maximum = min(640, max(270, geometry.size.width - 858))
+            let width = min(inspectorWidth, maximum)
+            HStack(spacing: 0) {
+                workspaceContent.frame(minWidth: 850, maxWidth: .infinity, maxHeight: .infinity)
+                if showInspector {
+                    InspectorDivider(width: $inspectorWidth, displayedWidth: width, maximum: maximum)
+                    inspector.frame(width: width).frame(maxHeight: .infinity)
+                }
+            }
         }
-        .frame(minWidth: 850, minHeight: 580)
+        .frame(minWidth: showInspector ? 1128 : 850, minHeight: 580)
         .searchable(text: $search, prompt: "Search paths and value previews")
         .toolbar { toolbar }
-         .inspector(isPresented: $showInspector) {
-            RowInspector(row: selectedRow, revision: [session.a?.id, session.b?.id], position: differencePosition,
-                         canPrevious: differenceTarget(forward: false) != nil,
-                         canNext: differenceTarget(forward: true) != nil,
-                         previous: { navigateDifference(forward: false) },
-                         next: { navigateDifference(forward: true) },
-                         canCopy: canCopyRow, copyMessage: rowCopyMessage, copy: copyRow)
-        }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json, .plainText], allowsMultipleSelection: false) { result in
             switch result {
             case .success(let urls):
@@ -87,6 +80,29 @@ struct WorkspaceView: View {
         }
     }
 
+    private var workspaceContent: some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 12) {
+                fileWell(.a)
+                fileWell(.b)
+            }.padding(16)
+            filterBar
+            Divider()
+            comparisonContent
+            Divider()
+            footer
+        }
+    }
+    private var inspector: some View {
+        RowInspector(canResetWidth: abs(inspectorWidth - 315) >= 1,
+                     resetWidth: { inspectorWidth = 315 },
+                     row: selectedRow, revision: [session.a?.id, session.b?.id], position: differencePosition,
+                     canPrevious: differenceTarget(forward: false) != nil,
+                     canNext: differenceTarget(forward: true) != nil,
+                     previous: { navigateDifference(forward: false) },
+                     next: { navigateDifference(forward: true) },
+                     canCopy: canCopyRow, copyMessage: rowCopyMessage, copy: copyRow)
+    }
     private var visibleRows: [ComparisonRow] {
         (session.comparison?.filtered(search: search, differencesOnly: differencesOnly, category: category) ?? [])
             .filter { status == nil || $0.status == status }

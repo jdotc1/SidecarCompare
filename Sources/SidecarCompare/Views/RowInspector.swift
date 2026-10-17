@@ -3,6 +3,8 @@ import SidecarCore
 
 @MainActor
 struct RowInspector: View {
+    let canResetWidth: Bool
+    let resetWidth: () -> Void
     let row: ComparisonRow?
     let revision: [UUID?]
     let position: String
@@ -19,6 +21,11 @@ struct RowInspector: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
+                Button("Reset Inspector Width", action: resetWidth)
+                    .controlSize(.small).disabled(!canResetWidth)
+                Text("Drag the left divider to resize.")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: 10) {
                         navigationButtons
@@ -102,7 +109,6 @@ struct RowInspector: View {
         }
         }
         }
-        .inspectorColumnWidth(min: 270, ideal: 315, max: 500)
     }
     private var navigationButtons: some View {
         HStack {
