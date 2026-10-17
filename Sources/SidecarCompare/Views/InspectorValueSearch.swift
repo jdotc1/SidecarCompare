@@ -7,6 +7,7 @@ import SidecarCore
 struct InspectorValueSearch: View {
     let row: ComparisonRow
     let revision: [UUID?]
+    let canReveal: Bool
     let canCopy: Bool
     let copyContext: (String) -> Void
     @Bindable var review: InspectorReviewState
@@ -45,6 +46,9 @@ struct InspectorValueSearch: View {
                     HStack(spacing: 6) { matchButtons }
                     VStack(alignment: .leading, spacing: 6) { matchButtons }
                 }.controlSize(.small)
+                Button("Show Match in Value") { review.showCurrentMatch(rowID: row.id, revision: revision) }
+                    .controlSize(.small)
+                    .disabled(!canReveal || currentOutcome?.excerpt(at: review.currentMatch) == nil)
                 Button("Copy Match Context", action: copyMatchContext)
                     .controlSize(.small)
                     .disabled(!canCopy || currentOutcome?.excerpt(at: review.currentMatch) == nil)
@@ -151,16 +155,36 @@ fileprivate struct SearchOutcome: Sendable {
 /// Session-local review state survives presentation changes, never source replacement.
 @Observable @MainActor
 final class InspectorReviewState {
-    var query = ""
+    var query = "" { didSet { if Data(query.utf8) != Data(oldValue.utf8) { revealedMatch = nil } } }
     var showFind = true
     var expandedA = false
     var expandedB = false
     var collapsedA = false
     var collapsedB = false
-    var currentMatch = 0
+    var currentMatch = 0 { didSet { if currentMatch != oldValue { revealedMatch = nil } } }
+    var valueRevealRequest = UUID()
+    fileprivate var revealedMatch: PendingMatch?
     fileprivate var outcome: SearchOutcome?
     fileprivate var failed: SearchIdentity?
     fileprivate var pendingMatch: PendingMatch?
+
+    func showCurrentMatch(rowID: String, revision: [UUID?]) {
+        let identity = SearchIdentity(rowID: rowID, revision: revision, queryBytes: Data(query.utf8))
+        guard outcome?.identity == identity, let match = outcome?.excerpt(at: currentMatch) else { return }
+        if match.side == "A" { collapsedA = false } else { collapsedB = false }
+        revealedMatch = PendingMatch(identity: identity, index: currentMatch)
+        valueRevealRequest = UUID()
+    }
+    func revealedValueMatch(rowID: String, revision: [UUID?], side: String) -> JSONSearchExcerpt? {
+        let identity = SearchIdentity(rowID: rowID, revision: revision, queryBytes: Data(query.utf8))
+        guard revealedMatch?.identity == identity, revealedMatch?.index == currentMatch,
+              outcome?.identity == identity, let match = outcome?.excerpt(at: currentMatch), match.side == side else { return nil }
+        return match.excerpt
+    }
+    func revealedValueSide(rowID: String, revision: [UUID?]) -> String? {
+        for side in ["A", "B"] where revealedValueMatch(rowID: rowID, revision: revision, side: side) != nil { return side }
+        return nil
+    }
 
     func bookmark(rowID: String, revision: [UUID?]) -> InspectorReviewBookmark {
         let identity = SearchIdentity(rowID: rowID, revision: revision, queryBytes: Data(query.utf8))
@@ -175,7 +199,7 @@ final class InspectorReviewState {
         pendingMatch = PendingMatch(identity: SearchIdentity(rowID: rowID, revision: revision, queryBytes: bookmark.query), index: bookmark.match)
     }
     func resetField() {
-        pendingMatch = nil
+        pendingMatch = nil; revealedMatch = nil
         expandedA = false; expandedB = false
         collapsedA = false; collapsedB = false
         currentMatch = 0; outcome = nil; failed = nil

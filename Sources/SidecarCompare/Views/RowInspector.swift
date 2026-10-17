@@ -85,7 +85,7 @@ struct RowInspector: View {
                             Button(review.expandedB ? "B · Show less" : "B · Show more") { review.expandedB.toggle() }
                         }
                     }.controlSize(.small)
-                    InspectorValueSearch(row: row, revision: revision, canCopy: canCopy, copyContext: copyMatchContext, review: review)
+                    InspectorValueSearch(row: row, revision: revision, canReveal: canShowInTable, canCopy: canCopy, copyContext: copyMatchContext, review: review)
                 }
             }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
             Divider()
@@ -107,8 +107,8 @@ struct RowInspector: View {
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                     }
-                    InspectorValueCard(title: "A · Reference", value: row.a, expanded: review.expandedA, collapsed: review.collapsedA).id(row.id + ":A")
-                    InspectorValueCard(title: "B · Comparison", value: row.b, expanded: review.expandedB, collapsed: review.collapsedB).id(row.id + ":B")
+                    InspectorValueCard(title: "A · Reference", value: row.a, expanded: review.expandedA, collapsed: review.collapsedA, match: review.revealedValueMatch(rowID: row.id, revision: revision, side: "A")).id(row.id + ":A")
+                    InspectorValueCard(title: "B · Comparison", value: row.b, expanded: review.expandedB, collapsed: review.collapsedB, match: review.revealedValueMatch(rowID: row.id, revision: revision, side: "B")).id(row.id + ":B")
                     if let delta = row.delta {
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Numeric difference").font(.headline)
@@ -148,6 +148,11 @@ struct RowInspector: View {
                 }
             }.padding(16).frame(maxWidth: .infinity, alignment: .leading).id("inspector-top")
         }
+        .onChange(of: review.valueRevealRequest) { _, _ in
+            if let row, let side = review.revealedValueSide(rowID: row.id, revision: revision) {
+                proxy.scrollTo(row.id + ":" + side, anchor: .top)
+            }
+        }
         .onChange(of: row?.id) { _, _ in
             proxy.scrollTo("inspector-top", anchor: .top)
         }
@@ -171,6 +176,7 @@ private struct InspectorValueCard: View {
     let value: JSONValue?
     let expanded: Bool
     let collapsed: Bool
+    let match: JSONSearchExcerpt?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -195,6 +201,19 @@ private struct InspectorValueCard: View {
                 if value == nil {
                     Text("Field absent from this sidecar.").font(.callout).foregroundStyle(.secondary)
                 } else {
+                    if let match {
+                        Text("Value around current match · byte \(match.bytePosition)")
+                            .font(.caption.weight(.semibold)).monospacedDigit()
+                            .fixedSize(horizontal: false, vertical: true)
+                        (Text(verbatim: match.before) + Text(verbatim: match.match).bold().underline()
+                         + Text(verbatim: (match.matchTruncated ? "…" : "") + match.after))
+                            .font(.system(.callout, design: .monospaced)).textSelection(.enabled)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(match.matchTruncated ? "Bounded raw JSON excerpt; long match truncated." : "Bounded raw JSON excerpt; underlined text is the match.")
+                            .font(.caption).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Divider()
+                    }
                     Text("Raw JSON").font(.caption).foregroundStyle(.secondary)
                     Text(verbatim: shown)
                         .font(.system(.callout, design: .monospaced))
