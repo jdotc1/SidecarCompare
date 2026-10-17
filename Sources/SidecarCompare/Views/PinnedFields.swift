@@ -5,5 +5,6 @@ struct PinnedFields {
     mutating func toggle(_ id: String) {
         if ids.contains(id) { ids.remove(id) } else { ids.insert(id) }
     }
+    mutating func add(_ visibleIDs: [String]) { ids.formUnion(visibleIDs) }
     mutating func retain(_ valid: Set<String>) { ids.formIntersection(valid) }
 }

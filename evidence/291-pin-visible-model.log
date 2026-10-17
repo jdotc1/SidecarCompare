@@ -1,0 +1,1 @@
+Pin Visible checks passed: additive union retains hidden pins, deduplicates, is idempotent and handles empty visibility.

@@ -177,10 +177,6 @@ struct WorkspaceView: View {
             Toggle("Differences only", isOn: $differencesOnly).toggleStyle(.checkbox)
             Toggle("Pinned only (\(pins.ids.count))", isOn: $pinnedOnly)
                 .toggleStyle(.checkbox).disabled(!canModify)
-            Button("Clear Pins (\(pins.ids.count))", action: clearPins)
-                .controlSize(.small)
-                .disabled(!canModify || session.isBusy || pins.ids.isEmpty)
-                .help("Remove all pins and turn off Pinned only, preserving other view settings.")
             Picker("Category", selection: $category) {
                 Text("All categories").tag(Optional<FieldCategory>.none)
                 ForEach(FieldCategory.allCases) { Text($0.rawValue).tag(Optional($0)) }
@@ -208,6 +204,14 @@ struct WorkspaceView: View {
             }.frame(width: 265).disabled(!canModify).help(searchScopeHelp)
 
             }
+            HStack(spacing: 10) {
+                Button("Pin All Visible (\(unpinnedVisibleCount))", action: pinAllVisible)
+                    .disabled(!canModify || session.isBusy || unpinnedVisibleCount == 0)
+                    .help("Add all currently visible fields to existing pins. Count shows newly pinnable fields.")
+                Button("Clear Pins (\(pins.ids.count))", action: clearPins)
+                    .disabled(!canModify || session.isBusy || pins.ids.isEmpty)
+                    .help("Remove all pins and turn off Pinned only, preserving other view settings.")
+            }.controlSize(.small)
             if pinnedOnly || status != nil || category != nil || !search.isEmpty {
                 activeFilterChips
             }
@@ -580,6 +584,13 @@ struct WorkspaceView: View {
         guard canModify, !session.isBusy,
               session.comparison?.rows.contains(where: { $0.id == row.id }) == true else { return }
         pins.toggle(row.id)
+    }
+    private var unpinnedVisibleCount: Int {
+        visibleRows.reduce(0) { $0 + (pins.contains($1.id) ? 0 : 1) }
+    }
+    private func pinAllVisible() {
+        guard canModify, !session.isBusy else { return }
+        pins.add(visibleRows.map(\.id))
     }
     private func clearPins() {
         guard canModify, !session.isBusy, !pins.ids.isEmpty else { return }
