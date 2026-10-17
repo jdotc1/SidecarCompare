@@ -22,6 +22,8 @@ struct WorkspaceView: View {
     @State private var selection: String?
     @State private var restoringReloadSelection = false
     @State private var reloadSelection: String?
+    @State private var reloadSlots: [FileSlot] = []
+    @State private var refreshFeedback: String?
     @State private var actionError: String?
     @State private var notification: String?
     @State private var isCopyingRow = false
@@ -70,13 +72,11 @@ struct WorkspaceView: View {
             if !restoringReloadSelection, let selection, !ids.contains(selection) { self.selection = nil }
         }
         .onChange(of: selection) { _, _ in rowCopyMessage = nil }
-        .onChange(of: session.a?.id) { _, _ in if !restoringReloadSelection { selection = nil }; notification = nil }
-        .onChange(of: session.b?.id) { _, _ in if !restoringReloadSelection { selection = nil }; notification = nil }
+        .onChange(of: session.a?.id) { _, _ in if !restoringReloadSelection { selection = nil; refreshFeedback = nil }; notification = nil }
+        .onChange(of: session.b?.id) { _, _ in if !restoringReloadSelection { selection = nil; refreshFeedback = nil }; notification = nil }
         .onChange(of: session.isBusy || !restoringReloadSelection) { _, waiting in
             guard !waiting else { return }
-            selection = visibleRows.first(where: { $0.id == reloadSelection })?.id
-            reloadSelection = nil
-            restoringReloadSelection = false
+            finishReload()
         }
     }
 
@@ -114,7 +114,7 @@ struct WorkspaceView: View {
     }
     private func fileWell(_ slot: FileSlot) -> some View {
         FileWell(slot: slot, document: session.document(for: slot), loading: session.isLoading(slot), error: session.error(for: slot),
-                 open: { choose(slot) }, receive: { url in if canModify { session.load(url, into: slot) } }, cancel: { session.cancel(slot) }, canReload: canReload(slot), reload: { reload(slot) })
+                 open: { choose(slot) }, receive: { receive($0, into: slot) }, cancel: { session.cancel(slot) }, canReload: canReload(slot), reload: { reload(slot) })
             .id(fileWellReset)
             .contextMenu {
                 Button("Reveal \(slot.rawValue) in Finder") { reveal(slot) }
@@ -273,6 +273,15 @@ struct WorkspaceView: View {
                 Label("A and B were loaded from the same source file; snapshots may have been taken at different times.", systemImage: "exclamationmark.triangle")
                     .foregroundStyle(.secondary)
             }
+            if let refreshFeedback {
+                HStack(alignment: .top, spacing: 8) {
+                    Text(refreshFeedback).fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 8)
+                    Button("Dismiss") { self.refreshFeedback = nil }.buttonStyle(.borderless)
+                }
+                .padding(8)
+                .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 6))
+            }
             Text(notification ?? "Assumes documented BIDS/dcm2niix units. No inherited metadata, image checks, de-identification, or clinical validation.")
                 .foregroundStyle(.secondary)
         }.font(.caption).padding(.horizontal, 16).padding(.vertical, 10)
@@ -350,20 +359,63 @@ struct WorkspaceView: View {
     private var canReloadBoth: Bool { canReload(.a) && canReload(.b) }
     private func reloadBoth() {
         guard canReloadBoth else { return }
-        reloadSelection = selection
-        restoringReloadSelection = true
-        notification = nil
-        rowCopyMessage = nil
+        beginReload([.a, .b])
         session.reloadBoth()
     }
     private func reload(_ slot: FileSlot) {
         guard canReload(slot), let url = session.document(for: slot)?.sourceURL else { return }
+        beginReload([slot])
+        session.load(url, into: slot)
+    }
+    private func beginReload(_ slots: [FileSlot]) {
+        reloadSlots = slots
+        reloadSelection = selection
+        restoringReloadSelection = true
+        refreshFeedback = nil
         notification = nil
+        rowCopyMessage = nil
+    }
+    private func finishReload() {
+        let hadSelection = reloadSelection != nil
+        selection = visibleRows.first(where: { $0.id == reloadSelection })?.id
+        var messages: [String] = []
+        if reloadSlots.count == 2 && reloadSlots.allSatisfy({ session.document(for: $0) != nil }) {
+            messages.append("Both sidecars refreshed.")
+        } else {
+            for slot in reloadSlots {
+                if session.error(for: slot) != nil {
+                    messages.append("\(slot.rawValue) refresh failed.")
+                } else if session.document(for: slot) != nil {
+                    messages.append("\(slot.rawValue) refreshed.")
+                } else {
+                    messages.append("\(slot.rawValue) refresh cancelled.")
+                }
+            }
+        }
+        if session.comparisonError != nil { messages.append("Comparison could not be completed.") }
+        if reloadSlots.contains(where: { session.error(for: $0) != nil }) {
+            messages.append("Use Choose on each unavailable side to retry or select another file.")
+        }
+        if hadSelection {
+            if session.comparison != nil {
+                messages.append(selection != nil ? "Selected field retained." : "Previously selected field is no longer visible in this view.")
+            } else {
+                messages.append("Selection cleared; no comparison is available.")
+            }
+        }
+        refreshFeedback = messages.isEmpty ? nil : messages.joined(separator: " ")
+        reloadSelection = nil
+        reloadSlots = []
+        restoringReloadSelection = false
+    }
+    private func receive(_ url: URL, into slot: FileSlot) {
+        guard canModify else { return }
+        restoringReloadSelection = false; reloadSelection = nil; reloadSlots = []; refreshFeedback = nil
         session.load(url, into: slot)
     }
     private func choose(_ slot: FileSlot) {
         guard canModify else { return }
-        restoringReloadSelection = false; reloadSelection = nil
+        restoringReloadSelection = false; reloadSelection = nil; reloadSlots = []; refreshFeedback = nil
         importSlot = slot; showImporter = true
     }
     private func resetView() {
@@ -371,16 +423,16 @@ struct WorkspaceView: View {
         reloadSelection = nil
         search = ""; category = nil; status = nil; differencesOnly = true
         milliseconds = false; sortOrder = [KeyPathComparator(\ComparisonRow.path)]
-        selection = nil; notification = nil
+        selection = nil; notification = nil; refreshFeedback = nil
     }
     private func clear() {
         guard canModify else { return }
-        restoringReloadSelection = false; reloadSelection = nil
+        restoringReloadSelection = false; reloadSelection = nil; reloadSlots = []; refreshFeedback = nil
         session.clear(); fileWellReset = UUID(); selection = nil; notification = nil
     }
     private func example() {
         guard canModify else { return }
-        restoringReloadSelection = false; reloadSelection = nil
+        restoringReloadSelection = false; reloadSelection = nil; reloadSlots = []; refreshFeedback = nil
         do {
             let pair = try ExampleSidecars.documents()
             session.replace(a: pair.0, b: pair.1)
