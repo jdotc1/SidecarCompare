@@ -208,6 +208,9 @@ struct WorkspaceView: View {
                 Button("Pin All Visible (\(unpinnedVisibleCount))", action: pinAllVisible)
                     .disabled(!canModify || session.isBusy || unpinnedVisibleCount == 0)
                     .help("Add all currently visible fields to existing pins. Count shows newly pinnable fields.")
+                Button("Copy Pinned Pointers (\(pins.ids.count))", action: copyPinnedPointers)
+                    .disabled(!canCopyRow || pins.ids.isEmpty)
+                    .help("Copy all pinned JSON Pointers, including hidden fields, one per line in pointer order.")
                 Button("Clear Pins (\(pins.ids.count))", action: clearPins)
                     .disabled(!canModify || session.isBusy || pins.ids.isEmpty)
                     .help("Remove all pins and turn off Pinned only, preserving other view settings.")
@@ -638,6 +641,25 @@ struct WorkspaceView: View {
         exportSnapshot = ExportSnapshot(comparison: result, documents: session.sourceDocuments, visibleRowCount: visibleRows.count)
     }
     private var canCopyRow: Bool { canModify && !session.isBusy && !isCopyingRow }
+    private func copyPinnedPointers() {
+        guard canCopyRow, !pins.ids.isEmpty, let result = session.comparison else { return }
+        let pinnedIDs = pins.ids
+        isCopyingRow = true
+        Task { @MainActor in
+            defer { isCopyingRow = false }
+            let content = await Task.detached(priority: .userInitiated) {
+                PinnedPointerCopy.content(fields: result.rows.map { (id: $0.id, pointer: $0.path) }, pinnedIDs: pinnedIDs)
+            }.value
+            guard content.count > 0 else { return }
+            NSPasteboard.general.clearContents()
+            let success = NSPasteboard.general.setString(content.text, forType: .string)
+            let feedback = success
+                ? "Copied \(content.count) pinned JSON Pointer\(content.count == 1 ? "" : "s"). The system clipboard may be shared with your other devices."
+                : "Pinned JSON Pointers could not be copied to the clipboard."
+            notification = feedback
+            rowCopyMessage = feedback
+        }
+    }
     private func copyMatchContext(_ text: String) {
         guard canCopyRow else { return }
         NSPasteboard.general.clearContents()

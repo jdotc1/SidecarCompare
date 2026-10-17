@@ -114,3 +114,8 @@ A compact count-bearing Clear Pins action beside Pinned only disables with zero 
 ## Pin All Visible
 
 Compact action row below filters groups Pin All Visible and Clear Pins. Newly pinnable count derives from visibleRows minus current pin IDs; zero/busy/modal disables. Guarded main-actor action unions current visible stable IDs into PinnedFields without removing existing IDs. All filters (including Pinned only), sort, display, selection and inspector review/history remain unchanged. IDs still come only from bounded current comparison rows.
+
+
+## Copy Pinned JSON Pointers
+
+Pin action row offers Copy Pinned Pointers with full pin count, disabled with no pins or existing copy/modal/busy guard. Captures full comparison and pinned ID set, worker filters by stable IDs and sorts original RFC 6901 pointers by UTF-8 bytes before joining with newline (no trailing newline). No display escaping/normalization, values or source filenames added. Existing pasteboard/notification and inspector feedback show count or failure. Selection, filters, sort, pin state and inspector review/history remain untouched.
