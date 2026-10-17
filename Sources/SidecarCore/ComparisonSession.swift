@@ -68,6 +68,12 @@ public final class ComparisonSession {
             }
         }
     }
+    /// Refresh both selected sources before publishing a comparison of the new pair.
+    public func reloadBoth() {
+        guard !isBusy, let left = a?.sourceURL, let right = b?.sourceURL else { return }
+        load(left, into: .a)
+        load(right, into: .b)
+    }
     public func cancel(_ slot: FileSlot) {
         work.generations[slot] = UUID()
         work.loadTasks.removeValue(forKey: slot)?.cancel()
@@ -99,7 +105,7 @@ public final class ComparisonSession {
 
     private func recompare() {
         invalidateComparison()
-        guard let a, let b else { return }
+        guard !loadingA, !loadingB, let a, let b else { return }
         let policy = policy, generation = work.comparisonGeneration
         isComparing = true
         #if DEBUG

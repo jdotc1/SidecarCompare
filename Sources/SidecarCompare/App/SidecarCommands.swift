@@ -8,6 +8,8 @@ struct WorkspaceActions {
     var resetView: @MainActor () -> Void
     var canReloadA: Bool
     var canReloadB: Bool
+    var canReloadBoth: Bool
+    var reloadBoth: @MainActor () -> Void
     var reloadA: @MainActor () -> Void
     var reloadB: @MainActor () -> Void
     var canPreviousDifference: Bool
@@ -45,6 +47,7 @@ struct SidecarCommands: Commands {
             Divider()
             Button("Reload A") { actions?.reloadA() }.disabled(actions?.canReloadA != true)
             Button("Reload B") { actions?.reloadB() }.disabled(actions?.canReloadB != true)
+            Button("Reload Both") { actions?.reloadBoth() }.disabled(actions?.canReloadBoth != true)
             Button("Reveal A in Finder") { actions?.revealA() }.disabled(actions?.canRevealA != true)
             Button("Reveal B in Finder") { actions?.revealB() }.disabled(actions?.canRevealB != true)
             Divider()

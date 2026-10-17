@@ -19,6 +19,8 @@ struct WorkspaceView: View {
     @State private var category: FieldCategory?
     @State private var milliseconds = false
     @State private var selection: String?
+    @State private var restoringReloadSelection = false
+    @State private var reloadSelection: String?
     @State private var actionError: String?
     @State private var notification: String?
     @State private var isCopyingRow = false
@@ -72,11 +74,17 @@ struct WorkspaceView: View {
             if enabled && status == .equal { status = nil }
         }
         .onChange(of: visibleRows.map(\.id)) { _, ids in
-            if let selection, !ids.contains(selection) { self.selection = nil }
+            if !restoringReloadSelection, let selection, !ids.contains(selection) { self.selection = nil }
         }
         .onChange(of: selection) { _, _ in rowCopyMessage = nil }
-        .onChange(of: session.a?.id) { _, _ in selection = nil; notification = nil }
-        .onChange(of: session.b?.id) { _, _ in selection = nil; notification = nil }
+        .onChange(of: session.a?.id) { _, _ in if !restoringReloadSelection { selection = nil }; notification = nil }
+        .onChange(of: session.b?.id) { _, _ in if !restoringReloadSelection { selection = nil }; notification = nil }
+        .onChange(of: session.isBusy || !restoringReloadSelection) { _, waiting in
+            guard !waiting else { return }
+            selection = visibleRows.first(where: { $0.id == reloadSelection })?.id
+            reloadSelection = nil
+            restoringReloadSelection = false
+        }
     }
 
     private var visibleRows: [ComparisonRow] {
@@ -194,6 +202,9 @@ struct WorkspaceView: View {
                 Text("The loaded side remains an in-memory snapshot until you explicitly reload or replace it.")
                     .font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center)
             }.padding(24).frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if session.error(for: .a) != nil || session.error(for: .b) != nil {
+            ContentUnavailableView("Sidecars unavailable", systemImage: "exclamationmark.triangle",
+                                   description: Text("Review the A/B read errors above. Choose each unavailable sidecar again to restore access and compare."))
         } else {
             VStack(spacing: 14) {
                 ContentUnavailableView("Compare two MRI sidecars", systemImage: "doc.text.magnifyingglass", description: Text("Choose a reference and comparison JSON file. Inspect typed differences without modifying either input."))
@@ -225,6 +236,7 @@ struct WorkspaceView: View {
         ToolbarItemGroup {
             Button(action: { choose(.a) }) { Label("Open A", systemImage: "folder") }.disabled(!canModify)
             Button(action: { choose(.b) }) { Label("Open B", systemImage: "folder.badge.plus") }.disabled(!canModify)
+            Button(action: reloadBoth) { Label("Reload Both", systemImage: "arrow.clockwise") }.disabled(!canReloadBoth)
             Button(action: { session.swap() }) { Label("Swap", systemImage: "arrow.left.arrow.right") }.disabled(!session.canSwap || !canModify)
             Button(action: clear) { Label("Clear", systemImage: "xmark.circle") }.disabled(!canModify)
         }
@@ -244,7 +256,7 @@ struct WorkspaceView: View {
     private var actions: WorkspaceActions {
         WorkspaceActions(canRevealA: canReveal(.a), canRevealB: canReveal(.b),
                          revealA: { reveal(.a) }, revealB: { reveal(.b) }, resetView: resetView, canReloadA: canReload(.a), canReloadB: canReload(.b),
-                         reloadA: { reload(.a) }, reloadB: { reload(.b) }, canPreviousDifference: differenceTarget(forward: false) != nil,
+                         canReloadBoth: canReloadBoth, reloadBoth: reloadBoth, reloadA: { reload(.a) }, reloadB: { reload(.b) }, canPreviousDifference: differenceTarget(forward: false) != nil,
                          canNextDifference: differenceTarget(forward: true) != nil,
                          previousDifference: { navigateDifference(forward: false) },
                          nextDifference: { navigateDifference(forward: true) }, canOpen: canModify, canSwap: session.canSwap && canModify, canExport: session.comparison != nil && canModify,
@@ -290,6 +302,15 @@ struct WorkspaceView: View {
     private func canReload(_ slot: FileSlot) -> Bool {
         canModify && !session.isBusy && session.document(for: slot)?.sourceURL != nil
     }
+    private var canReloadBoth: Bool { canReload(.a) && canReload(.b) }
+    private func reloadBoth() {
+        guard canReloadBoth else { return }
+        reloadSelection = selection
+        restoringReloadSelection = true
+        notification = nil
+        rowCopyMessage = nil
+        session.reloadBoth()
+    }
     private func reload(_ slot: FileSlot) {
         guard canReload(slot), let url = session.document(for: slot)?.sourceURL else { return }
         notification = nil
@@ -297,20 +318,24 @@ struct WorkspaceView: View {
     }
     private func choose(_ slot: FileSlot) {
         guard canModify else { return }
+        restoringReloadSelection = false; reloadSelection = nil
         importSlot = slot; showImporter = true
     }
     private func resetView() {
         guard canModify else { return }
+        reloadSelection = nil
         search = ""; category = nil; status = nil; differencesOnly = true
         milliseconds = false; sortOrder = [KeyPathComparator(\ComparisonRow.path)]
         selection = nil; notification = nil
     }
     private func clear() {
         guard canModify else { return }
+        restoringReloadSelection = false; reloadSelection = nil
         session.clear(); fileWellReset = UUID(); selection = nil; notification = nil
     }
     private func example() {
         guard canModify else { return }
+        restoringReloadSelection = false; reloadSelection = nil
         do {
             let pair = try ExampleSidecars.documents()
             session.replace(a: pair.0, b: pair.1)

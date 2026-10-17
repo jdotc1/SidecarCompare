@@ -1,0 +1,38 @@
+Building for production...
+[Provisioning 1 / 6]
+[Planning deferred tasks]
+[5 / 25]
+[6 / 26] SidecarCore
+[8 / 27] SidecarCore
+[16 / 31] SidecarCoreTests-product
+[18 / 31] SidecarCompare-product
+[19 / 32] sidecar-compare-product
+[20 / 33] SidecarCoreTests-product
+[23 / 39]
+[25 / 39] sidecar-compare-product
+[27 / 39]
+[28 / 39] sidecar-compare-product
+[28 / 39]
+[29 / 39] SidecarCoreTests-product
+[34 / 39] SidecarCoreTests-product
+[36 / 39] SidecarCoreTests-product
+[39 / 40] sidecar-compare-product
+[40 / 41] SidecarCompare-product
+[42 / 44] SidecarCompare-product
+[43 / 44] SidecarCompare-product
+Build complete! (12.88 sec)
+Test Suite 'Selected tests' started at 2026-10-16 22:16:26.507.
+Test Suite 'SidecarCoreTests.xctest' started at 2026-10-16 22:16:26.508.
+Test Suite 'ReloadBothTests' started at 2026-10-16 22:16:26.508.
+Test Case '-[SidecarCoreTests.ReloadBothTests testReloadBothClearRejectsLateCompletions]' started.
+Test Case '-[SidecarCoreTests.ReloadBothTests testReloadBothClearRejectsLateCompletions]' passed (0.032 seconds).
+Test Case '-[SidecarCoreTests.ReloadBothTests testReloadBothEitherOrBothFailuresKeepNoStaleComparison]' started.
+Test Case '-[SidecarCoreTests.ReloadBothTests testReloadBothEitherOrBothFailuresKeepNoStaleComparison]' passed (0.028 seconds).
+Test Case '-[SidecarCoreTests.ReloadBothTests testReloadBothWaitsForNewPairAndKeepsPolicy]' started.
+Test Case '-[SidecarCoreTests.ReloadBothTests testReloadBothWaitsForNewPairAndKeepsPolicy]' passed (0.013 seconds).
+Test Suite 'ReloadBothTests' passed at 2026-10-16 22:16:26.581.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.073 (0.073) seconds
+Test Suite 'SidecarCoreTests.xctest' passed at 2026-10-16 22:16:26.581.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.073 (0.074) seconds
+Test Suite 'Selected tests' passed at 2026-10-16 22:16:26.581.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.073 (0.075) seconds
