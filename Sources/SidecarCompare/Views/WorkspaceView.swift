@@ -15,6 +15,8 @@ struct WorkspaceView: View {
     @State private var inspectorWidth: CGFloat = 315
     @State private var inspectorReview = InspectorReviewState()
     @State private var tableRevealRequest = UUID()
+    @State private var inspectorHistory = InspectorHistory()
+    @State private var pendingHistory: Int?
     @State private var exportSnapshot: ExportSnapshot?
     @State private var search = ""
     @State private var differencesOnly = true
@@ -72,6 +74,17 @@ struct WorkspaceView: View {
             }
         }
         .sheet(item: $exportSnapshot) { ExportSheet(snapshot: $0) }
+        .alert("Field hidden by current filters", isPresented: Binding(get: { pendingHistory != nil }, set: { if !$0 { pendingHistory = nil } })) {
+            Button("Cancel", role: .cancel) { pendingHistory = nil }
+            if let target = pendingHistory {
+                Button("Clear Filters and Go") {
+                    pendingHistory = nil
+                    revealHistory(target, clearingFilters: true)
+                }
+            }
+        } message: {
+            Text("Clear filters to return to this field. Sort order, time display and the Find query stay unchanged.")
+        }
         .alert("Action could not be completed", isPresented: Binding(get: { actionError != nil }, set: { if !$0 { actionError = nil } })) {
             Button("OK") { actionError = nil }
         } message: { Text(actionError ?? "") }
@@ -85,9 +98,14 @@ struct WorkspaceView: View {
         .onChange(of: visibleRows.map(\.id)) { _, ids in
             if !restoringReloadSelection, let selection, !ids.contains(selection) { self.selection = nil }
         }
-        .onChange(of: selection) { _, _ in rowCopyMessage = nil; inspectorReview.resetField() }
-        .onChange(of: session.a?.id) { _, _ in if !restoringReloadSelection { selection = nil; refreshFeedback = nil; inspectorReview.resetAll() } else { inspectorReview.resetField() }; notification = nil }
-        .onChange(of: session.b?.id) { _, _ in if !restoringReloadSelection { selection = nil; refreshFeedback = nil; inspectorReview.resetAll() } else { inspectorReview.resetField() }; notification = nil }
+        .onChange(of: selection) { _, selected in
+            rowCopyMessage = nil; inspectorReview.resetField()
+            if !restoringReloadSelection, !session.isBusy, let selected, selectedRow != nil {
+                inspectorHistory.visit(selected)
+            }
+        }
+        .onChange(of: session.a?.id) { _, _ in if !restoringReloadSelection { selection = nil; refreshFeedback = nil; inspectorReview.resetAll(); inspectorHistory = InspectorHistory() } else { inspectorReview.resetField() }; notification = nil }
+        .onChange(of: session.b?.id) { _, _ in if !restoringReloadSelection { selection = nil; refreshFeedback = nil; inspectorReview.resetAll(); inspectorHistory = InspectorHistory() } else { inspectorReview.resetField() }; notification = nil }
         .onChange(of: session.isBusy || !restoringReloadSelection) { _, waiting in
             guard !waiting else { return }
             finishReload()
@@ -108,7 +126,9 @@ struct WorkspaceView: View {
         }
     }
     private var inspector: some View {
-        RowInspector(canResetWidth: abs(inspectorWidth - 315) >= 1,
+        RowInspector(canBack: canModify && !session.isBusy && session.comparison != nil && inspectorHistory.back != nil,
+                     canForward: canModify && !session.isBusy && session.comparison != nil && inspectorHistory.forward != nil,
+                     back: { travelHistory(forward: false) }, forward: { travelHistory(forward: true) }, canResetWidth: abs(inspectorWidth - 315) >= 1,
                      resetWidth: { inspectorWidth = 315 },
                      row: selectedRow, revision: [session.a?.id, session.b?.id], milliseconds: milliseconds, position: differencePosition,
                      canPrevious: differenceTarget(forward: false) != nil,
@@ -345,7 +365,7 @@ struct WorkspaceView: View {
             Button { showInspector.toggle() } label: { Label("Inspector", systemImage: "sidebar.right") }
         }
     }
-    private var canModify: Bool { !showImporter && exportSnapshot == nil && !showPointer }
+    private var canModify: Bool { !showImporter && exportSnapshot == nil && !showPointer && pendingHistory == nil }
     private var actions: WorkspaceActions {
         WorkspaceActions(canGoToPointer: canModify && !session.isBusy && session.comparison != nil,
                          goToPointer: { showPolicy = false; showPointer = true }, canRevealA: canReveal(.a), canRevealB: canReveal(.b),
@@ -431,6 +451,7 @@ struct WorkspaceView: View {
         rowCopyMessage = nil
     }
     private func finishReload() {
+        if let comparison = session.comparison { inspectorHistory.retain(Set(comparison.rows.map(\.id))) }
         let hadSelection = reloadSelection != nil
         selection = visibleRows.first(where: { $0.id == reloadSelection })?.id
         var messages: [String] = []
@@ -475,6 +496,25 @@ struct WorkspaceView: View {
         restoringReloadSelection = false; reloadSelection = nil; reloadSlots = []; refreshFeedback = nil
         importSlot = slot; showImporter = true
     }
+    private func travelHistory(forward: Bool) {
+        guard canModify, !session.isBusy,
+              let target = forward ? inspectorHistory.forward : inspectorHistory.back else { return }
+        let id = inspectorHistory.entries[target]
+        guard session.comparison?.rows.contains(where: { $0.id == id }) == true else { return }
+        if visibleRows.contains(where: { $0.id == id }) { revealHistory(target, clearingFilters: false) }
+        else { pendingHistory = target }
+    }
+    private func revealHistory(_ target: Int, clearingFilters: Bool) {
+        guard canModify, !session.isBusy, inspectorHistory.entries.indices.contains(target) else { return }
+        let id = inspectorHistory.entries[target]
+        guard session.comparison?.rows.contains(where: { $0.id == id }) == true else { return }
+        if clearingFilters { search = ""; category = nil; status = nil; differencesOnly = false }
+        guard visibleRows.contains(where: { $0.id == id }) else { return }
+        inspectorHistory.move(to: target)
+        selection = id
+        showInspector = true
+        tableRevealRequest = UUID()
+    }
     private func clearFilters() {
         guard canModify else { return }
         search = ""; category = nil; status = nil; differencesOnly = false
@@ -489,12 +529,14 @@ struct WorkspaceView: View {
     }
     private func clear() {
         guard canModify else { return }
+        inspectorHistory = InspectorHistory()
         inspectorReview.resetAll()
         restoringReloadSelection = false; reloadSelection = nil; reloadSlots = []; refreshFeedback = nil
         session.clear(); fileWellReset = UUID(); selection = nil; notification = nil
     }
     private func example() {
         guard canModify else { return }
+        inspectorHistory = InspectorHistory()
         inspectorReview.resetAll()
         restoringReloadSelection = false; reloadSelection = nil; reloadSlots = []; refreshFeedback = nil
         do {

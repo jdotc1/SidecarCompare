@@ -1,0 +1,1 @@
+History model checks passed: endpoints, traversal, duplicate visits, branching, pruning, 100-entry bound, empty pruning.
