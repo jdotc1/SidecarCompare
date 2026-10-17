@@ -99,3 +99,8 @@ InspectorHistory keeps per-ID bookmarks only for its bounded retained IDs: query
 JSONValue.inspectorSummary derives presentation-only shape from parsed values: String.count of decoded extended grapheme clusters, immediate Array/Dictionary.count, scalar type text. Empty string/null/zero-item/zero-member/missing remain distinct. InspectorValueCard adds a wrapping caption below type/header with missing fallback; no extra serialization/decoding or state/tasks/callbacks. Original token/raw preview/export/Find/history/expansion behavior unchanged.
 
 Workspace PinnedFields holds session-only stable raw-pointer row IDs, admitting only current comparison rows (bounded by comparison row budget). Toggle via inspector/context callback guarded by canModify/nonbusy/current membership. Pinned only composes with existing search/category/status/differences filters before sorting; count covers all pins, not visible subset. Active chip clears only pinnedOnly. Clear Filters, pointer/history hidden recovery and Reset View clear pinnedOnly but retain IDs. Successful shared reload/Swap/rule restoration intersects pins with full result IDs before visible selection restoration; explicit replacement document hooks/Clear/example discard pins and disable filter. No file persistence/report/core changes or extra review resets. Existing hidden selection clearing applies when unpin removes selected visible row.
+
+
+## Table pin markers
+
+Pinned rows show a secondary pin symbol before the escaped JSON Pointer, with Pinned field help. The marker derives only from the existing stable-ID pin set. Pointer sorting, row identity, selection, filtering and inspector review state remain unchanged.

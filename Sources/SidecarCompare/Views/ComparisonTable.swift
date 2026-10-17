@@ -24,8 +24,16 @@ struct ComparisonTable: View {
                     .foregroundStyle(row.status == .equal ? Color.secondary : Color.primary)
             }.width(min: 118, ideal: 145, max: 185)
             TableColumn("JSON Pointer", value: \.path) { row in
-                Text(row.visiblePath).font(.system(.body, design: .monospaced)).lineLimit(1)
-                    .help(row.visiblePath)
+                HStack(spacing: 6) {
+                    if pinnedIDs.contains(row.id) {
+                        Image(systemName: "pin.fill")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .help("Pinned field")
+                    }
+                    Text(row.visiblePath).font(.system(.body, design: .monospaced)).lineLimit(1)
+                        .help(row.visiblePath)
+                }
             }.width(min: 140, ideal: 250, max: 600)
             TableColumn("A · Reference", value: \.aSortKey) { row in
                 Text(row.displayValue(side: .a, milliseconds: milliseconds))

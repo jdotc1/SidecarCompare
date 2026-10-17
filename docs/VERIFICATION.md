@@ -168,3 +168,8 @@ Cards add parsed-value string character/container count/scalar/missing captions.
 ## Pin fields and Pinned only
 
 Session stable-ID pins with inspector/context actions, count-bearing Pinned only toggle/chip/summary, combined filtering and lifecycle pruning. Model278 passes empty/toggle/membership/prune/reset; builds279/280 warnings-as-errors pass. Native281 existing synthetic long field confirms pin/count1 and Pinned only1of2 preserve selection/Findneedle/Match3of5 B/both expanded. Swap retains pin/filter/selection. Unpin under filter→count0/empty/no selection; removing chip restores2rows. Context Pin Field present; execution verified via inspector/shared callback. Existing core/filter/search/history/reload/export receipts reused; no suites/oracles/accessibility. Reload/rule/replacement/Reset View/hidden-recovery integration source-reviewed, no width/appearance/race campaign.
+
+
+## Table pin markers
+
+Existing stable-ID pins now render a pin symbol beside table JSON Pointers with Pinned field help. Debug283 staging/release284 warnings-as-errors pass. Native285 existing synthetic Review-A/B confirms pin marker appears on FieldOne while FieldTwo remains unmarked; unpin removes marker. Selected FieldOne, Findneedle/Match3of5 B and both expanded values remain unchanged. Screenshot confirms marker placement; tooltip text source-reviewed, hover activation not exercised. Existing model278/pin281/search/history/filter/core/export receipts reused; no repeated tests, suites, oracles or accessibility work. No width/appearance/race campaign.
