@@ -68,3 +68,7 @@ Previous/Next and independent A/B preview toggles stay above scrolling values. R
 ## Export-scope reminder
 
 Export captures visible-row count alongside full comparison and shows Total rows/Currently visible with explicit full-comparison scope. Summary counts all rows; full reports include every row regardless of filters. Native initial layout truncated explanation; vertical wrapping repaired it. Final debug137 staging/release138 compilation pass warnings-as-errors. Native synthetic Type changed view confirmed22 total/1 visible and readable reminder in summary/full modes. Report generation unchanged; prior parity/privacy/export receipts reused, no suites/accessibility work.
+
+## Exact row copying
+
+Inspector Copy menu and table context actions copy JSON Pointer or complete A/B original JSON independently of preview/display units. Missing-side actions disabled; null copyable. Final debug142 staging/release143 compilation pass warnings-as-errors. Native synthetic clipboard assertions confirmed escaped pointer, original beyond2^53 numeric token with exponent spelling, complete9602-character JSON string beyond preview cap, and null. Original-metadata/device-sharing feedback observed. Context actions/missing-side disabling observed; execution verified through inspector/shared callback. Core/parser/report receipts reused; no suites/accessibility work.

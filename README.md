@@ -95,3 +95,7 @@ Use **File → Reveal A in Finder / Reveal B in Finder**, or the corresponding f
 Inspector **Previous/Next** and side-specific **A/B · Show more / Show less** stay in a fixed header while values scroll. You can collapse a long preview or move to the next visible difference without scrolling back. Moving to another field resets expanded previews and brings its heading into view.
 
 The export sheet shows **Total rows** and **Currently visible** rows when opened, with an explicit full-comparison scope reminder. Filters do not limit export: summaries count all rows, and full reports include every row in canonical sidecar units. The visible count is informational and does not change report contents.
+
+### Copying a finding
+
+The inspector’s fixed **Copy** menu and a row’s context menu provide **Copy JSON Pointer**, **Copy A Value · Original JSON**, and **Copy B Value · Original JSON**. Pointer escaping and original numeric tokens are preserved. Value copy includes the complete raw JSON, even when the inspector preview is truncated; it can contain identifying metadata. Missing-side value actions are disabled, while JSON `null` copies as `null`. Feedback reports success/failure and reminds you that the system clipboard may be shared across devices.

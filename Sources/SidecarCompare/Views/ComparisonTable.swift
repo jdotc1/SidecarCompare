@@ -5,6 +5,8 @@ import SidecarCore
 struct ComparisonTable: View {
     let rows: [ComparisonRow]
     let milliseconds: Bool
+    let canCopy: Bool
+    let copy: (ComparisonRow, RowCopyTarget) -> Void
     @Binding var selection: String?
 
     @Binding var sortOrder: [KeyPathComparator<ComparisonRow>]
@@ -33,6 +35,11 @@ struct ComparisonTable: View {
                 Text(row.unit == "s" && milliseconds ? "ms" : row.unit ?? "—")
                     .foregroundStyle(.secondary)
             }.width(min: 65, ideal: 85, max: 110)
+        }
+        .contextMenu(forSelectionType: String.self) { ids in
+            if ids.count == 1, let id = ids.first, let row = rows.first(where: { $0.id == id }) {
+                RowCopyMenu(row: row, enabled: canCopy, copy: copy)
+            }
         }
         .accessibilityLabel("Sidecar metadata comparison")
         .onChange(of: selection) { _, selection in

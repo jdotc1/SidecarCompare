@@ -21,6 +21,8 @@ struct WorkspaceView: View {
     @State private var selection: String?
     @State private var actionError: String?
     @State private var notification: String?
+    @State private var isCopyingRow = false
+    @State private var rowCopyMessage: String?
     @State private var isRevealing = false
 
     init(session: ComparisonSession = ComparisonSession()) {
@@ -47,7 +49,8 @@ struct WorkspaceView: View {
                          canPrevious: differenceTarget(forward: false) != nil,
                          canNext: differenceTarget(forward: true) != nil,
                          previous: { navigateDifference(forward: false) },
-                         next: { navigateDifference(forward: true) })
+                         next: { navigateDifference(forward: true) },
+                         canCopy: canCopyRow, copyMessage: rowCopyMessage, copy: copyRow)
         }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json, .plainText], allowsMultipleSelection: false) { result in
             switch result {
@@ -71,6 +74,7 @@ struct WorkspaceView: View {
         .onChange(of: visibleRows.map(\.id)) { _, ids in
             if let selection, !ids.contains(selection) { self.selection = nil }
         }
+        .onChange(of: selection) { _, _ in rowCopyMessage = nil }
         .onChange(of: session.a?.id) { _, _ in selection = nil; notification = nil }
         .onChange(of: session.b?.id) { _, _ in selection = nil; notification = nil }
     }
@@ -164,7 +168,7 @@ struct WorkspaceView: View {
             if result.rows.isEmpty {
                 ContentUnavailableView("Both objects are empty", systemImage: "doc", description: Text("There are no fields to compare. This does not establish metadata completeness."))
             } else {
-                ComparisonTable(rows: visibleRows, milliseconds: milliseconds, selection: $selection, sortOrder: $sortOrder)
+                ComparisonTable(rows: visibleRows, milliseconds: milliseconds, canCopy: canCopyRow, copy: copyRow, selection: $selection, sortOrder: $sortOrder)
                     .overlay {
                         if visibleRows.isEmpty {
                             VStack(spacing: 10) {
@@ -306,6 +310,30 @@ struct WorkspaceView: View {
     private func export() {
         guard canModify, let result = session.comparison else { return }
         exportSnapshot = ExportSnapshot(comparison: result, documents: session.sourceDocuments, visibleRowCount: visibleRows.count)
+    }
+    private var canCopyRow: Bool { canModify && !session.isBusy && !isCopyingRow }
+    private func copyRow(_ row: ComparisonRow, _ target: RowCopyTarget) {
+        guard canCopyRow else { return }
+        if target == .a && row.a == nil || target == .b && row.b == nil { return }
+        isCopyingRow = true
+        rowCopyMessage = nil
+        Task { @MainActor in
+            defer { isCopyingRow = false }
+            let text = await Task.detached(priority: .userInitiated) { () -> String? in
+                switch target {
+                case .pointer: return row.path
+                case .a: return row.a?.serialized()
+                case .b: return row.b?.serialized()
+                }
+            }.value
+            guard let text else { return }
+            NSPasteboard.general.clearContents()
+            let success = NSPasteboard.general.setString(text, forType: .string)
+            let subject = target == .pointer ? "JSON Pointer copied." : "Complete original JSON value copied; it may identify people."
+            let feedback = success ? subject + " The system clipboard may be shared with your other devices." : "The clipboard could not be updated."
+            rowCopyMessage = feedback
+            notification = feedback
+        }
     }
     private func copySummary() {
         guard canModify, let result = session.comparison else { return }

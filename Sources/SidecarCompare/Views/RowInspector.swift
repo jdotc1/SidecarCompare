@@ -8,6 +8,9 @@ struct RowInspector: View {
     let canNext: Bool
     let previous: () -> Void
     let next: () -> Void
+    let canCopy: Bool
+    let copyMessage: String?
+    let copy: (ComparisonRow, RowCopyTarget) -> Void
     @State private var expandedA = false
     @State private var expandedB = false
 
@@ -22,6 +25,11 @@ struct RowInspector: View {
                     Spacer(minLength: 0)
                 }
                 if let row {
+                    Menu("Copy") { RowCopyMenu(row: row, enabled: canCopy, copy: copy) }
+                        .disabled(!canCopy)
+                    Text(copyMessage ?? "Value copy includes complete original JSON, which may identify people.")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                     HStack(spacing: 8) {
                         if (row.a?.serialized().count ?? 0) > 512 {
                             Button(expandedA ? "A · Show less" : "A · Show more") { expandedA.toggle() }
