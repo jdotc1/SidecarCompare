@@ -40,6 +40,7 @@ struct TableMatchIdentity: Hashable, Sendable {
     let rowID: String
     let revision: [UUID?]
     let query: Data
+    var side: FullValueSearchSide = .both
 }
 
 struct TableMatchLocations: Sendable {
@@ -64,8 +65,8 @@ struct TableMatchLocations: Sendable {
         }
         let query = String(decoding: identity.query, as: UTF8.self)
         return Self(identity: identity,
-                    searchA: try JSONValueSearch.find(row.a, query: query),
-                    searchB: try JSONValueSearch.find(row.b, query: query))
+                    searchA: try JSONValueSearch.find(identity.side == .b ? nil : row.a, query: query),
+                    searchB: try JSONValueSearch.find(identity.side == .a ? nil : row.b, query: query))
     }
 }
 

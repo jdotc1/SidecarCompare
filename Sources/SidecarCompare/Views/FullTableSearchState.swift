@@ -7,6 +7,7 @@ struct FullTableSearchRequest: Hashable, Sendable {
     let policy: String
     let query: Data
     let enabled: Bool
+    var side: FullValueSearchSide = .both
     var needsSearch: Bool { enabled && !query.isEmpty }
 }
 
@@ -28,15 +29,16 @@ final class FullTableSearchState {
     }
 
     func run(_ expected: FullTableSearchRequest, rows: [ComparisonRow],
-             operation: @escaping @Sendable ([ComparisonRow], String) async throws -> Set<String> = {
-                 try FullValueTableSearch.matchingIDs(rows: $0, query: $1)
-             }) async {
+             operation: (@Sendable ([ComparisonRow], String) async throws -> Set<String>)? = nil) async {
         guard !Task.isCancelled else { return }
         let token = UUID()
         generation = token; request = expected; ids = nil; error = nil
         guard expected.needsSearch else { return }
         let query = String(decoding: expected.query, as: UTF8.self)
-        let worker = Task.detached(priority: .userInitiated) { try await operation(rows, query) }
+        let worker = Task.detached(priority: .userInitiated) {
+            if let operation { return try await operation(rows, query) }
+            return try FullValueTableSearch.matchingIDs(rows: rows, query: query, side: expected.side)
+        }
         do {
             let found = try await withTaskCancellationHandler(operation: { try await worker.value }, onCancel: { worker.cancel() })
             guard !Task.isCancelled, generation == token, request == expected else { return }

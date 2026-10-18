@@ -23,6 +23,7 @@ struct WorkspaceView: View {
     @State private var pendingExportReview: ExportInspectorRequest?
     @State private var search = ""
     @State private var fullTableSearch = FullTableSearchState()
+    @State private var fullSearchSide: FullValueSearchSide = .both
     @State private var searchScope = TableSearchScope.pathsAndPreviews
     @State private var differencesOnly = true
     @State private var pins = PinnedFields()
@@ -64,6 +65,7 @@ struct WorkspaceView: View {
         .toolbar { toolbar }
         .onChange(of: Data(search.utf8)) { _, _ in inspectorReview.invalidateTableMatch(expecting: nil); inspectorHistory.clearTableMatches() }
         .onChange(of: searchScope) { _, _ in inspectorReview.invalidateTableMatch(expecting: nil); inspectorHistory.clearTableMatches() }
+        .onChange(of: fullSearchSide) { _, _ in inspectorReview.invalidateTableMatch(expecting: nil); inspectorHistory.clearTableMatches() }
         .task(id: fullSearchRequest) {
             await fullTableSearch.run(fullSearchRequest, rows: session.comparison?.rows ?? [])
         }
@@ -139,7 +141,7 @@ struct WorkspaceView: View {
             if let selected, selected == restoringHistoryReview, let saved = inspectorHistory.review(for: selected) {
                 inspectorReview.restore(saved, rowID: selected, revision: [session.a?.id, session.b?.id],
                                         tableIdentity: searchScope == .fullValues && !search.isEmpty
-                                            ? TableMatchIdentity(rowID: selected, revision: [session.a?.id, session.b?.id], query: Data(search.utf8)) : nil)
+                                            ? TableMatchIdentity(rowID: selected, revision: [session.a?.id, session.b?.id], query: Data(search.utf8), side: fullSearchSide) : nil)
             }
             restoringHistoryReview = nil
             if !restoringReloadSelection, !session.isBusy, let selected, selectedRow != nil {
@@ -172,7 +174,7 @@ struct WorkspaceView: View {
                      canForward: canModify && !session.isBusy && !fullSearchUnavailable && session.comparison != nil && inspectorHistory.forward != nil,
                      back: { travelHistory(forward: false) }, forward: { travelHistory(forward: true) }, canResetWidth: abs(inspectorWidth - 315) >= 1,
                      resetWidth: { inspectorWidth = 315 },
-                     row: selectedRow, revision: [session.a?.id, session.b?.id], tableSearchQuery: fullSearchRequest.needsSearch && !fullSearchUnavailable ? search : nil, milliseconds: milliseconds, position: differencePosition,
+                     row: selectedRow, revision: [session.a?.id, session.b?.id], tableSearchQuery: fullSearchRequest.needsSearch && !fullSearchUnavailable ? search : nil, tableSearchSide: fullSearchSide, milliseconds: milliseconds, position: differencePosition,
                      canPrevious: differenceTarget(forward: false) != nil,
                      canNext: differenceTarget(forward: true) != nil,
                      previous: { navigateDifference(forward: false) },
@@ -186,7 +188,7 @@ struct WorkspaceView: View {
     }
     private var fullSearchRequest: FullTableSearchRequest {
         FullTableSearchRequest(sources: [session.a?.id, session.b?.id], policy: session.policy.relativeTolerance.token,
-                               query: Data(search.utf8), enabled: searchScope == .fullValues && session.comparison != nil && !session.isBusy)
+                               query: Data(search.utf8), enabled: searchScope == .fullValues && session.comparison != nil && !session.isBusy, side: fullSearchSide)
     }
     private var fullSearchPending: Bool { fullTableSearch.pending(for: fullSearchRequest) }
     private var fullSearchFailure: String? { fullTableSearch.failure(for: fullSearchRequest) }
@@ -244,6 +246,11 @@ struct WorkspaceView: View {
 
             }
             HStack(spacing: 10) {
+                if searchScope == .fullValues {
+                    Picker("Search side", selection: $fullSearchSide) {
+                        ForEach(FullValueSearchSide.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    }.frame(width: 185).disabled(!canModify)
+                }
                 Menu("Pins (\(pins.ids.count))") {
                     Button("Pin All Visible (\(unpinnedVisibleCount))", action: pinAllVisible)
                         .disabled(!canModify || session.isBusy || unpinnedVisibleCount == 0)
@@ -333,7 +340,7 @@ struct WorkspaceView: View {
             filterChip("Category: \(category.rawValue)", help: "Clear category filter") { self.category = nil }
         }
         if !search.isEmpty {
-            filterChip("Search: \(searchScope.rawValue)", help: "Clear search") { search = "" }
+            filterChip("Search: \(tableSearchLabel)", help: "Clear search") { search = "" }
         }
     }
     private func filterChip(_ title: String, help: String, clear: @escaping () -> Void) -> some View {
@@ -344,17 +351,20 @@ struct WorkspaceView: View {
             }
         }.help(help)
     }
+    private var tableSearchLabel: String {
+        searchScope == .fullValues ? "Full \(fullSearchSide.valueLabel) values" : searchScope.rawValue
+    }
     private var searchPrompt: String {
         switch searchScope {
         case .pathsAndPreviews: "Search paths and value previews"
         case .pointers: "Search JSON Pointers"
         case .previews: "Search value previews"
-        case .fullValues: "Search full A/B JSON · case-sensitive"
+        case .fullValues: "Search full \(fullSearchSide.valueLabel) JSON · case-sensitive"
         }
     }
     private var searchScopeHelp: String {
         switch searchScope {
-        case .fullValues: "Literal, case-sensitive search of complete raw A/B JSON, including escaping. Runs in the background; changing scope keeps the query. Inspector Find stays independent."
+        case .fullValues: "Literal, case-sensitive search of complete raw \(fullSearchSide.valueLabel) JSON, including escaping. Runs in the background; changing scope keeps the query. Inspector Find stays independent."
         case .pointers: "Search JSON Pointer text. Changing scope keeps the query."
         case .pathsAndPreviews: "Search paths and short A/B value previews. Use Find in values in the inspector to search complete values."
         case .previews: "Search short A/B value previews. Use Find in values in the inspector to search complete values."
@@ -367,7 +377,7 @@ struct WorkspaceView: View {
         var filters = [status?.rawValue ?? (differencesOnly ? "Differences only" : "All rows")]
         if pinnedOnly { filters.append("Pinned only (\(pins.ids.count))") }
         if let category { filters.append(category.rawValue) }
-        if !search.isEmpty { filters.append("Search: \(searchScope.rawValue)") }
+        if !search.isEmpty { filters.append("Search: \(tableSearchLabel)") }
         return filters.joined(separator: " · ")
     }
     private func differenceBreakdown(_ result: Comparison) -> some View {
@@ -428,7 +438,7 @@ struct WorkspaceView: View {
                                     .multilineTextAlignment(.center)
                                     .fixedSize(horizontal: false, vertical: true)
                                 if !search.isEmpty {
-                                    Text(searchScope == .fullValues ? "Search scope: Full A/B values. Literal, case-sensitive complete raw JSON, including escaping." : "Search scope: \(searchScope.rawValue). Value search covers previews, not complete values.")
+                                    Text(searchScope == .fullValues ? "Search scope: \(tableSearchLabel). Literal, case-sensitive complete raw JSON, including escaping." : "Search scope: \(searchScope.rawValue). Value search covers previews, not complete values.")
                                         .font(.caption).foregroundStyle(.secondary)
                                         .multilineTextAlignment(.center)
                                         .fixedSize(horizontal: false, vertical: true)
@@ -742,6 +752,7 @@ struct WorkspaceView: View {
         inspectorReview.resetAll()
         reloadSelection = nil
         searchScope = .pathsAndPreviews
+        fullSearchSide = .both
         pinnedOnly = false
         search = ""; category = nil; status = nil; differencesOnly = true
         milliseconds = false; sortOrder = [KeyPathComparator(\ComparisonRow.path)]

@@ -226,3 +226,8 @@ The inspector offers Copy Table Match Context for a currently revealed, valid ta
 ## Compact table-match review
 
 The fixed inspector header groups table-match A/B counts with an Actions menu containing Show A Match, Show B Match and Copy Table Match Context. Previous/Next sit beside the current match position and side, with stacked fallbacks when width requires. These controls are explicitly grouped under Table matches, distinct from difference and Find navigation. Layout adaptation owns no new review state and retains existing identity, availability, navigation and copy guards.
+
+
+## Full-value table search by side
+
+Full A/B values search exposes a Search side picker: Both (default), A only, or B only. The chosen side controls complete literal raw-JSON membership and inspector table-match counts/navigation; the excluded side has no eligible table matches. The query remains unchanged. Search prompts, active chips, summary and empty-result guidance identify the active side. Worker requests and table reveals include side identity; side changes clear saved table reveals and reject pending results for an earlier side. Inspector Find remains independent, and a selected field that stays visible retains review state. Clear Filters keeps search scope/side settings, while Reset View restores Both. Export snapshots retain their existing membership rules.

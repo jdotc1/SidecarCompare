@@ -12,6 +12,7 @@ struct RowInspector: View {
     let row: ComparisonRow?
     let revision: [UUID?]
     let tableSearchQuery: String?
+    var tableSearchSide: FullValueSearchSide = .both
     let milliseconds: Bool
     let position: String
     let canPrevious: Bool
@@ -284,7 +285,7 @@ struct RowInspector: View {
     }
     private var tableMatchIdentity: TableMatchIdentity? {
         guard let row, let tableSearchQuery, !tableSearchQuery.isEmpty else { return nil }
-        return TableMatchIdentity(rowID: row.id, revision: revision, query: Data(tableSearchQuery.utf8))
+        return TableMatchIdentity(rowID: row.id, revision: revision, query: Data(tableSearchQuery.utf8), side: tableSearchSide)
     }
     private func revealTableMatch(side: String, identity: TableMatchIdentity) {
         guard canShowInTable, tableMatchIdentity == identity,
