@@ -20,6 +20,9 @@ struct ExportSnapshot: Identifiable {
     let documents: [SidecarDocument]
     let visibleRowCount: Int
     var pinnedIDs: Set<String>? = nil
+    var visibleIDs: Set<String>? = nil
+    var isScoped: Bool { pinnedIDs != nil || visibleIDs != nil }
+    var title: String { visibleIDs != nil ? "Export visible comparisons" : pinnedIDs != nil ? "Export pinned comparisons" : "Export comparison" }
     var visiblePinnedIDs: Set<String> = []
     var reviewFields: [PinnedExportField] {
         guard let pinnedIDs else { return [] }
@@ -39,14 +42,15 @@ struct ExportSnapshot: Identifiable {
         guard let field = reviewFields.first(where: { $0.id == id }) else { return nil }
         return ExportInspectorRequest(id: field.id, clearFilters: field.hidden)
     }
-    var selectedCount: Int { comparison.rows.filter { pinnedIDs?.contains($0.id) ?? true }.count }
+    var selectedCount: Int { comparison.rows.filter { (visibleIDs ?? pinnedIDs)?.contains($0.id) ?? true }.count }
     static let pinnedByteLimit = 16 * 1024 * 1024
 
     func render(detail: ReportDetail, json: Bool, limit: Int = pinnedByteLimit) throws -> String {
-        let scope: ReportScope = pinnedIDs.map { .pinned($0) } ?? .all
+        guard pinnedIDs == nil || visibleIDs == nil else { throw SidecarError("Choose one export scope. Nothing was saved or copied.") }
+        let scope: ReportScope = visibleIDs.map { .visible($0) } ?? pinnedIDs.map { .pinned($0) } ?? .all
         let text = json ? ReportRenderer.json(comparison, detail: detail, scope: scope) : ReportRenderer.text(comparison, detail: detail, scope: scope)
-        guard pinnedIDs == nil || text.utf8.count <= limit else {
-            throw SidecarError("Pinned report exceeds the 16 MiB export limit. Nothing was saved or copied. Unpin some fields and try again.")
+        guard !isScoped || text.utf8.count <= limit else {
+            throw SidecarError(visibleIDs != nil ? "Visible report exceeds the 16 MiB export limit. Nothing was saved or copied. Narrow the table filters and try again." : "Pinned report exceeds the 16 MiB export limit. Nothing was saved or copied. Unpin some fields and try again.")
         }
         return text
     }
@@ -72,8 +76,8 @@ struct ExportSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(snapshot.pinnedIDs == nil ? "Export comparison" : "Export pinned comparisons").font(.title2.weight(.semibold))
-            if snapshot.pinnedIDs != nil {
+            Text(snapshot.title).font(.title2.weight(.semibold))
+            if snapshot.isScoped {
                 ScrollView {
                     exportContent.padding(.trailing, 4)
                 }.frame(maxHeight: .infinity)
@@ -85,7 +89,7 @@ struct ExportSheet: View {
             exportActions
         }
         .padding(20).frame(width: 520)
-        .frame(height: snapshot.pinnedIDs == nil ? nil : 540)
+        .frame(height: snapshot.isScoped ? 540 : nil)
         .interactiveDismissDisabled(busy)
         .onChange(of: detail) { _, _ in acknowledged = false; message = nil }
         .alert("Field hidden by current filters", isPresented: Binding(get: { pendingReview != nil }, set: { if !$0 { pendingReview = nil } })) {
@@ -100,14 +104,23 @@ struct ExportSheet: View {
     private var exportContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 8) {
-                Text(snapshot.pinnedIDs == nil ? "Export scope · full comparison" : "Export scope · pinned fields, including hidden pins").font(.headline)
-                HStack(spacing: 24) {
-                    Text(snapshot.pinnedIDs == nil ? "Total rows: \(snapshot.comparison.rows.count)" : "Pinned fields: \(snapshot.selectedCount)")
-                    Text(snapshot.pinnedIDs == nil ? "Currently visible: \(snapshot.visibleRowCount)" : "Visible pins: \(snapshot.visibleRowCount)")
-                }.monospacedDigit()
-                Text(snapshot.pinnedIDs == nil ? "Table filters do not limit export. Summaries count all rows; full reports include every row in canonical sidecar units." : "All pins are included regardless of table filters. Full reports use canonical sidecar units. Limit: 16 MiB; no partial output.")
-                    .font(.callout).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                if snapshot.visibleIDs != nil {
+                    Text("Export scope · visible fields only").font(.headline)
+                    Text("\(snapshot.selectedCount) of \(snapshot.comparison.rows.count) total fields")
+                        .monospacedDigit()
+                    Text("Membership is fixed to the table rows visible when this sheet opened. Summaries count only these fields; full reports include their original values in canonical units. Limit: 16 MiB; no partial output.")
+                        .font(.callout).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text(snapshot.pinnedIDs == nil ? "Export scope · full comparison" : "Export scope · pinned fields, including hidden pins").font(.headline)
+                    HStack(spacing: 24) {
+                        Text(snapshot.pinnedIDs == nil ? "Total rows: \(snapshot.comparison.rows.count)" : "Pinned fields: \(snapshot.selectedCount)")
+                        Text(snapshot.pinnedIDs == nil ? "Currently visible: \(snapshot.visibleRowCount)" : "Visible pins: \(snapshot.visibleRowCount)")
+                    }.monospacedDigit()
+                    Text(snapshot.pinnedIDs == nil ? "Table filters do not limit export. Summaries count all rows; full reports include every row in canonical sidecar units." : "All pins are included regardless of table filters. Full reports use canonical sidecar units. Limit: 16 MiB; no partial output.")
+                        .font(.callout).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             .padding(12).frame(maxWidth: .infinity, alignment: .leading)
             .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))

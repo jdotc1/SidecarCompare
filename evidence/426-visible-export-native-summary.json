@@ -1,0 +1,23 @@
+{
+  "application": "SidecarCompare",
+  "applicationVersion": "0.1.0",
+  "catalogRevision": "2026-10-14.1",
+  "counts": {
+    "A only": 0,
+    "B only": 0,
+    "Changed": 1,
+    "Equal": 0,
+    "Type changed": 0,
+    "Within tolerance": 0
+  },
+  "detail": "summary",
+  "differenceCount": 1,
+  "relativeTolerance": 0,
+  "rowCount": 1,
+  "schemaVersion": 1,
+  "scope": "Selected JSON files only. No BIDS inheritance, image inspection, de-identification, or clinical validation.",
+  "selection": "Visible fields only (snapshot of table filters)",
+  "toleranceRule": "abs(B-A) <= r * max(abs(A), abs(B)); curated MRI quantities only",
+  "totalRowCount": 22,
+  "units": "Canonical sidecar units; display-unit choices do not change this report"
+}

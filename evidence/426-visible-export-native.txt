@@ -1,0 +1,6 @@
+Native426 — Export Visible Comparisons
+Synthetic built-in example,22total/9differences. Table searchEchoTime gives1visible row. SelectEchoTime, Find0/A Match1of5, collapseA, pinEchoTime(1pin).
+Toolbar Export menu offers FullComparison and ExportVisibleComparisons(1). Visible sheet says visible fields only/1of22total/membership fixed at open/16MiB no partial. Summary+JSON defaults.
+Copy yields scope Visible fields only (snapshot of table filters),rowCount1,totalRowCount22,differenceCount1,no rows/fieldnames/values. Parsed clipboard receipt426-summary retained.
+Full selection shows existing privacy warning/acknowledgment and disablesCopy+Save until acknowledgment; checking acknowledgment enables both. Cancel returns to EchoTime filter/selection,1pin,Find0/A Match1of5,Aclosed. Review state unchanged.
+Native screenshot capture failed with ScreenCaptureKit -3811; no screenshot claimed. Text/native UI state and parsed synthetic clipboard provide interaction evidence. No capture permissions/settings changes. One stale element index recovered via fresh native state. No accessibility work.

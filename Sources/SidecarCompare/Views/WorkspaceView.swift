@@ -480,7 +480,12 @@ struct WorkspaceView: View {
             Button { showPolicy = true } label: { Label("Comparison Rule", systemImage: "slider.horizontal.3") }
                 .disabled(!canModify)
                 .popover(isPresented: $showPolicy) { PolicyEditor(policy: session.policy, apply: applyPolicy) }
-            Button(action: export) { Label("Export", systemImage: "square.and.arrow.up") }.disabled(session.comparison == nil || !canModify)
+            Menu {
+                Button("Export Full Comparison…", action: export)
+                Button("Export Visible Comparisons (\(visibleRows.count))…", action: exportVisibleComparisons)
+                    .disabled(visibleRows.isEmpty || session.isBusy)
+            } label: { Label("Export", systemImage: "square.and.arrow.up") }
+                .disabled(session.comparison == nil || !canModify)
             Button { showInspector.toggle() } label: { Label("Inspector", systemImage: "sidebar.right") }
         }
     }
@@ -729,6 +734,12 @@ struct WorkspaceView: View {
     private func export() {
         guard canModify, let result = session.comparison else { return }
         exportSnapshot = ExportSnapshot(comparison: result, documents: session.sourceDocuments, visibleRowCount: visibleRows.count)
+    }
+    private func exportVisibleComparisons() {
+        guard canModify, !session.isBusy, !visibleRows.isEmpty, let result = session.comparison else { return }
+        let ids = Set(visibleRows.map(\.id))
+        exportSnapshot = ExportSnapshot(comparison: result, documents: session.sourceDocuments,
+                                        visibleRowCount: ids.count, visibleIDs: ids)
     }
     private func finishExportReview() {
         guard let request = pendingExportReview else { return }

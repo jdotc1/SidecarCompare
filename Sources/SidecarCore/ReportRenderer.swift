@@ -5,13 +5,25 @@ public enum ReportDetail: String, Sendable, CaseIterable { case summary, full }
 public enum ReportScope: Sendable {
     case all
     case pinned(Set<String>)
+    case visible(Set<String>)
 
     fileprivate func select(_ comparison: Comparison) -> Comparison {
-        guard case .pinned(let ids) = self else { return comparison }
+        let ids: Set<String>
+        switch self {
+        case .all: return comparison
+        case .pinned(let selected), .visible(let selected): ids = selected
+        }
         return Comparison(rows: comparison.rows.filter { ids.contains($0.id) }
             .sorted { $0.path.utf8.lexicographicallyPrecedes($1.path.utf8) }, policy: comparison.policy)
     }
-    fileprivate var isPinned: Bool { if case .pinned = self { return true }; return false }
+    fileprivate var selectionNote: String? {
+        switch self {
+        case .all: return nil
+        case .pinned: return "Pinned fields only, including pins hidden by table filters"
+        case .visible: return "Visible fields only (snapshot of table filters)"
+        }
+    }
+    fileprivate var isVisible: Bool { if case .visible = self { return true }; return false }
 }
 
 public enum ReportRenderer {
@@ -21,6 +33,7 @@ public enum ReportRenderer {
     public static let privacyNote = "Full reports retain original metadata, including embedded filenames and paths, which may identify people. The app does not add selected-file names or paths. Review before sharing."
 
     public static func json(_ comparison: Comparison, detail: ReportDetail, scope: ReportScope = .all) -> String {
+        let totalRowCount = comparison.rows.count
         let comparison = scope.select(comparison)
         var report: [JSONKey: JSONValue] = [
             "schemaVersion": .number(integer(1)),
@@ -36,7 +49,8 @@ public enum ReportRenderer {
             "differenceCount": .number(integer(comparison.differenceCount)),
             "counts": .object(Dictionary(uniqueKeysWithValues: DifferenceStatus.allCases.map { (JSONKey($0.rawValue), .number(integer(comparison.counts[$0] ?? 0))) }))
         ]
-        if scope.isPinned { report["selection"] = .string("Pinned fields only, including pins hidden by table filters") }
+        if let selection = scope.selectionNote { report["selection"] = .string(selection) }
+        if scope.isVisible { report["totalRowCount"] = .number(integer(totalRowCount)) }
         if detail == .full {
             report["privacyWarning"] = .string(privacyNote)
             report["rows"] = .array(comparison.rows.map { row in
@@ -54,12 +68,14 @@ public enum ReportRenderer {
     }
 
     public static func text(_ comparison: Comparison, detail: ReportDetail, scope: ReportScope = .all) -> String {
+        let totalRowCount = comparison.rows.count
         let comparison = scope.select(comparison)
         var lines = ["SidecarCompare \(appVersion)", "Report schema: 1; Catalog revision: \(FieldCatalog.revision)", scopeNote,
                      comparison.policy.label, "Relative tolerance fraction: \(comparison.policy.relativeTolerance.token)", toleranceRule,
                      "Rows: \(comparison.rows.count); differences: \(comparison.differenceCount)",
                      "Within-tolerance changes remain differences, not exact equality."]
-        if scope.isPinned { lines.append("Selection: Pinned fields only, including pins hidden by table filters") }
+        if let selection = scope.selectionNote { lines.append("Selection: " + selection) }
+        if scope.isVisible { lines.append("Total comparison rows: \(totalRowCount)") }
         for status in DifferenceStatus.allCases { lines.append("\(status.rawValue): \(comparison.counts[status] ?? 0)") }
         if detail == .full {
             lines.append(privacyNote)

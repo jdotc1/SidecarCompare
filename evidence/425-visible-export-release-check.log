@@ -1,0 +1,1 @@
+PASS: fixed visible membership including equal rows, summary counts/privacy, JSON/text scope and total, canonical order, exact original numbers/delta, missing/null, empty snapshot, conflicting scopes, exact UTF8 size boundary and whole-output rejection; independent Python JSON/integer oracle
