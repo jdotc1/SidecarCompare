@@ -27,12 +27,12 @@ import SidecarCore
         assert(snapshot.reviewReminder.contains("all 3 captured fields will be exported"))
         assert(snapshot.visibleIDs == Set(all.map(\.id)) && snapshot.selectedCount == 3)
         assert(snapshot.reviewFields(matching: "").map(\.id) == all.map(\.id))
-        assert(snapshot.inspectorRequest(for: all[0].id) == nil)
+        assert(snapshot.inspectorRequest(for: all[0].id)?.clearFilters == false)
         let report = try JSONParser.parse(Data(snapshot.render(detail: .summary, json: true).utf8)).serialized()
         assert(report.contains(#""rowCount":3"#) && report.contains(#""totalRowCount":4"#))
         let ordinary = ExportSnapshot(comparison: comparison, documents: [], visibleRowCount: 3)
         assert(ordinary.reviewFields.isEmpty)
-        print("PASS: captured pointer/status list and canonical order, case-insensitive escaped-pointer search/status intersection/empty recovery, no hidden/value/status search leakage, complete-snapshot status counts and membership/reminder retained, summary still exports all captured fields, visible inspector navigation unavailable")
+        print("PASS: captured pointer/status list and canonical order, case-insensitive escaped-pointer search/status intersection/empty recovery, no hidden/value/status search leakage, complete-snapshot status counts and membership/reminder retained, summary still exports all captured fields, visible request preserves filters")
     }
 }
 SWIFT

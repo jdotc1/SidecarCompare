@@ -744,8 +744,9 @@ struct WorkspaceView: View {
     private func finishExportReview() {
         guard let request = pendingExportReview else { return }
         pendingExportReview = nil
-        guard canModify, !session.isBusy, pins.contains(request.id),
-              session.comparison?.rows.contains(where: { $0.id == request.id }) == true else { return }
+        guard canModify, !session.isBusy,
+              request.isValid(currentSourceIDs: session.sourceDocuments.map(\.id),
+                              currentRowIDs: Set(session.comparison?.rows.map(\.id) ?? []), pins: pins.ids) else { return }
         if request.clearFilters { clearFilters() }
         guard visibleRows.contains(where: { $0.id == request.id }) else { return }
         if selection != request.id { restoringHistoryReview = request.id }

@@ -1,0 +1,1 @@
+PASS: visible captured/unpinned target direct request, outside/stale target rejection, source identity/current comparison validation, no visible-filter clearing, pinned authorization retained, review search independent of membership, ordinary export has no review request

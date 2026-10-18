@@ -12,6 +12,13 @@ struct PinnedExportField: Identifiable {
 struct ExportInspectorRequest {
     let id: String
     let clearFilters: Bool
+    let requiresPin: Bool
+    let sourceIDs: [UUID]
+
+    func isValid(currentSourceIDs: [UUID], currentRowIDs: Set<String>, pins: Set<String>) -> Bool {
+        sourceIDs == currentSourceIDs && currentRowIDs.contains(id)
+            && (requiresPin ? pins.contains(id) : !clearFilters)
+    }
 }
 
 struct ExportSnapshot: Identifiable {
@@ -39,9 +46,10 @@ struct ExportSnapshot: Identifiable {
         return fields.filter { (status == nil || $0.status == status) && (query.isEmpty || $0.pointer.localizedCaseInsensitiveContains(query)) }
     }
     func inspectorRequest(for id: String) -> ExportInspectorRequest? {
-        guard visibleIDs == nil, pinnedIDs != nil,
+        guard isScoped, pinnedIDs == nil || visibleIDs == nil,
               let field = reviewFields.first(where: { $0.id == id }) else { return nil }
-        return ExportInspectorRequest(id: field.id, clearFilters: field.hidden)
+        return ExportInspectorRequest(id: field.id, clearFilters: field.hidden,
+                                      requiresPin: visibleIDs == nil, sourceIDs: documents.map(\.id))
     }
     var reviewReminder: String {
         visibleIDs != nil
@@ -209,6 +217,11 @@ struct ExportSheet: View {
                 Text(snapshot.reviewReminder)
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                if snapshot.visibleIDs != nil {
+                    Text("Review in Inspector leaves export without saving. Reopening export starts at Summary.")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 10) {
                         if fields.isEmpty {
@@ -224,13 +237,11 @@ struct ExportSheet: View {
                                 HStack {
                                     Text(field.status.rawValue).font(.caption)
                                     Spacer(minLength: 8)
-                                    if snapshot.visibleIDs == nil {
-                                        Button("Review in Inspector") {
-                                            guard let request = snapshot.inspectorRequest(for: field.id) else { return }
-                                            if request.clearFilters { pendingReview = request }
-                                            else { reviewField(request) }
-                                        }.controlSize(.small)
-                                    }
+                                    Button("Review in Inspector") {
+                                        guard let request = snapshot.inspectorRequest(for: field.id) else { return }
+                                        if request.clearFilters { pendingReview = request }
+                                        else { reviewField(request) }
+                                    }.controlSize(.small)
                                 }
                                 if field.hidden {
                                     Text("Hidden in current view").font(.caption).foregroundStyle(.secondary)

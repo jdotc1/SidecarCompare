@@ -1,0 +1,5 @@
+Native436 — Review in Inspector from visible export
+Built-in synthetic22rows, ExampleVendor query→3visible. Visit unpinnedRevision, Find1/A Match1of2, collapseB. SelectNewFlag to saveRevision review. Pins0 throughout.
+OpenVisibleExport(3); Typechanged reviewfilter showsRevision. Caption explicitly leaves export without saving/reopensSummary. SelectFull,acknowledge,PlainText, then ReviewinInspector forRevision. Sheetdismisses, Revisionselected/revealed, ExampleVendorfilterretained,Pins0, Find1/A Match1of2/Bclosed restored. No save/copy invoked.
+ReopenVisibleExport: Summary+JSONdefaults, fullchoice/ack not carried across presentations. Typechanged→ReviewRevision again samefield; Find1/A Match1of2/Bclosed/filter remain intact.
+Text/native interaction evidence only; no screenshot/fullvisualaudit claimed. No accessibility/permissions/settings work.
