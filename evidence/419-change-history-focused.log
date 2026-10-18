@@ -1,0 +1,1 @@
+PASS: Back/Forward restore independent A/B excerpts and empty boundaries; Find/query/scope/match/follow/presentation preserved; no reveal-scroll request or forced disclosure; changed query stays current; row/revision validation; explicit Find choice and history invalidation

@@ -49,4 +49,5 @@ struct InspectorReviewBookmark {
     var scope: InspectorFindScope = .both
     var collapsedTextSummary = false
     var collapsedNumericSummary = false
+    var revealedChange: ChangedSpanRequest? = nil
 }

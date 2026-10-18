@@ -3,8 +3,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 mkdir -p "$ROOT/dist"
 CHECK="$(mktemp "$ROOT/dist/history-check.XXXXXX.swift")"
-trap 'rm -f "$CHECK"' EXIT
-cat "$ROOT/Sources/SidecarCompare/Views/InspectorHistory.swift" > "$CHECK"
+trap 'rm -f "$CHECK" "${CHECK}.bin"' EXIT
+cat "$ROOT/Sources/SidecarCompare/Views/ChangedSpanReveal.swift" "$ROOT/Sources/SidecarCompare/Views/InspectorHistory.swift" > "$CHECK"
 cat >> "$CHECK" <<'SWIFT'
 
 var history = InspectorHistory()
@@ -32,4 +32,5 @@ reviewed.save(saved, for: "A"); reviewed.clearReviews()
 assert(reviewed.review(for: "A") == nil)
 print("History model checks passed: traversal/bounds/pruning plus review save, branch eviction and invalidation.")
 SWIFT
-swift "$CHECK"
+swiftc -target "$(uname -m)-apple-macosx15.0" -warnings-as-errors -I "$ROOT/.build/out/Products/Debug" "$ROOT/.build/out/Products/Debug/SidecarCore.o" "$CHECK" -o "${CHECK}.bin"
+"${CHECK}.bin"

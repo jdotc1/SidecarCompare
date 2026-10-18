@@ -1,0 +1,5 @@
+Native420 — revealed text change history
+Existing synthetic Text-A/B; fixtures unchanged. /Text: FindNEW/B Match1of1, Aexpanded/Bshort, Bclosed, summaryclosed. RevealA byte9005/span5, then collapseA before visiting Empty. Empty stores a separate B reveal byte2/span5.
+Back restores Text with Aclosed/Bclosed, summaryoff, A Showless/B Showmore, FindNEW/B Match1of1. Inspector scrollbar0 confirms no reveal jump. OpeningA with ordinary Expand section shows restored byte9005/span5 excerpt, without another ShowChange action. Screenshot420local.
+Forward restores Empty B byte2/span5 excerpt, independent of Text A. Back restores Text A. Explicit ShowMatch reveals B Find byte9009; Forward thenBack leaves changed-span excerpt absent and FindNEW/B Match1of1, Aexpanded/Bshort, summaryclosed intact.
+Initial native connection timed out; reconnect succeeded. One interaction guard required refreshing native target; continued with supported UI controls. No permissions/settings changes or accessibility work.
