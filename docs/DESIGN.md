@@ -221,3 +221,8 @@ Back/Forward restores the saved table-match side, position and bounded excerpt o
 ## Copy Table Match Context
 
 The inspector offers Copy Table Match Context for a currently revealed, valid table match. Output includes A/B side, combined match position, raw JSON byte location, JSON Pointer quoted as a JSON string, and the bounded raw-JSON excerpt with explicit incomplete-value/truncation labels. It reuses the existing clipboard feedback path, including metadata/device-sharing caution. Copy is unavailable before reveal, while copying is disallowed, or for stale query/source/field identity. It does not change Find, navigation, expansion, section collapse, summaries or history.
+
+
+## Compact table-match review
+
+The fixed inspector header groups table-match A/B counts with an Actions menu containing Show A Match, Show B Match and Copy Table Match Context. Previous/Next sit beside the current match position and side, with stacked fallbacks when width requires. These controls are explicitly grouped under Table matches, distinct from difference and Find navigation. Layout adaptation owns no new review state and retains existing identity, availability, navigation and copy guards.

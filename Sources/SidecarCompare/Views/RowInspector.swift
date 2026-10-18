@@ -88,36 +88,7 @@ struct RowInspector: View {
                         }
                     }
                     if let identity = tableMatchIdentity {
-                        Menu("Show Table Match") {
-                            Button("Show A Match") { revealTableMatch(side: "A", identity: identity) }
-                                .disabled(tableMatchLocations?.identity != identity || tableMatchLocations?.a == nil)
-                            Button("Show B Match") { revealTableMatch(side: "B", identity: identity) }
-                                .disabled(tableMatchLocations?.identity != identity || tableMatchLocations?.b == nil)
-                            Text("Choose the first match on either side; inspector Find stays unchanged.")
-                        }.controlSize(.small).disabled(!canShowInTable)
-                        if let locations = tableMatchLocations, locations.identity == identity {
-                            let index = review.tableMatchIndex(identity: identity)
-                            HStack(spacing: 8) {
-                                Button("Previous Table Match") { review.moveTableMatch(locations, offset: -1) }
-                                    .disabled(!canShowInTable || locations.total == 0 || index == 0)
-                                Button("Next Table Match") { review.moveTableMatch(locations, offset: 1) }
-                                    .disabled(!canShowInTable || locations.total == 0 || index == locations.total - 1)
-                            }.controlSize(.small)
-                            Button("Copy Table Match Context") {
-                                guard canCopy, tableMatchIdentity == identity,
-                                      let text = review.tableMatchContext(row: row, locations: locations) else { return }
-                                copyMatchContext(text)
-                            }.controlSize(.small)
-                                .disabled(!canCopy || !canShowInTable || review.tableMatchContext(row: row, locations: locations) == nil)
-                            Text(index.map { "Table match \($0 + 1) of \(locations.total) · \($0 < locations.countA ? "A" : "B") · A: \(locations.countA) · B: \(locations.countB)" }
-                                 ?? "Table matches · A: \(locations.countA) · B: \(locations.countB)")
-                                .font(.caption).foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        if tableMatchFailed {
-                            Text("Table match unavailable. Change the table query to try again.")
-                                .font(.caption).foregroundStyle(.secondary)
-                        }
+                        tableMatchControls(row: row, identity: identity)
                     }
                     Text(copyMessage ?? "Value copy includes complete original JSON, which may identify people.")
                         .font(.caption).foregroundStyle(.secondary)
@@ -244,6 +215,72 @@ struct RowInspector: View {
             } catch is CancellationError { }
             catch { guard !Task.isCancelled else { return }; tableMatchFailed = true }
         }
+    }
+    @ViewBuilder private func tableMatchControls(row: ComparisonRow, identity: TableMatchIdentity) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 8) {
+                    tableMatchCounts(identity: identity).fixedSize()
+                    tableMatchActions(row: row, identity: identity)
+                }
+                VStack(alignment: .leading, spacing: 6) {
+                    tableMatchCounts(identity: identity)
+                    tableMatchActions(row: row, identity: identity)
+                }
+            }
+            if let locations = tableMatchLocations, locations.identity == identity {
+                let index = review.tableMatchIndex(identity: identity)
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 8) {
+                        tableMatchNavigation(locations: locations, index: index)
+                        tableMatchPosition(locations: locations, index: index).fixedSize()
+                    }
+                    VStack(alignment: .leading, spacing: 6) {
+                        tableMatchNavigation(locations: locations, index: index)
+                        tableMatchPosition(locations: locations, index: index)
+                    }
+                }
+            }
+            if tableMatchFailed {
+                Text("Table match unavailable. Change the table query to try again.")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+    private func tableMatchCounts(identity: TableMatchIdentity) -> some View {
+        Text(tableMatchLocations.flatMap { $0.identity == identity ? "Table matches · A: \($0.countA) · B: \($0.countB)" : nil } ?? "Table matches")
+            .font(.caption).foregroundStyle(.secondary).monospacedDigit()
+            .fixedSize(horizontal: false, vertical: true)
+    }
+    private func tableMatchActions(row: ComparisonRow, identity: TableMatchIdentity) -> some View {
+        Menu("Actions") {
+            Button("Show A Match") { revealTableMatch(side: "A", identity: identity) }
+                .disabled(tableMatchLocations?.identity != identity || tableMatchLocations?.a == nil)
+            Button("Show B Match") { revealTableMatch(side: "B", identity: identity) }
+                .disabled(tableMatchLocations?.identity != identity || tableMatchLocations?.b == nil)
+            Divider()
+            Button("Copy Table Match Context") {
+                guard canCopy, tableMatchIdentity == identity,
+                      let locations = tableMatchLocations, locations.identity == identity,
+                      let text = review.tableMatchContext(row: row, locations: locations) else { return }
+                copyMatchContext(text)
+            }.disabled(!canCopy || tableMatchLocations?.identity != identity || review.tableMatchIndex(identity: identity) == nil)
+            Text("Choose the first match on either side; inspector Find stays unchanged.")
+        }.controlSize(.small).disabled(!canShowInTable)
+    }
+    private func tableMatchNavigation(locations: TableMatchLocations, index: Int?) -> some View {
+        HStack(spacing: 8) {
+            Button("Previous") { review.moveTableMatch(locations, offset: -1) }
+                .disabled(!canShowInTable || locations.total == 0 || index == 0)
+            Button("Next") { review.moveTableMatch(locations, offset: 1) }
+                .disabled(!canShowInTable || locations.total == 0 || index == locations.total - 1)
+        }.controlSize(.small).fixedSize()
+    }
+    private func tableMatchPosition(locations: TableMatchLocations, index: Int?) -> some View {
+        Text(index.map { "Match \($0 + 1) of \(locations.total) · \($0 < locations.countA ? "A" : "B")" } ?? "No match revealed")
+            .font(.caption).foregroundStyle(.secondary).monospacedDigit()
+            .fixedSize(horizontal: false, vertical: true)
     }
     private var tableMatchIdentity: TableMatchIdentity? {
         guard let row, let tableSearchQuery, !tableSearchQuery.isEmpty else { return nil }

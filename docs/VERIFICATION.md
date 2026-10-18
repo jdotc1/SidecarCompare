@@ -382,3 +382,8 @@ Warnings-as-errors debug469/release471 builds and focused470 pass. Focused check
 ## Copy Table Match Context — 2026-10-18
 
 Warnings-as-errors debug474/release476 and focused475 pass. Focused checks cover escaped RFC6901 pointer, exact Unicode context and raw byte9015 beyond preview, A/B combined position, explicit bounded/truncated labels, absent/query/source invalidation, and unchanged Find/index/expansion/collapse/summary/history/reveal request. Native477 confirms disabled-before-reveal, Revision B match2of2 raw byte2, exact synthetic clipboard payload, copy feedback and retained independent Find1/A1of2, table position and A collapsed. Passing464467navigation/470472history/448449search and existing clipboard/export receipts reused. No broad suites, accessibility/settings changes or screenshot/full visual audit claim.
+
+
+## Compact table-match review — 2026-10-18
+
+Warnings-as-errors debug479/release480 builds pass. Native481 inspected ordinary315 and minimum270-point inspector screenshots, readable table counts/Actions/navigation/position, relocated menu membership and copy feedback. Revision tableB2of2 byte2, independent Find1 A1of2 and A collapsed survive width change/copy/reset. Authorized temporary foreground driver drag used after in-app drag no-op; snapshot context recovered before gesture. Model/search/history/clipboard behavior unchanged; passing464467470472475477 and core/export receipts reused without new model suites. Only text native receipt/logs are published; screenshots retained locally. No accessibility/settings/permission changes.
