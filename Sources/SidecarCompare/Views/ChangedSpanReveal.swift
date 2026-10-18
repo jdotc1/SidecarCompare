@@ -44,8 +44,18 @@ struct TableMatchIdentity: Hashable, Sendable {
 
 struct TableMatchLocations: Sendable {
     let identity: TableMatchIdentity
-    let a: JSONSearchExcerpt?
-    let b: JSONSearchExcerpt?
+    let searchA: JSONValueSearch
+    let searchB: JSONValueSearch
+    var a: JSONSearchExcerpt? { searchA.excerpt(at: 0) }
+    var b: JSONSearchExcerpt? { searchB.excerpt(at: 0) }
+    var countA: Int { searchA.count }
+    var countB: Int { searchB.count }
+    var total: Int { countA + countB }
+    func match(at index: Int) -> (side: String, excerpt: JSONSearchExcerpt)? {
+        guard index >= 0, index < total else { return nil }
+        if index < countA { return searchA.excerpt(at: index).map { ("A", $0) } }
+        return searchB.excerpt(at: index - countA).map { ("B", $0) }
+    }
 
     static func prepare(row: ComparisonRow, identity: TableMatchIdentity) throws -> Self {
         try Task.checkCancellation()
@@ -54,13 +64,14 @@ struct TableMatchLocations: Sendable {
         }
         let query = String(decoding: identity.query, as: UTF8.self)
         return Self(identity: identity,
-                    a: try JSONValueSearch.find(row.a, query: query).excerpt(at: 0),
-                    b: try JSONValueSearch.find(row.b, query: query).excerpt(at: 0))
+                    searchA: try JSONValueSearch.find(row.a, query: query),
+                    searchB: try JSONValueSearch.find(row.b, query: query))
     }
 }
 
 struct TableMatchReveal {
     let identity: TableMatchIdentity
     let side: String
+    let index: Int
     let excerpt: JSONSearchExcerpt
 }

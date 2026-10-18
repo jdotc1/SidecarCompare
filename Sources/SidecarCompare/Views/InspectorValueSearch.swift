@@ -223,10 +223,22 @@ final class InspectorReviewState {
         if revealedTableMatch?.identity != identity { revealedTableMatch = nil }
     }
     func showTableMatch(_ locations: TableMatchLocations, side: String) {
-        let excerpt = side == "A" ? locations.a : side == "B" ? locations.b : nil
-        guard let excerpt else { return }
-        if side == "A" { collapsedA = false } else { collapsedB = false }
-        revealedTableMatch = TableMatchReveal(identity: locations.identity, side: side, excerpt: excerpt)
+        guard side == "A" || side == "B" else { return }
+        showTableMatch(locations, at: side == "A" ? 0 : locations.countA, requiringSide: side)
+    }
+    func tableMatchIndex(identity: TableMatchIdentity) -> Int? {
+        guard revealedTableMatch?.identity == identity else { return nil }
+        return revealedTableMatch?.index
+    }
+    func moveTableMatch(_ locations: TableMatchLocations, offset: Int) {
+        let current = tableMatchIndex(identity: locations.identity)
+        let index = current.map { $0 + offset } ?? (offset < 0 ? locations.total - 1 : 0)
+        showTableMatch(locations, at: index)
+    }
+    private func showTableMatch(_ locations: TableMatchLocations, at index: Int, requiringSide: String? = nil) {
+        guard let match = locations.match(at: index), requiringSide == nil || requiringSide == match.side else { return }
+        if match.side == "A" { collapsedA = false } else { collapsedB = false }
+        revealedTableMatch = TableMatchReveal(identity: locations.identity, side: match.side, index: index, excerpt: match.excerpt)
         valueRevealRequest = UUID()
     }
     func tableMatch(identity: TableMatchIdentity?, side: String) -> JSONSearchExcerpt? {

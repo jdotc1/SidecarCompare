@@ -206,3 +206,8 @@ Reload and comparison-change selection restoration wait for pending full-value m
 
 
 For a selected field under an active completed Full A/B values query, the fixed inspector header offers Show Table Match with Show A Match/Show B Match. A cancellable selected-field worker reuses exact JSONValueSearch to prepare only each side's first bounded raw-JSON occurrence. Identity binds row ID, source revisions and queryUTF8bytes; missing-side/no-match actions are disabled and stale locations cannot be applied. Explicit reveal opens only its chosen section and scrolls to its value card with a distinct Table search match label, including beyond the normal preview. Inspector Find query/scope/current match/follow/presentation, Showmore flags, opposite collapse, summary disclosures and saved changed-span state remain untouched. Show Match in Value resumes Find presentation; explicit changed-span reveal likewise takes priority. Table reveal is ephemeral, not history-bookmarked: table query/scope/field/source changes invalidate it, while getters immediately reject a mismatching identity. Table filters/sort/pins/export membership are unchanged.
+
+
+## Table-match navigation
+
+The inspector shows selected-field A/B table-query counts and Previous/Next Table Match. Traversal visits A occurrences then B, stops at either end, and opens only the targeted section. Without a current reveal, Next starts at the first match and Previous at the last. Side-specific Show actions select that side's first occurrence. Inspector Find and expansion/summary state remain independent; table query, scope, field and source changes invalidate the ephemeral table reveal.

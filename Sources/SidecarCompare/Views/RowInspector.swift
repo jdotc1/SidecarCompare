@@ -93,8 +93,21 @@ struct RowInspector: View {
                                 .disabled(tableMatchLocations?.identity != identity || tableMatchLocations?.a == nil)
                             Button("Show B Match") { revealTableMatch(side: "B", identity: identity) }
                                 .disabled(tableMatchLocations?.identity != identity || tableMatchLocations?.b == nil)
-                            Text("First occurrence of the table query; inspector Find stays unchanged.")
+                            Text("Choose the first match on either side; inspector Find stays unchanged.")
                         }.controlSize(.small).disabled(!canShowInTable)
+                        if let locations = tableMatchLocations, locations.identity == identity {
+                            let index = review.tableMatchIndex(identity: identity)
+                            HStack(spacing: 8) {
+                                Button("Previous Table Match") { review.moveTableMatch(locations, offset: -1) }
+                                    .disabled(!canShowInTable || locations.total == 0 || index == 0)
+                                Button("Next Table Match") { review.moveTableMatch(locations, offset: 1) }
+                                    .disabled(!canShowInTable || locations.total == 0 || index == locations.total - 1)
+                            }.controlSize(.small)
+                            Text(index.map { "Table match \($0 + 1) of \(locations.total) · \($0 < locations.countA ? "A" : "B") · A: \(locations.countA) · B: \(locations.countB)" }
+                                 ?? "Table matches · A: \(locations.countA) · B: \(locations.countB)")
+                                .font(.caption).foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                         if tableMatchFailed {
                             Text("Table match unavailable. Change the table query to try again.")
                                 .font(.caption).foregroundStyle(.secondary)
@@ -297,7 +310,7 @@ private struct InspectorValueCard: View {
                          + Text(verbatim: (tableMatch.matchTruncated ? "…" : "") + tableMatch.after))
                             .font(.system(.callout, design: .monospaced)).textSelection(.enabled)
                             .fixedSize(horizontal: false, vertical: true)
-                        Text("First table-query occurrence · bounded raw JSON excerpt; inspector Find is unchanged.")
+                        Text("Table-query occurrence · bounded raw JSON excerpt; inspector Find is unchanged.")
                             .font(.caption).foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                         Divider()

@@ -14,6 +14,26 @@ cat >> "$CHECK/Check.swift" <<'SWIFT'
         let locations = try TableMatchLocations.prepare(row: row, identity: identity)
         assert(locations.a?.bytePosition == 9002 && locations.b?.bytePosition == 9002)
         assert(locations.a?.match == "needle" && locations.b?.match == "needle")
+        assert(locations.countA == 2 && locations.countB == 1 && locations.total == 3)
+        assert(locations.match(at: -1) == nil && locations.match(at: 3) == nil)
+        let traversal = InspectorReviewState()
+        traversal.query = "independent"; traversal.expandedA = true; traversal.collapsedB = true
+        traversal.moveTableMatch(locations, offset: 1)
+        assert(traversal.tableMatchIndex(identity: identity) == 0 && traversal.collapsedB)
+        traversal.moveTableMatch(locations, offset: 1)
+        assert(traversal.tableMatchIndex(identity: identity) == 1)
+        assert(traversal.tableMatch(identity: identity, side: "A")!.bytePosition > 9002)
+        traversal.moveTableMatch(locations, offset: 1)
+        assert(traversal.tableMatchIndex(identity: identity) == 2 && !traversal.collapsedB)
+        let lastRequest = traversal.valueRevealRequest
+        traversal.moveTableMatch(locations, offset: 1)
+        assert(traversal.valueRevealRequest == lastRequest)
+        traversal.moveTableMatch(locations, offset: -1)
+        assert(traversal.tableMatchIndex(identity: identity) == 1)
+        assert(traversal.query == "independent" && traversal.expandedA)
+        traversal.invalidateTableMatch(expecting: nil)
+        traversal.moveTableMatch(locations, offset: -1)
+        assert(traversal.tableMatchIndex(identity: identity) == 2)
         let onlyB = TableMatchIdentity(rowID: row.id, revision: revision, query: Data("B review".utf8))
         let onlyBLocations = try TableMatchLocations.prepare(row: row, identity: onlyB)
         assert(onlyBLocations.a == nil && onlyBLocations.b != nil)
@@ -52,7 +72,7 @@ cat >> "$CHECK/Check.swift" <<'SWIFT'
         review.showTableMatch(locations, side: "B"); review.resetField()
         assert(review.tableMatch(identity: identity, side: "B") == nil && review.query == "review")
         do { _ = try TableMatchLocations.prepare(row: row, identity: TableMatchIdentity(rowID: "stale", revision: revision, query: identity.query)); fatalError("Stale row accepted") } catch is SidecarError { }
-        print("PASS: selected-field first A/B occurrence beyond9000, side availability, byte-preserving identity; table reveal preserves independent Find/query/scope/current match/follow/visibility, expansion/opposite collapse and summary/change state; query/source/scope/row invalidation, no-match no-op, explicit Find handoff and reset")
+        print("PASS: selected-field A/B counts and bounded bidirectional traversal beyond9000, side availability, byte-preserving identity; table reveal preserves independent Find/query/scope/current match/follow/visibility, expansion/opposite collapse and summary/change state; query/source/scope/row invalidation, no-match no-op, explicit Find handoff and reset")
     }
 }
 SWIFT
