@@ -372,3 +372,8 @@ Native460 existingText-A/B: tableNEW givesBonly menu; ShowB revealsbyte9009 whil
 ## Table-match navigation — 2026-10-18
 
 Final warnings-as-errors debug465/release466 builds pass; focused464 passes A/B counts, forward/reverse traversal, terminal no-op, start-at-last, exact byte offsets beyond9000 and independent Find/review preservation. Native467 on bundled synthetic ProtocolName with table query T observes A3/B3, positions1–6, A bytes5/8/12 then B bytes5/8/12, reverse B→A and disabled endpoints. B stays collapsed until targeted. Independent Find text BASE remains present. Native check found stale first-occurrence wording, corrected in final builds; no functional changes after464. Prior457–460/search448449/history419420/export424425 retained for unchanged boundaries. No broad suites, accessibility or settings work.
+
+
+## Table-match history — 2026-10-18
+
+Warnings-as-errors debug469/release471 builds and focused470 pass. Focused checks cover B second occurrence/index/raw byte restoration, resumed traversal, current Find query preservation, expansion/collapse/summary restoration under matching Find query, stale table query/source/row and absent full-scope identity rejection, and clearing only saved table matches to prevent revival. Native472 bundled synthetic full query1: Revision B match2of2 byte2 with A collapsed and Find1/A match1of2; PixelBandwidth B match1of1 byte2; Back and Forward restore their independent table reveals and section state while table query/filter and Find remain unchanged. Existing464467 traversal,419420history,448449search and424425export receipts reused. No broad suites or accessibility/settings work; textual native observation only.

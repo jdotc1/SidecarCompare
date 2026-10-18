@@ -30,6 +30,9 @@ struct InspectorHistory {
         reviews[id] = review
     }
     func review(for id: String) -> InspectorReviewBookmark? { reviews[id] }
+    mutating func clearTableMatches() {
+        for id in reviews.keys { reviews[id]?.revealedTableMatch = nil }
+    }
     mutating func clearReviews() { reviews.removeAll() }
 }
 
@@ -50,4 +53,5 @@ struct InspectorReviewBookmark {
     var collapsedTextSummary = false
     var collapsedNumericSummary = false
     var revealedChange: ChangedSpanRequest? = nil
+    var revealedTableMatch: TableMatchReveal? = nil
 }

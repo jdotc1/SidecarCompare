@@ -311,14 +311,20 @@ final class InspectorReviewState {
         return InspectorReviewBookmark(query: Data(query.utf8), revision: revision,
                                        expandedA: expandedA, expandedB: expandedB, collapsedA: collapsedA, collapsedB: collapsedB, match: match, scope: scope,
                                        collapsedTextSummary: collapsedTextSummary, collapsedNumericSummary: collapsedNumericSummary,
-                                       revealedChange: revealedChange.flatMap { $0.rowID == rowID && $0.revision == revision ? $0 : nil })
+                                       revealedChange: revealedChange.flatMap { $0.rowID == rowID && $0.revision == revision ? $0 : nil },
+                                       revealedTableMatch: revealedTableMatch.flatMap { $0.identity.rowID == rowID && $0.identity.revision == revision ? $0 : nil })
     }
-    func restore(_ bookmark: InspectorReviewBookmark, rowID: String, revision: [UUID?]) {
+    func restore(_ bookmark: InspectorReviewBookmark, rowID: String, revision: [UUID?], tableIdentity: TableMatchIdentity? = nil) {
         guard bookmark.revision == revision else { return }
         if let saved = bookmark.revealedChange, saved.rowID == rowID, saved.revision == revision,
            saved.side == "A" || saved.side == "B" {
             revealedChange = saved
         } else { revealedChange = nil }
+        if let saved = bookmark.revealedTableMatch, let tableIdentity,
+           saved.identity == tableIdentity, tableIdentity.rowID == rowID, tableIdentity.revision == revision {
+            revealedTableMatch = saved
+            valueRevealRequest = UUID()
+        } else { revealedTableMatch = nil }
         guard bookmark.query == Data(query.utf8) else { return }
         expandedA = bookmark.expandedA; expandedB = bookmark.expandedB
         collapsedA = bookmark.collapsedA; collapsedB = bookmark.collapsedB

@@ -1,0 +1,1 @@
+PASS: history restores B second occurrence/index/exact byte and resumes navigation; Find query remains current; matching-query expansion/collapse/summary state restored; query/source/row/disabled-scope guards; clearing saved table matches preserves other review state and prevents revival

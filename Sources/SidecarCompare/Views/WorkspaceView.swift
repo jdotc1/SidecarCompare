@@ -62,8 +62,8 @@ struct WorkspaceView: View {
         .frame(minWidth: showInspector ? 1128 : 850, minHeight: 580)
         .searchable(text: $search, prompt: Text(searchPrompt))
         .toolbar { toolbar }
-        .onChange(of: Data(search.utf8)) { _, _ in inspectorReview.invalidateTableMatch(expecting: nil) }
-        .onChange(of: searchScope) { _, _ in inspectorReview.invalidateTableMatch(expecting: nil) }
+        .onChange(of: Data(search.utf8)) { _, _ in inspectorReview.invalidateTableMatch(expecting: nil); inspectorHistory.clearTableMatches() }
+        .onChange(of: searchScope) { _, _ in inspectorReview.invalidateTableMatch(expecting: nil); inspectorHistory.clearTableMatches() }
         .task(id: fullSearchRequest) {
             await fullTableSearch.run(fullSearchRequest, rows: session.comparison?.rows ?? [])
         }
@@ -137,7 +137,9 @@ struct WorkspaceView: View {
             }
             rowCopyMessage = nil; inspectorReview.resetField()
             if let selected, selected == restoringHistoryReview, let saved = inspectorHistory.review(for: selected) {
-                inspectorReview.restore(saved, rowID: selected, revision: [session.a?.id, session.b?.id])
+                inspectorReview.restore(saved, rowID: selected, revision: [session.a?.id, session.b?.id],
+                                        tableIdentity: searchScope == .fullValues && !search.isEmpty
+                                            ? TableMatchIdentity(rowID: selected, revision: [session.a?.id, session.b?.id], query: Data(search.utf8)) : nil)
             }
             restoringHistoryReview = nil
             if !restoringReloadSelection, !session.isBusy, let selected, selectedRow != nil {
