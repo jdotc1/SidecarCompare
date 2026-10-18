@@ -1,0 +1,11 @@
+Building for debugging...
+[2 / 3] SidecarCompare-product
+[4 / 5] SidecarCompare-product
+[7 / 9] SidecarCompare-product
+Build complete! (5.14 sec)
+<workspace>/dist/.stage.ORyyDm/SidecarCompare.app/Contents/Info.plist: OK
+<workspace>/Packaging/SidecarCompare.entitlements: OK
+<workspace>/dist/.stage.ORyyDm/SidecarCompare.app: replacing existing signature
+<workspace>/dist/.stage.ORyyDm/SidecarCompare.app: valid on disk
+<workspace>/dist/.stage.ORyyDm/SidecarCompare.app: satisfies its Designated Requirement
+Built: <workspace>/dist/SidecarCompare.app

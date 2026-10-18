@@ -360,3 +360,10 @@ Native450 existing Text-A/B: FullA/Bscope/NEW findsText beyondpreview, retaining
 
 
 Native regression451 reproduced premature reload selection clearing: NEW still matched Text after ReloadBoth but selection was lost. Repair defers finishReload until full-value membership is ready. Targeted native454 on final build retains Textselection/queryNEW/pin1/Pinnedonly and reports Selectedfieldretained. Earlier450scope/review checks and448449worker/coordinator receipts remain valid and were not repeated. Intermediate446447passing build logs stay private; final452453receipts accompany publication.
+
+
+## Show Table Search Match in Value — 2026-10-18
+
+Final stageddebug457/release warnings-as-errors458 and focused459 pass;456was an initial passing build before eager query/scope invalidation and remains private. New selected-field/review checks cover first A/B rawJSON occurrence beyond9000, side availability, exact querybyte identity, independent Find query/scope/current match/follow/visibility, target-only opening/opposite collapse/Showmore/summary and changed-span preservation, query/source/scope/row invalidation, no-match no-op, explicit Find handoff and reset. Existing448449fulltable/search,410411415reveal,419420history and export receipts reused; no unchanged suites/oracles/signatures repeated.
+
+Native460 existingText-A/B: tableNEW givesBonly menu; ShowB revealsbyte9009 whileAclosed+Aexpanded retained andFindOLD/A Match1of1 unchanged. ShowMatch returnsFindAbyte9008. TableOLD enablesAonly; ShowA revealsbyte9008; changingquerytox removes tableexcerpt while preservingFind/Aexpansion/selection. Native staleindex recoveredfreshstate. Textnativeonly/no screenshotfullvisualaudit claim. No accessibility/permissions/settings changes.

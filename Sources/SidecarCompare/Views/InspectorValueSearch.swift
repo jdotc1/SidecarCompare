@@ -217,10 +217,28 @@ final class InspectorReviewState {
     var currentMatch = 0 { didSet { if currentMatch != oldValue { revealedMatch = nil } } }
     var valueRevealRequest = UUID()
     private var revealedChange: ChangedSpanRequest?
+    private var revealedTableMatch: TableMatchReveal?
+
+    func invalidateTableMatch(expecting identity: TableMatchIdentity?) {
+        if revealedTableMatch?.identity != identity { revealedTableMatch = nil }
+    }
+    func showTableMatch(_ locations: TableMatchLocations, side: String) {
+        let excerpt = side == "A" ? locations.a : side == "B" ? locations.b : nil
+        guard let excerpt else { return }
+        if side == "A" { collapsedA = false } else { collapsedB = false }
+        revealedTableMatch = TableMatchReveal(identity: locations.identity, side: side, excerpt: excerpt)
+        valueRevealRequest = UUID()
+    }
+    func tableMatch(identity: TableMatchIdentity?, side: String) -> JSONSearchExcerpt? {
+        guard let identity, let revealedTableMatch, revealedTableMatch.identity == identity,
+              revealedTableMatch.side == side else { return nil }
+        return revealedTableMatch.excerpt
+    }
 
     func showChangedSpan(rowID: String, revision: [UUID?], side: String, excerpt: ChangedSpanExcerpt) {
         guard side == "A" || side == "B" else { return }
         if side == "A" { collapsedA = false } else { collapsedB = false }
+        revealedTableMatch = nil
         revealedChange = ChangedSpanRequest(rowID: rowID, revision: revision, side: side, excerpt: excerpt)
         valueRevealRequest = UUID()
     }
@@ -256,7 +274,7 @@ final class InspectorReviewState {
         guard outcome?.identity == identity, outcome?.range(for: scope).contains(currentMatch) == true,
               let match = outcome?.excerpt(at: currentMatch) else { return }
         if match.side == "A" { collapsedA = false } else { collapsedB = false }
-        revealedChange = nil
+        revealedChange = nil; revealedTableMatch = nil
         revealedMatch = PendingMatch(identity: identity, index: currentMatch)
         valueRevealRequest = UUID()
     }
@@ -268,6 +286,8 @@ final class InspectorReviewState {
         return match.excerpt
     }
     func revealedValueSide(rowID: String, revision: [UUID?]) -> String? {
+        if let revealedTableMatch, revealedTableMatch.identity.rowID == rowID,
+           revealedTableMatch.identity.revision == revision { return revealedTableMatch.side }
         if let revealedChange, revealedChange.rowID == rowID, revealedChange.revision == revision { return revealedChange.side }
         for side in ["A", "B"] where revealedValueMatch(rowID: rowID, revision: revision, side: side) != nil { return side }
         return nil
@@ -295,7 +315,7 @@ final class InspectorReviewState {
         pendingMatch = PendingMatch(identity: SearchIdentity(rowID: rowID, revision: revision, queryBytes: bookmark.query), index: bookmark.match)
     }
     func resetField() {
-        pendingMatch = nil; revealedMatch = nil; revealedChange = nil
+        pendingMatch = nil; revealedMatch = nil; revealedChange = nil; revealedTableMatch = nil
         expandedA = false; expandedB = false
         collapsedA = false; collapsedB = false
         collapsedTextSummary = false; collapsedNumericSummary = false

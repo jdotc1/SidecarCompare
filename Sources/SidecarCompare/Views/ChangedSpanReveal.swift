@@ -35,3 +35,32 @@ struct ChangedSpanRequest {
     let side: String
     let excerpt: ChangedSpanExcerpt
 }
+
+struct TableMatchIdentity: Hashable, Sendable {
+    let rowID: String
+    let revision: [UUID?]
+    let query: Data
+}
+
+struct TableMatchLocations: Sendable {
+    let identity: TableMatchIdentity
+    let a: JSONSearchExcerpt?
+    let b: JSONSearchExcerpt?
+
+    static func prepare(row: ComparisonRow, identity: TableMatchIdentity) throws -> Self {
+        try Task.checkCancellation()
+        guard row.id == identity.rowID, !identity.query.isEmpty else {
+            throw SidecarError("Table match request is no longer available.")
+        }
+        let query = String(decoding: identity.query, as: UTF8.self)
+        return Self(identity: identity,
+                    a: try JSONValueSearch.find(row.a, query: query).excerpt(at: 0),
+                    b: try JSONValueSearch.find(row.b, query: query).excerpt(at: 0))
+    }
+}
+
+struct TableMatchReveal {
+    let identity: TableMatchIdentity
+    let side: String
+    let excerpt: JSONSearchExcerpt
+}

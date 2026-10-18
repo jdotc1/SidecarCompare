@@ -1,0 +1,5 @@
+Native460 — Show Table Search Match in Value
+Existing syntheticText-A/B unchanged. FullA/Bscope/Textselected, inspectorFindOLD/A Match1of1, A Showmoreexpanded thenAclosed/Bclosed. TablequeryNEW returnsText.
+FixedheaderShowTableMatch menu disablesA/enablesB. ShowB opensBonly and scrolls B card to first table-query occurrence rawbyte9009/NEW; Aclosed+A Showless retained, FindOLD/A Match1of1 unchanged.
+ShowMatchinValue returns originalFindAbyte9008/OLD and removes table excerpt. TablequeryOLD changes menu to Aenabled/Bdisabled; ShowA reveals tablematchbyte9008. Changequerytox keepsTextselected but removes table excerpt, preserving FindOLD/Amatch1of1/Aexpanded. No filters/sort/pins/export membership changed by reveal.
+One stale native index recovered with fresh state. Text/native evidence only, no screenshot/fullvisualaudit claimed. No accessibility/permissions/settings work.

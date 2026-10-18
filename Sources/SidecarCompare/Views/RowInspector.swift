@@ -11,6 +11,7 @@ struct RowInspector: View {
     let resetWidth: () -> Void
     let row: ComparisonRow?
     let revision: [UUID?]
+    let tableSearchQuery: String?
     let milliseconds: Bool
     let position: String
     let canPrevious: Bool
@@ -29,6 +30,8 @@ struct RowInspector: View {
     @Bindable var review: InspectorReviewState
     @State private var textChangeLocations: StringDifferenceLocations?
     @State private var textSummaryRequest = UUID()
+    @State private var tableMatchLocations: TableMatchLocations?
+    @State private var tableMatchFailed = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -84,6 +87,19 @@ struct RowInspector: View {
                             }.disabled(!canShowInTable)
                         }
                     }
+                    if let identity = tableMatchIdentity {
+                        Menu("Show Table Match") {
+                            Button("Show A Match") { revealTableMatch(side: "A", identity: identity) }
+                                .disabled(tableMatchLocations?.identity != identity || tableMatchLocations?.a == nil)
+                            Button("Show B Match") { revealTableMatch(side: "B", identity: identity) }
+                                .disabled(tableMatchLocations?.identity != identity || tableMatchLocations?.b == nil)
+                            Text("First occurrence of the table query; inspector Find stays unchanged.")
+                        }.controlSize(.small).disabled(!canShowInTable)
+                        if tableMatchFailed {
+                            Text("Table match unavailable. Change the table query to try again.")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
                     Text(copyMessage ?? "Value copy includes complete original JSON, which may identify people.")
                         .font(.caption).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -128,8 +144,8 @@ struct RowInspector: View {
                         }, prepared: { textChangeLocations = $0 })
                         .id(row.id + ":text-summary")
                     }
-                    InspectorValueCard(title: "A · Reference", value: row.a, expanded: review.expandedA, collapsed: review.collapsedA, match: review.revealedValueMatch(rowID: row.id, revision: revision, side: "A"), change: review.changedSpan(rowID: row.id, revision: revision, side: "A")).id(row.id + ":A")
-                    InspectorValueCard(title: "B · Comparison", value: row.b, expanded: review.expandedB, collapsed: review.collapsedB, match: review.revealedValueMatch(rowID: row.id, revision: revision, side: "B"), change: review.changedSpan(rowID: row.id, revision: revision, side: "B")).id(row.id + ":B")
+                    InspectorValueCard(title: "A · Reference", value: row.a, expanded: review.expandedA, collapsed: review.collapsedA, match: review.revealedValueMatch(rowID: row.id, revision: revision, side: "A"), change: review.changedSpan(rowID: row.id, revision: revision, side: "A"), tableMatch: review.tableMatch(identity: tableMatchIdentity, side: "A")).id(row.id + ":A")
+                    InspectorValueCard(title: "B · Comparison", value: row.b, expanded: review.expandedB, collapsed: review.collapsedB, match: review.revealedValueMatch(rowID: row.id, revision: revision, side: "B"), change: review.changedSpan(rowID: row.id, revision: revision, side: "B"), tableMatch: review.tableMatch(identity: tableMatchIdentity, side: "B")).id(row.id + ":B")
                     if let delta = row.delta {
                         DisclosureGroup(isExpanded: Binding(get: { !review.collapsedNumericSummary }, set: { review.collapsedNumericSummary = !$0 })) {
                         VStack(alignment: .leading, spacing: 5) {
@@ -195,6 +211,29 @@ struct RowInspector: View {
         }
         }
         }
+        .task(id: tableMatchIdentity) {
+            guard !Task.isCancelled else { return }
+            let identity = tableMatchIdentity
+            review.invalidateTableMatch(expecting: identity)
+            tableMatchLocations = nil; tableMatchFailed = false
+            guard let identity, let row else { return }
+            let worker = Task.detached(priority: .userInitiated) { try TableMatchLocations.prepare(row: row, identity: identity) }
+            do {
+                let locations = try await withTaskCancellationHandler(operation: { try await worker.value }, onCancel: { worker.cancel() })
+                guard !Task.isCancelled else { return }
+                tableMatchLocations = locations
+            } catch is CancellationError { }
+            catch { guard !Task.isCancelled else { return }; tableMatchFailed = true }
+        }
+    }
+    private var tableMatchIdentity: TableMatchIdentity? {
+        guard let row, let tableSearchQuery, !tableSearchQuery.isEmpty else { return nil }
+        return TableMatchIdentity(rowID: row.id, revision: revision, query: Data(tableSearchQuery.utf8))
+    }
+    private func revealTableMatch(side: String, identity: TableMatchIdentity) {
+        guard canShowInTable, tableMatchIdentity == identity,
+              let locations = tableMatchLocations, locations.identity == identity else { return }
+        review.showTableMatch(locations, side: side)
     }
     private var textChangeIdentity: StringDifferenceIdentity? {
         guard let row, row.status != .equal, case .string = row.a, case .string = row.b else { return nil }
@@ -225,6 +264,7 @@ private struct InspectorValueCard: View {
     let collapsed: Bool
     let match: JSONSearchExcerpt?
     let change: ChangedSpanExcerpt?
+    let tableMatch: JSONSearchExcerpt?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -249,7 +289,19 @@ private struct InspectorValueCard: View {
                 if value == nil {
                     Text("Field absent from this sidecar.").font(.callout).foregroundStyle(.secondary)
                 } else {
-                    if let change {
+                    if let tableMatch {
+                        Text("Table search match · raw JSON byte \(tableMatch.bytePosition)")
+                            .font(.caption.weight(.semibold)).monospacedDigit()
+                            .fixedSize(horizontal: false, vertical: true)
+                        (Text(verbatim: tableMatch.before) + Text(verbatim: tableMatch.match).bold().underline()
+                         + Text(verbatim: (tableMatch.matchTruncated ? "…" : "") + tableMatch.after))
+                            .font(.system(.callout, design: .monospaced)).textSelection(.enabled)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text("First table-query occurrence · bounded raw JSON excerpt; inspector Find is unchanged.")
+                            .font(.caption).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Divider()
+                    } else if let change {
                         Text("Changed span · raw JSON byte \(change.bytePosition)")
                             .font(.caption.weight(.semibold)).monospacedDigit()
                         Text("\(change.scalarCount) differing Unicode scalars" + (change.scalarCount == 0 ? " · Empty span / insertion or deletion boundary" : ""))

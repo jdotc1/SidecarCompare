@@ -62,6 +62,8 @@ struct WorkspaceView: View {
         .frame(minWidth: showInspector ? 1128 : 850, minHeight: 580)
         .searchable(text: $search, prompt: Text(searchPrompt))
         .toolbar { toolbar }
+        .onChange(of: Data(search.utf8)) { _, _ in inspectorReview.invalidateTableMatch(expecting: nil) }
+        .onChange(of: searchScope) { _, _ in inspectorReview.invalidateTableMatch(expecting: nil) }
         .task(id: fullSearchRequest) {
             await fullTableSearch.run(fullSearchRequest, rows: session.comparison?.rows ?? [])
         }
@@ -168,7 +170,7 @@ struct WorkspaceView: View {
                      canForward: canModify && !session.isBusy && !fullSearchUnavailable && session.comparison != nil && inspectorHistory.forward != nil,
                      back: { travelHistory(forward: false) }, forward: { travelHistory(forward: true) }, canResetWidth: abs(inspectorWidth - 315) >= 1,
                      resetWidth: { inspectorWidth = 315 },
-                     row: selectedRow, revision: [session.a?.id, session.b?.id], milliseconds: milliseconds, position: differencePosition,
+                     row: selectedRow, revision: [session.a?.id, session.b?.id], tableSearchQuery: fullSearchRequest.needsSearch && !fullSearchUnavailable ? search : nil, milliseconds: milliseconds, position: differencePosition,
                      canPrevious: differenceTarget(forward: false) != nil,
                      canNext: differenceTarget(forward: true) != nil,
                      previous: { navigateDifference(forward: false) },
