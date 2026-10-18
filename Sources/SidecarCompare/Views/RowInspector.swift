@@ -103,6 +103,12 @@ struct RowInspector: View {
                                 Button("Next Table Match") { review.moveTableMatch(locations, offset: 1) }
                                     .disabled(!canShowInTable || locations.total == 0 || index == locations.total - 1)
                             }.controlSize(.small)
+                            Button("Copy Table Match Context") {
+                                guard canCopy, tableMatchIdentity == identity,
+                                      let text = review.tableMatchContext(row: row, locations: locations) else { return }
+                                copyMatchContext(text)
+                            }.controlSize(.small)
+                                .disabled(!canCopy || !canShowInTable || review.tableMatchContext(row: row, locations: locations) == nil)
                             Text(index.map { "Table match \($0 + 1) of \(locations.total) · \($0 < locations.countA ? "A" : "B") · A: \(locations.countA) · B: \(locations.countB)" }
                                  ?? "Table matches · A: \(locations.countA) · B: \(locations.countB)")
                                 .font(.caption).foregroundStyle(.secondary)

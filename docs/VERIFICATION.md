@@ -377,3 +377,8 @@ Final warnings-as-errors debug465/release466 builds pass; focused464 passes A/B 
 ## Table-match history — 2026-10-18
 
 Warnings-as-errors debug469/release471 builds and focused470 pass. Focused checks cover B second occurrence/index/raw byte restoration, resumed traversal, current Find query preservation, expansion/collapse/summary restoration under matching Find query, stale table query/source/row and absent full-scope identity rejection, and clearing only saved table matches to prevent revival. Native472 bundled synthetic full query1: Revision B match2of2 byte2 with A collapsed and Find1/A match1of2; PixelBandwidth B match1of1 byte2; Back and Forward restore their independent table reveals and section state while table query/filter and Find remain unchanged. Existing464467 traversal,419420history,448449search and424425export receipts reused. No broad suites or accessibility/settings work; textual native observation only.
+
+
+## Copy Table Match Context — 2026-10-18
+
+Warnings-as-errors debug474/release476 and focused475 pass. Focused checks cover escaped RFC6901 pointer, exact Unicode context and raw byte9015 beyond preview, A/B combined position, explicit bounded/truncated labels, absent/query/source invalidation, and unchanged Find/index/expansion/collapse/summary/history/reveal request. Native477 confirms disabled-before-reveal, Revision B match2of2 raw byte2, exact synthetic clipboard payload, copy feedback and retained independent Find1/A1of2, table position and A collapsed. Passing464467navigation/470472history/448449search and existing clipboard/export receipts reused. No broad suites, accessibility/settings changes or screenshot/full visual audit claim.

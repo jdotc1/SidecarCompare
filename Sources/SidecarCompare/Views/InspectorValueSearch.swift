@@ -241,6 +241,17 @@ final class InspectorReviewState {
         revealedTableMatch = TableMatchReveal(identity: locations.identity, side: match.side, index: index, excerpt: match.excerpt)
         valueRevealRequest = UUID()
     }
+    func tableMatchContext(row: ComparisonRow, locations: TableMatchLocations) -> String? {
+        guard row.id == locations.identity.rowID,
+              let reveal = revealedTableMatch, reveal.identity == locations.identity,
+              let match = locations.match(at: reveal.index), match.side == reveal.side else { return nil }
+        let excerpt = match.excerpt
+        return "Table match context excerpt · \(match.side) · match \(reveal.index + 1) of \(locations.total) · raw JSON byte \(excerpt.bytePosition)\n"
+            + "JSON Pointer (JSON string): " + JSONValue.quote(row.path) + "\n"
+            + "Bounded raw JSON excerpt; not a complete JSON value."
+            + (excerpt.matchTruncated ? " Match text is truncated." : "") + "\n"
+            + excerpt.before + excerpt.match + (excerpt.matchTruncated ? "…" : "") + excerpt.after
+    }
     func tableMatch(identity: TableMatchIdentity?, side: String) -> JSONSearchExcerpt? {
         guard let identity, let revealedTableMatch, revealedTableMatch.identity == identity,
               revealedTableMatch.side == side else { return nil }

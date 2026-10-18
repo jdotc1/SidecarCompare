@@ -216,3 +216,8 @@ The inspector shows selected-field A/B table-query counts and Previous/Next Tabl
 ## Table-match history
 
 Back/Forward restores the saved table-match side, position and bounded excerpt only for the same field, source snapshots and active full-value table query. Query or scope changes clear saved table reveals, including when returning to an earlier query. Existing Find restoration rules preserve the current Find query; matching-query A/B expansion, section collapse and summary state restore as before. A different current Find query does not prevent a valid table reveal. No full search result is retained in history.
+
+
+## Copy Table Match Context
+
+The inspector offers Copy Table Match Context for a currently revealed, valid table match. Output includes A/B side, combined match position, raw JSON byte location, JSON Pointer quoted as a JSON string, and the bounded raw-JSON excerpt with explicit incomplete-value/truncation labels. It reuses the existing clipboard feedback path, including metadata/device-sharing caution. Copy is unavailable before reveal, while copying is disallowed, or for stale query/source/field identity. It does not change Find, navigation, expansion, section collapse, summaries or history.

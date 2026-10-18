@@ -1,0 +1,14 @@
+Building for production...
+[3 / 10] SidecarCore
+[5 / 11] SidecarCore
+[8 / 9] SidecarCompare-product
+[9 / 10] SidecarCompare-product
+[12 / 14] SidecarCompare-product
+[13 / 14] SidecarCompare-product
+Build complete! (28.50 sec)
+<workspace>/dist/.stage.payrBo/SidecarCompare.app/Contents/Info.plist: OK
+<workspace>/Packaging/SidecarCompare.entitlements: OK
+<workspace>/dist/.stage.payrBo/SidecarCompare.app: replacing existing signature
+<workspace>/dist/.stage.payrBo/SidecarCompare.app: valid on disk
+<workspace>/dist/.stage.payrBo/SidecarCompare.app: satisfies its Designated Requirement
+Built: <workspace>/dist/SidecarCompare.app

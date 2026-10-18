@@ -1,0 +1,8 @@
+PASS: staged debug474 bundled synthetic Revision selected under full table query1; action disabled before table reveal. Independent Find1 A match1of2. Navigate table to B match2of2 raw JSON byte2; collapse A. Copy Table Match Context shows copied-context/device-sharing feedback; table position2of2/B, Find1/A1of2 and A collapsed remain unchanged. Clipboard exact text asserted:
+
+Table match context excerpt · B · match 2 of 2 · raw JSON byte 2
+JSON Pointer (JSON string): "/ExampleVendorMetadata/Revision"
+Bounded raw JSON excerpt; not a complete JSON value.
+"1"
+
+Textual native observation and clipboard assertion only; no screenshot/full visual audit. Focused475 covers Unicode/truncation/stale identity/review state.
