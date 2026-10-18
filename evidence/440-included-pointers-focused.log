@@ -1,0 +1,1 @@
+PASS: copies complete captured set despite empty review, hidden pins included, raw RFC6901/Unicode preserved in canonical order, exact UTF8 boundary and whole-output rejection, empty/unscoped/ambiguous rejection, membership unchanged

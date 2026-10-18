@@ -3,7 +3,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 mkdir -p "$ROOT/dist"
 CHECK="$(mktemp "$ROOT/dist/pointer-copy-check.XXXXXX.swift")"
-trap 'rm -f "$CHECK"' EXIT
+trap 'rm -f "$CHECK" "${CHECK}.bin"' EXIT
 cat "$ROOT/Sources/SidecarCompare/Views/PinnedPointerCopy.swift" > "$CHECK"
 cat >> "$CHECK" <<'SWIFT'
 let fields = [(id: "hidden", pointer: "/z"), (id: "escaped", pointer: "/a~1b~0c"),
@@ -16,4 +16,5 @@ let empty = PinnedPointerCopy.content(fields: fields, pinnedIDs: [])
 assert(empty.count == 0 && empty.text.isEmpty)
 print("Pinned pointer copy passed: full membership, escaped/empty keys, exact Unicode bytes, deterministic ordering, stale IDs and empty pins.")
 SWIFT
-swift "$CHECK"
+swiftc -target "$(uname -m)-apple-macosx15.0" -warnings-as-errors -I "$ROOT/.build/out/Products/Debug" "$ROOT/.build/out/Products/Debug/SidecarCore.o" "$CHECK" -o "${CHECK}.bin"
+"${CHECK}.bin"

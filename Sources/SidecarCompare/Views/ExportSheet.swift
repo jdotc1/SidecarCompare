@@ -57,6 +57,13 @@ struct ExportSnapshot: Identifiable {
             : "Review filters affect this list only; all \(selectedCount) pins will be exported. Summary excludes field names."
     }
     var selectedCount: Int { comparison.rows.filter { (visibleIDs ?? pinnedIDs)?.contains($0.id) ?? true }.count }
+    func includedPointers(limit: Int = PinnedPointerCopy.includedByteLimit) throws -> (text: String, count: Int) {
+        guard let ids = visibleIDs ?? pinnedIDs, pinnedIDs == nil || visibleIDs == nil else {
+            throw SidecarError("Choose one captured export scope. Clipboard unchanged.")
+        }
+        return try PinnedPointerCopy.includedContent(fields: comparison.rows.map { (id: $0.id, pointer: $0.path) },
+                                                     includedIDs: ids, limit: limit)
+    }
     static let pinnedByteLimit = 16 * 1024 * 1024
 
     func render(detail: ReportDetail, json: Bool, limit: Int = pinnedByteLimit) throws -> String {
@@ -209,6 +216,8 @@ struct ExportSheet: View {
                         HStack(spacing: 6) { reviewClearActions }
                     }
                 }
+                Button("Copy Included JSON Pointers (\(snapshot.selectedCount))", action: copyIncludedPointers)
+                    .controlSize(.small).disabled(busy || snapshot.selectedCount == 0)
                 HStack(alignment: .firstTextBaseline) {
                     Text("Showing \(fields.count) of \(snapshot.selectedCount)")
                     Spacer(minLength: 8)
@@ -264,6 +273,25 @@ struct ExportSheet: View {
         }
         if reviewStatus != nil {
             Button("Clear Status") { reviewStatus = nil }.controlSize(.small).fixedSize()
+        }
+    }
+
+    private func copyIncludedPointers() {
+        guard !busy, snapshot.selectedCount > 0 else { return }
+        busy = true; message = nil
+        let snapshot = snapshot
+        Task { @MainActor in
+            defer { busy = false }
+            do {
+                let result = try await Task.detached(priority: .userInitiated) { try snapshot.includedPointers() }.value
+                NSPasteboard.general.clearContents()
+                let success = NSPasteboard.general.setString(result.text, forType: .string)
+                message = success
+                    ? "Copied all \(result.count) included pointers; review filters do not limit this action. Field names may identify people. The system clipboard may be shared with your other devices."
+                    : "The clipboard could not be updated."
+            } catch {
+                message = (error as? SidecarError)?.message ?? "Included pointers could not be prepared. Clipboard unchanged."
+            }
         }
     }
 

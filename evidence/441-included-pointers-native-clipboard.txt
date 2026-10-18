@@ -1,0 +1,3 @@
+/ExampleVendorMetadata/NewFlag
+/ExampleVendorMetadata/OptionalValue
+/ExampleVendorMetadata/Revision

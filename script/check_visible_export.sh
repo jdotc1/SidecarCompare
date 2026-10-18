@@ -35,7 +35,7 @@ import SidecarCore
     }
 }
 SWIFT
-swiftc -target "$(uname -m)-apple-macosx15.0" -warnings-as-errors -parse-as-library -I "$ROOT/.build/out/Products/$MODE" "$ROOT/.build/out/Products/$MODE/SidecarCore.o" "$ROOT/Sources/SidecarCompare/Services/NativeReportSave.swift" "$ROOT/Sources/SidecarCompare/Views/ExportSheet.swift" "$CHECK/Check.swift" -o "$CHECK/check"
+swiftc -target "$(uname -m)-apple-macosx15.0" -warnings-as-errors -parse-as-library -I "$ROOT/.build/out/Products/$MODE" "$ROOT/.build/out/Products/$MODE/SidecarCore.o" "$ROOT/Sources/SidecarCompare/Services/NativeReportSave.swift" "$ROOT/Sources/SidecarCompare/Views/PinnedPointerCopy.swift" "$ROOT/Sources/SidecarCompare/Views/ExportSheet.swift" "$CHECK/Check.swift" -o "$CHECK/check"
 "$CHECK/check" > "$CHECK/output.jsonl"
 python3 - "$CHECK/output.jsonl" <<'PY'
 import json,sys
