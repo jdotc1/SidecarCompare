@@ -1,0 +1,5 @@
+Native431 — Review included fields for visible export
+Built-in synthetic22rows, tablequeryExampleVendor→3visible; Revision selected, Find1/A Match1of2, Bclosed. ExportVisible(3) sheet initiallycollapsedReviewincludedfields(3), SummaryJSON, capturedcounts Typechanged1/Aonly1/Bonly1.
+ClickTypechanged opensreview showingRevision1of3. PointerqueryNewFlag intersectsstatus→0of3 with emptyrecovery and all3capturedfields-will-be-exported reminder. Copy still produces rowCount3,totalRowCount22,differenceCount3 and oneofeachstatus,no rows/fieldnames/values; parsedclipboard431summary retained.
+ClearStatus preservesNewFlagquery→NewFlag1of3. ChooseFull/acknowledge/PlainText; collapse/reopen retainsquery,fullack,textformat. No ReviewinInspector action on visible list. ClearSearch restores3of3/allcanonicalpointers. Cancel retains tablequeryExampleVendor/Revisionselection/Find1/A Match1of2/Bclosed.
+Initial ScreenCaptureKit-3812 during UI observation recovered by refreshing app target. No screenshot or complete visual audit claimed. Native interaction/text and parsed synthetic clipboard evidence only. No accessibility/permissions/settings work.

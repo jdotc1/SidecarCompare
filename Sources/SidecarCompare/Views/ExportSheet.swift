@@ -25,11 +25,11 @@ struct ExportSnapshot: Identifiable {
     var title: String { visibleIDs != nil ? "Export visible comparisons" : pinnedIDs != nil ? "Export pinned comparisons" : "Export comparison" }
     var visiblePinnedIDs: Set<String> = []
     var reviewFields: [PinnedExportField] {
-        guard let pinnedIDs else { return [] }
-        return comparison.rows.filter { pinnedIDs.contains($0.id) }
+        guard let ids = visibleIDs ?? pinnedIDs else { return [] }
+        return comparison.rows.filter { ids.contains($0.id) }
             .sorted { $0.path.utf8.lexicographicallyPrecedes($1.path.utf8) }
             .map { PinnedExportField(id: $0.id, pointer: $0.visiblePath, status: $0.status,
-                                    hidden: !visiblePinnedIDs.contains($0.id)) }
+                                    hidden: visibleIDs == nil && !visiblePinnedIDs.contains($0.id)) }
     }
     var reviewCounts: [DifferenceStatus: Int] {
         Dictionary(grouping: reviewFields, by: \.status).mapValues(\.count)
@@ -39,8 +39,14 @@ struct ExportSnapshot: Identifiable {
         return fields.filter { (status == nil || $0.status == status) && (query.isEmpty || $0.pointer.localizedCaseInsensitiveContains(query)) }
     }
     func inspectorRequest(for id: String) -> ExportInspectorRequest? {
-        guard let field = reviewFields.first(where: { $0.id == id }) else { return nil }
+        guard visibleIDs == nil, pinnedIDs != nil,
+              let field = reviewFields.first(where: { $0.id == id }) else { return nil }
         return ExportInspectorRequest(id: field.id, clearFilters: field.hidden)
+    }
+    var reviewReminder: String {
+        visibleIDs != nil
+            ? "Review filters affect this list only; all \(selectedCount) captured fields will be exported. Summary excludes field names."
+            : "Review filters affect this list only; all \(selectedCount) pins will be exported. Summary excludes field names."
     }
     var selectedCount: Int { comparison.rows.filter { (visibleIDs ?? pinnedIDs)?.contains($0.id) ?? true }.count }
     static let pinnedByteLimit = 16 * 1024 * 1024
@@ -124,7 +130,7 @@ struct ExportSheet: View {
             }
             .padding(12).frame(maxWidth: .infinity, alignment: .leading)
             .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
-            if snapshot.pinnedIDs != nil {
+            if snapshot.isScoped {
                 statusBreakdown
                 includedFields
             }
@@ -164,7 +170,7 @@ struct ExportSheet: View {
     private var statusBreakdown: some View {
         let counts = snapshot.reviewCounts
         return VStack(alignment: .leading, spacing: 6) {
-            Text("All pinned fields · status counts").font(.caption).foregroundStyle(.secondary)
+            Text(snapshot.visibleIDs != nil ? "All captured fields · status counts" : "All pinned fields · status counts").font(.caption).foregroundStyle(.secondary)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 145), spacing: 6)], alignment: .leading, spacing: 6) {
                 ForEach(DifferenceStatus.allCases.filter { (counts[$0] ?? 0) > 0 }, id: \.self) { status in
                     Button {
@@ -200,7 +206,7 @@ struct ExportSheet: View {
                     Spacer(minLength: 8)
                     Text(reviewStatus?.rawValue ?? "All statuses")
                 }.font(.caption).monospacedDigit()
-                Text("Review filters affect this list only; all \(snapshot.selectedCount) pins will be exported. Summary excludes field names.")
+                Text(snapshot.reviewReminder)
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 ScrollView {
@@ -218,11 +224,13 @@ struct ExportSheet: View {
                                 HStack {
                                     Text(field.status.rawValue).font(.caption)
                                     Spacer(minLength: 8)
-                                    Button("Review in Inspector") {
-                                        guard let request = snapshot.inspectorRequest(for: field.id) else { return }
-                                        if request.clearFilters { pendingReview = request }
-                                        else { reviewField(request) }
-                                    }.controlSize(.small)
+                                    if snapshot.visibleIDs == nil {
+                                        Button("Review in Inspector") {
+                                            guard let request = snapshot.inspectorRequest(for: field.id) else { return }
+                                            if request.clearFilters { pendingReview = request }
+                                            else { reviewField(request) }
+                                        }.controlSize(.small)
+                                    }
                                 }
                                 if field.hidden {
                                     Text("Hidden in current view").font(.caption).foregroundStyle(.secondary)

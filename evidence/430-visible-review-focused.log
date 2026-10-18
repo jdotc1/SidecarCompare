@@ -1,0 +1,1 @@
+PASS: captured pointer/status list and canonical order, case-insensitive escaped-pointer search/status intersection/empty recovery, no hidden/value/status search leakage, complete-snapshot status counts and membership/reminder retained, summary still exports all captured fields, visible inspector navigation unavailable
