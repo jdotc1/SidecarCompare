@@ -22,6 +22,7 @@ struct WorkspaceView: View {
     @State private var exportSnapshot: ExportSnapshot?
     @State private var pendingExportReview: ExportInspectorRequest?
     @State private var search = ""
+    @State private var fullTableSearch = FullTableSearchState()
     @State private var searchScope = TableSearchScope.pathsAndPreviews
     @State private var differencesOnly = true
     @State private var pins = PinnedFields()
@@ -61,6 +62,13 @@ struct WorkspaceView: View {
         .frame(minWidth: showInspector ? 1128 : 850, minHeight: 580)
         .searchable(text: $search, prompt: Text(searchPrompt))
         .toolbar { toolbar }
+        .task(id: fullSearchRequest) {
+            await fullTableSearch.run(fullSearchRequest, rows: session.comparison?.rows ?? [])
+        }
+        .onChange(of: fullSearchUnavailable) { _, unavailable in
+            if !unavailable, !restoringReloadSelection, let selection,
+               !visibleRows.contains(where: { $0.id == selection }) { self.selection = nil }
+        }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json, .plainText], allowsMultipleSelection: false) { result in
             switch result {
             case .success(let urls):
@@ -119,7 +127,7 @@ struct WorkspaceView: View {
             if enabled && status == .equal { status = nil }
         }
         .onChange(of: visibleRows.map(\.id)) { _, ids in
-            if !restoringReloadSelection, let selection, !ids.contains(selection) { self.selection = nil }
+            if !restoringReloadSelection, !fullSearchUnavailable, let selection, !ids.contains(selection) { self.selection = nil }
         }
         .onChange(of: selection) { previous, selected in
             if !restoringReloadSelection, !session.isBusy, let previous {
@@ -136,7 +144,7 @@ struct WorkspaceView: View {
         }
         .onChange(of: session.a?.id) { _, _ in if !restoringReloadSelection { selection = nil; refreshFeedback = nil; inspectorReview.resetAll(); inspectorHistory = InspectorHistory(); pins = PinnedFields(); pinnedOnly = false } else { inspectorReview.resetField() }; notification = nil }
         .onChange(of: session.b?.id) { _, _ in if !restoringReloadSelection { selection = nil; refreshFeedback = nil; inspectorReview.resetAll(); inspectorHistory = InspectorHistory(); pins = PinnedFields(); pinnedOnly = false } else { inspectorReview.resetField() }; notification = nil }
-        .onChange(of: session.isBusy || !restoringReloadSelection) { _, waiting in
+        .onChange(of: session.isBusy || !restoringReloadSelection || fullSearchPending) { _, waiting in
             guard !waiting else { return }
             finishReload()
         }
@@ -156,8 +164,8 @@ struct WorkspaceView: View {
         }
     }
     private var inspector: some View {
-        RowInspector(canBack: canModify && !session.isBusy && session.comparison != nil && inspectorHistory.back != nil,
-                     canForward: canModify && !session.isBusy && session.comparison != nil && inspectorHistory.forward != nil,
+        RowInspector(canBack: canModify && !session.isBusy && !fullSearchUnavailable && session.comparison != nil && inspectorHistory.back != nil,
+                     canForward: canModify && !session.isBusy && !fullSearchUnavailable && session.comparison != nil && inspectorHistory.forward != nil,
                      back: { travelHistory(forward: false) }, forward: { travelHistory(forward: true) }, canResetWidth: abs(inspectorWidth - 315) >= 1,
                      resetWidth: { inspectorWidth = 315 },
                      row: selectedRow, revision: [session.a?.id, session.b?.id], milliseconds: milliseconds, position: differencePosition,
@@ -165,20 +173,28 @@ struct WorkspaceView: View {
                      canNext: differenceTarget(forward: true) != nil,
                      previous: { navigateDifference(forward: false) },
                      next: { navigateDifference(forward: true) },
-                     canShowInTable: selectedRow != nil && canModify && !session.isBusy,
+                     canShowInTable: selectedRow != nil && canModify && !session.isBusy && !fullSearchUnavailable,
                      showInTable: { tableRevealRequest = UUID() },
                      isPinned: selectedRow.map { pins.contains($0.id) } ?? false,
                      canPin: canModify && !session.isBusy,
                      togglePin: { if let row = selectedRow { togglePin(row) } },
                      copyMatchContext: copyMatchContext, canCopy: canCopyRow, copyMessage: rowCopyMessage, copy: copyRow, review: inspectorReview)
     }
+    private var fullSearchRequest: FullTableSearchRequest {
+        FullTableSearchRequest(sources: [session.a?.id, session.b?.id], policy: session.policy.relativeTolerance.token,
+                               query: Data(search.utf8), enabled: searchScope == .fullValues && session.comparison != nil && !session.isBusy)
+    }
+    private var fullSearchPending: Bool { fullTableSearch.pending(for: fullSearchRequest) }
+    private var fullSearchFailure: String? { fullTableSearch.failure(for: fullSearchRequest) }
+    private var fullSearchUnavailable: Bool { fullSearchPending || (fullSearchRequest.needsSearch && fullSearchFailure != nil) }
     private var visibleRows: [ComparisonRow] {
-        (session.comparison?.filtered(search: search, differencesOnly: differencesOnly, category: category, scope: searchScope) ?? [])
+        (session.comparison?.filtered(search: search, differencesOnly: differencesOnly, category: category, scope: searchScope, fullValueMatches: fullTableSearch.matches(for: fullSearchRequest)) ?? [])
             .filter { (!pinnedOnly || pins.contains($0.id)) && (status == nil || $0.status == status) }
             .sorted(using: sortOrder + [KeyPathComparator(\ComparisonRow.id)])
     }
     private var selectedRow: ComparisonRow? {
         guard let selection else { return nil }
+        if fullSearchUnavailable { return session.comparison?.rows.first { $0.id == selection } }
         return visibleRows.first { $0.id == selection }
     }
     private func fileWell(_ slot: FileSlot) -> some View {
@@ -236,7 +252,7 @@ struct WorkspaceView: View {
                         .disabled(!canCopyRow || pins.ids.isEmpty)
                         .help("Copy all pinned JSON Pointers, including hidden fields, one per line in pointer order.")
                     Button("Export Pinned Comparisons…", action: exportPinnedComparisons)
-                        .disabled(!canModify || session.isBusy || pins.ids.isEmpty)
+                        .disabled(!canModify || session.isBusy || fullSearchUnavailable || pins.ids.isEmpty)
                     Button("Copy Pinned Comparisons (\(pins.ids.count))", action: copyPinnedComparisons)
                         .disabled(!canCopyRow || pins.ids.isEmpty)
                         .help("Copy complete original A/B metadata for all pins, including hidden fields. Limit: 4 MiB; no partial output.")
@@ -253,7 +269,7 @@ struct WorkspaceView: View {
                 }
                 if !pins.ids.isEmpty {
                     Button("Go to Pin…") { showPolicy = false; showPinPicker = true }
-                        .disabled(!canModify || session.isBusy || session.comparison == nil)
+                        .disabled(!canModify || session.isBusy || fullSearchUnavailable || session.comparison == nil)
                     Button("Previous") { navigatePin(forward: false) }
                         .help("Previous pinned field in the current table order.")
                         .disabled(!canModify || session.isBusy || pinnedNavigation.target(forward: false) == nil)
@@ -270,7 +286,7 @@ struct WorkspaceView: View {
                     Text("All \(pins.ids.count) pinned fields are hidden by filters.")
                         .font(.caption).foregroundStyle(.secondary)
                     Button("Show Pinned Fields", action: showPinnedFields)
-                        .disabled(!canModify || session.isBusy || session.comparison == nil)
+                        .disabled(!canModify || session.isBusy || fullSearchUnavailable || session.comparison == nil)
                 }.controlSize(.small)
             }
             if pinnedOnly || status != nil || category != nil || !search.isEmpty {
@@ -329,10 +345,12 @@ struct WorkspaceView: View {
         case .pathsAndPreviews: "Search paths and value previews"
         case .pointers: "Search JSON Pointers"
         case .previews: "Search value previews"
+        case .fullValues: "Search full A/B JSON · case-sensitive"
         }
     }
     private var searchScopeHelp: String {
         switch searchScope {
+        case .fullValues: "Literal, case-sensitive search of complete raw A/B JSON, including escaping. Runs in the background; changing scope keeps the query. Inspector Find stays independent."
         case .pointers: "Search JSON Pointer text. Changing scope keeps the query."
         case .pathsAndPreviews: "Search paths and short A/B value previews. Use Find in values in the inspector to search complete values."
         case .previews: "Search short A/B value previews. Use Find in values in the inspector to search complete values."
@@ -351,7 +369,7 @@ struct WorkspaceView: View {
     private func differenceBreakdown(_ result: Comparison) -> some View {
         let counts = result.counts
         return VStack(alignment: .leading, spacing: 5) {
-            Text("View: \(activeFilterSummary) · \(visibleRows.count) of \(result.rows.count) rows shown. Counts below cover the full comparison.")
+            Text(fullSearchUnavailable ? "View: \(activeFilterSummary) · Full-value results pending or unavailable. Counts below cover the full comparison." : "View: \(activeFilterSummary) · \(visibleRows.count) of \(result.rows.count) rows shown. Counts below cover the full comparison.")
                 .font(.caption).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 6)], alignment: .leading, spacing: 6) {
@@ -378,6 +396,18 @@ struct WorkspaceView: View {
                 Text(session.isComparing ? "Comparing metadata…" : "Reading sidecar…").foregroundStyle(.secondary)
                 Button("Cancel and Clear") { clear() }
             }.frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if fullSearchPending {
+            VStack(spacing: 12) {
+                ProgressView()
+                Text("Searching complete A/B values…").font(.headline)
+                Text("Literal, case-sensitive raw JSON. No partial results are shown.").foregroundStyle(.secondary)
+                Button("Cancel Search") { search = "" }
+            }.frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if fullSearchRequest.needsSearch, let error = fullSearchFailure {
+            VStack(spacing: 12) {
+                Text(error).foregroundStyle(.secondary)
+                Button("Clear Search") { search = "" }
+            }.frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let error = session.comparisonError {
             ContentUnavailableView("Comparison unavailable", systemImage: "exclamationmark.triangle", description: Text(error))
         } else if let result = session.comparison {
@@ -394,7 +424,7 @@ struct WorkspaceView: View {
                                     .multilineTextAlignment(.center)
                                     .fixedSize(horizontal: false, vertical: true)
                                 if !search.isEmpty {
-                                    Text("Search scope: \(searchScope.rawValue). Value search covers previews, not complete values.")
+                                    Text(searchScope == .fullValues ? "Search scope: Full A/B values. Literal, case-sensitive complete raw JSON, including escaping." : "Search scope: \(searchScope.rawValue). Value search covers previews, not complete values.")
                                         .font(.caption).foregroundStyle(.secondary)
                                         .multilineTextAlignment(.center)
                                         .fixedSize(horizontal: false, vertical: true)
@@ -441,7 +471,7 @@ struct WorkspaceView: View {
         VStack(alignment: .leading, spacing: 5) {
             HStack {
                 if let result = session.comparison {
-                    Text("\(visibleRows.count) shown / \(result.rows.count) rows · \(result.differenceCount) differences")
+                    Text(fullSearchUnavailable ? "Full-value search pending or unavailable · \(result.rows.count) total rows" : "\(visibleRows.count) shown / \(result.rows.count) rows · \(result.differenceCount) differences")
                     if let count = result.counts[.withinTolerance], count > 0 { Text("· \(count) within tolerance") }
                 } else { Text("Local, in-memory snapshots") }
                 Spacer()
@@ -483,25 +513,26 @@ struct WorkspaceView: View {
             Menu {
                 Button("Export Full Comparison…", action: export)
                 Button("Export Visible Comparisons (\(visibleRows.count))…", action: exportVisibleComparisons)
-                    .disabled(visibleRows.isEmpty || session.isBusy)
+                    .disabled(visibleRows.isEmpty || session.isBusy || fullSearchUnavailable)
             } label: { Label("Export", systemImage: "square.and.arrow.up") }
-                .disabled(session.comparison == nil || !canModify)
+                .disabled(session.comparison == nil || !canModify || fullSearchUnavailable)
             Button { showInspector.toggle() } label: { Label("Inspector", systemImage: "sidebar.right") }
         }
     }
     private var canModify: Bool { !showImporter && exportSnapshot == nil && !showPointer && !showPinPicker && pendingHistory == nil }
     private var actions: WorkspaceActions {
-        WorkspaceActions(canGoToPointer: canModify && !session.isBusy && session.comparison != nil,
+        WorkspaceActions(canGoToPointer: canModify && !session.isBusy && !fullSearchUnavailable && session.comparison != nil,
                          goToPointer: { showPolicy = false; showPointer = true }, canRevealA: canReveal(.a), canRevealB: canReveal(.b),
                          revealA: { reveal(.a) }, revealB: { reveal(.b) }, resetView: resetView, canReloadA: canReload(.a), canReloadB: canReload(.b),
                          canReloadBoth: canReloadBoth, reloadBoth: reloadBoth, reloadA: { reload(.a) }, reloadB: { reload(.b) }, canPreviousDifference: differenceTarget(forward: false) != nil,
                          canNextDifference: differenceTarget(forward: true) != nil,
                          previousDifference: { navigateDifference(forward: false) },
-                         nextDifference: { navigateDifference(forward: true) }, canOpen: canModify, canSwap: session.canSwap && canModify, canExport: session.comparison != nil && canModify,
+                         nextDifference: { navigateDifference(forward: true) }, canOpen: canModify, canSwap: session.canSwap && canModify, canExport: session.comparison != nil && canModify && !fullSearchUnavailable,
                          openA: { choose(.a) }, openB: { choose(.b) }, swap: swap, clear: clear,
                          example: example, export: export, copySummary: copySummary)
     }
     private var differencePosition: String {
+        if fullSearchUnavailable { return "Full-value results pending or unavailable" }
         guard !session.isBusy, session.comparison != nil else { return "No comparison ready" }
         let differences = visibleRows.filter { $0.status != .equal }
         guard !differences.isEmpty else { return "No differences in this view" }
@@ -578,6 +609,7 @@ struct WorkspaceView: View {
         rowCopyMessage = nil
     }
     private func finishReload() {
+        guard !fullSearchPending else { return }
         if let comparison = session.comparison {
             let ids = Set(comparison.rows.map(\.id))
             inspectorHistory.retain(ids)
@@ -629,7 +661,7 @@ struct WorkspaceView: View {
         importSlot = slot; showImporter = true
     }
     private func travelHistory(forward: Bool) {
-        guard canModify, !session.isBusy,
+        guard canModify, !session.isBusy, !fullSearchUnavailable,
               let target = forward ? inspectorHistory.forward : inspectorHistory.back else { return }
         let id = inspectorHistory.entries[target]
         guard session.comparison?.rows.contains(where: { $0.id == id }) == true else { return }
@@ -732,11 +764,11 @@ struct WorkspaceView: View {
         } catch { actionError = "The bundled synthetic example could not be loaded." }
     }
     private func export() {
-        guard canModify, let result = session.comparison else { return }
+        guard canModify, !fullSearchUnavailable, let result = session.comparison else { return }
         exportSnapshot = ExportSnapshot(comparison: result, documents: session.sourceDocuments, visibleRowCount: visibleRows.count)
     }
     private func exportVisibleComparisons() {
-        guard canModify, !session.isBusy, !visibleRows.isEmpty, let result = session.comparison else { return }
+        guard canModify, !session.isBusy, !fullSearchUnavailable, !visibleRows.isEmpty, let result = session.comparison else { return }
         let ids = Set(visibleRows.map(\.id))
         exportSnapshot = ExportSnapshot(comparison: result, documents: session.sourceDocuments,
                                         visibleRowCount: ids.count, visibleIDs: ids)
@@ -755,7 +787,7 @@ struct WorkspaceView: View {
         tableRevealRequest = UUID()
     }
     private func exportPinnedComparisons() {
-        guard canModify, !session.isBusy, !pins.ids.isEmpty, let result = session.comparison else { return }
+        guard canModify, !session.isBusy, !fullSearchUnavailable, !pins.ids.isEmpty, let result = session.comparison else { return }
         exportSnapshot = ExportSnapshot(comparison: result, documents: session.sourceDocuments,
             visibleRowCount: visibleRows.filter { pins.ids.contains($0.id) }.count, pinnedIDs: pins.ids,
             visiblePinnedIDs: Set(visibleRows.map(\.id)))

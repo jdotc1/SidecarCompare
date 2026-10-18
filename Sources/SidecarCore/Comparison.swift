@@ -62,6 +62,7 @@ public enum TableSearchScope: String, CaseIterable, Sendable {
     case pathsAndPreviews = "Paths & previews"
     case pointers = "JSON Pointers only"
     case previews = "Value previews only"
+    case fullValues = "Full A/B values"
 }
 
 public struct Comparison: Sendable {
@@ -71,13 +72,14 @@ public struct Comparison: Sendable {
     public var counts: [DifferenceStatus: Int] {
         Dictionary(grouping: rows, by: \.status).mapValues(\.count)
     }
-    public func filtered(search: String, differencesOnly: Bool, category: FieldCategory?, scope: TableSearchScope = .pathsAndPreviews) -> [ComparisonRow] {
+    public func filtered(search: String, differencesOnly: Bool, category: FieldCategory?, scope: TableSearchScope = .pathsAndPreviews, fullValueMatches: Set<String>? = nil) -> [ComparisonRow] {
         rows.filter { row in
-            (!differencesOnly || row.status != .equal) && (category == nil || category == row.category) &&
-            (search.isEmpty ||
-             (scope != .previews && row.path.localizedCaseInsensitiveContains(search)) ||
-             (scope != .pointers && ((row.a?.compactPreview.localizedCaseInsensitiveContains(search) ?? false) ||
-                                    (row.b?.compactPreview.localizedCaseInsensitiveContains(search) ?? false))))
+            guard (!differencesOnly || row.status != .equal), category == nil || category == row.category else { return false }
+            guard !search.isEmpty else { return true }
+            if scope == .fullValues { return fullValueMatches?.contains(row.id) == true }
+            return (scope != .previews && row.path.localizedCaseInsensitiveContains(search)) ||
+                (scope != .pointers && ((row.a?.compactPreview.localizedCaseInsensitiveContains(search) ?? false) ||
+                                       (row.b?.compactPreview.localizedCaseInsensitiveContains(search) ?? false)))
         }
     }
 }

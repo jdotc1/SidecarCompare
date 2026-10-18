@@ -1,0 +1,1 @@
+PASS: full A/B raw JSON beyond9000, literal case/Unicode/escaping, absent vs null, no pointer matching, existing filters/no partial fallback; deterministic A→B→A stale generation rejection, pending/atomic results, scope/source/policy identities, cancellation, failure/no partials
