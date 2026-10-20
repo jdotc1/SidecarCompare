@@ -4,17 +4,20 @@
 
 # SidecarCompare
 
-**Compare MRI JSON sidecars with exact numbers and clear, inspectable differences.**
+**Data-integrity review for MRI JSON sidecars, with exact numeric comparisons.**
 
-SidecarCompare is a native macOS utility for reviewing acquisition metadata in
-two JSON sidecars. See what changed, inspect original values and documented
-units, and copy or export a finding without modifying either input. A Swift
-library and optional CLI use the same comparison core.
+SidecarCompare is a native macOS utility for reviewing acquisition metadata
+changes in two MRI JSON sidecars. It compares numbers without conversion to
+binary floating point, preserves original numeric tokens for inspection, and
+keeps JSON types distinct. Review documented units, copy or export findings,
+and leave both input files unchanged. A Swift library and optional CLI use the
+same comparison core.
 
-Use it when reviewing acquisition-parameter changes, checking converter output,
-or discussing metadata differences with a collaborator. It compares the supplied
-metadata; it does not read images or establish that two scans are scientifically
-or clinically comparable.
+Use it to examine acquisition-parameter changes, check converter output, or
+document metadata differences for a collaborator. Processing is local, and
+report exports default to summary-only output that omits source keys and
+values. It compares supplied metadata; it does not read images, validate a BIDS
+dataset, or establish scientific or clinical scan equivalence.
 
 **[Build and try it](#build-and-run-on-a-mac)** ·
 **[Try the CLI](#command-line-comparison)** ·
