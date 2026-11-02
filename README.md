@@ -34,12 +34,12 @@ separate from the recorded development checks.
 The shared comparison core retains JSON types and original numeric tokens without modifying either source file.
 
 ```mermaid
-flowchart LR
-  A["Sidecar A"] --> C["Parse typed JSON and exact numbers"]
+flowchart TB
+  A["Sidecar A"] --> C["Parse JSON"]
   B["Sidecar B"] --> C
-  C --> D["Compare paths and documented units"]
-  D --> E["Review exact findings"]
-  E --> F["Copy or export results"]
+  C --> D["Compare fields"]
+  D --> E["Review changes"]
+  E --> F["Export report"]
 ```
 
 ## Build and run on a Mac
