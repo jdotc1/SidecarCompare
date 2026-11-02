@@ -29,6 +29,19 @@ requires macOS 15+ and Apple Swift 6. Development bundles are ad-hoc signed and
 sandboxed; distribution signing, notarization, and install qualification are
 separate from the recorded development checks.
 
+## Visual workflow
+
+The shared comparison core retains JSON types and original numeric tokens without modifying either source file.
+
+```mermaid
+flowchart LR
+  A["Sidecar A"] --> C["Parse typed JSON and exact numbers"]
+  B["Sidecar B"] --> C
+  C --> D["Compare paths and documented units"]
+  D --> E["Review exact findings"]
+  E --> F["Copy or export results"]
+```
+
 ## Build and run on a Mac
 
 Install an Apple Swift 6 toolchain with the macOS SDK, then run:
